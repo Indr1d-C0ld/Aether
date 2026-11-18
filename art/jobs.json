@@ -1,0 +1,1278 @@
+{
+ "style": "1990 VGA 256-color pixel art, dark cyberpunk, neon cyan and magenta accents, crisp pixels",
+ "palette": [
+  "#05060b",
+  "#0a0d18",
+  "#121a30",
+  "#1f2c4d",
+  "#2f4472",
+  "#7487b3",
+  "#d6e4ff",
+  "#ffffff",
+  "#2ef2ff",
+  "#137f8a",
+  "#ff2bd6",
+  "#8a1777",
+  "#39ff88",
+  "#127a44",
+  "#ffb000",
+  "#ffd23d",
+  "#ff8a3d",
+  "#ff3355",
+  "#3d8bff",
+  "#9d5cff",
+  "#160a32",
+  "#4a0d4e",
+  "#7a1253",
+  "#f2c6a0",
+  "#c88b62",
+  "#7a4a35",
+  "#3a3f55"
+ ],
+ "jobs": [
+  {
+   "out": "hero.png",
+   "tool": "pixflux",
+   "w": 320,
+   "h": 120,
+   "prompt": "wide cyberpunk city skyline at night in the rain, striped synthwave sun on the horizon, neon signs, antennas with red lights, glowing windows",
+   "detail": "highly detailed"
+  },
+  {
+   "out": "icon-64.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "app icon: stylized letter A made of cyan circuit lines on black, thin magenta line underneath"
+  },
+  {
+   "out": "tools/breaker.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: cracked padlock with green code characters",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "tools/dict.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: open book with glowing words",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "tools/proxy.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: solid purple stone wall with a glowing cyan arrow passing through a hole",
+   "transparent": true,
+   "outline": "single color black outline",
+   "seed": 7
+  },
+  {
+   "out": "tools/firewall.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: wall of cyan flames with a breach",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "tools/monbypass.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: surveillance camera eye crossed out",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "tools/decrypt.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: key unlocking a file with cipher symbols",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "tools/logdel.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: pink pencil eraser rubbing out a paper document sheet, no letters",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "tools/tracker.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: round radar screen with a red dot",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "tools/forensics.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: magnifying glass over a fingerprint",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "tools/bdkit.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: green poison vial plugged into a cable",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "tools/honey.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: honey jar with a data file inside",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "tools/patch.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game item icon: shield with a cross bandage",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/relay.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: radio antenna tower",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/registry.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: official seal stamp",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/edu.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: graduation cap",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/law.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: police badge",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/gov.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: filing cabinet",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/bank.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: bank vault door",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/corp.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: corporate skyscraper",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/lab.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: test tube",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/news.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: folded newspaper",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/market.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: stock chart arrow",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/transit.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: maglev train",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "npc/nyx.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "bust portrait of a female hacker, mirrored sunglasses, black hood, magenta hair, facing viewer, dark background"
+  },
+  {
+   "out": "npc/kite.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "bust portrait of a young male hacker, headset, messy hair, hoodie, facing viewer, dark background"
+  },
+  {
+   "out": "npc/moth.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "bust portrait of a mysterious hacker with cybernetic eye implant and gas mask, facing viewer, dark background"
+  },
+  {
+   "out": "npc/razor.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "bust portrait of a punk hacker, mohawk, piercings, facing viewer, dark background"
+  },
+  {
+   "out": "npc/warden-sable.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "bust portrait of a stern security chief, short grey hair, cyan visor, facing viewer, dark background"
+  },
+  {
+   "out": "npc/iris.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "bust portrait of a female analyst with headphones and data glasses, facing viewer, dark background"
+  },
+  {
+   "out": "npc/hound.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "bust portrait of a rookie security analyst, cap, earpiece, facing viewer, dark background"
+  },
+  {
+   "out": "kinds/gateway.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: retro home computer terminal with a red alarm light on top",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "people/p001.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged west african man, black curly hair, wearing glasses, plain t-shirt, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p002.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult south asian woman, white curly hair, wearing a headscarf, denim jacket, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p003.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged latin american woman, dark brown shaved side hairstyle, with a nose piercing, raincoat, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p004.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged east asian man, bald head, suit jacket, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p005.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged nordic woman, brown shaved side hairstyle, with a neck tattoo, suit jacket, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p006.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly middle eastern man, grey mohawk, turtleneck, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p007.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly latin american man, grey slicked back hair, wearing glasses, work uniform, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p008.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged nordic man, dark brown long hair, denim jacket, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p009.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged east asian woman, dark brown bob haircut, wearing a cap, suit jacket, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p010.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult south asian woman, dyed blue ponytail, plain t-shirt, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p011.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult middle eastern man, brown short hair, plain t-shirt, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p012.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged nordic man, black buzz cut, with a scar on the cheek, turtleneck, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p013.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult west african woman, dyed blue curly hair, plain t-shirt, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p014.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young west african man, dyed pink long hair, wearing round sunglasses, leather jacket, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p015.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly west african man, white curly hair, raincoat, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p016.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young middle eastern man, bald head, plain t-shirt, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p017.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult nordic man, black slicked back hair, wearing round sunglasses, work uniform, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p018.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young slavic woman, brown braids, plain t-shirt, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p019.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly south asian man, white long hair, wearing a cap, raincoat, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p020.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged west african woman, black bun, with a neck tattoo, work uniform, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p021.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly south asian woman, grey curly hair, turtleneck, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p022.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly south asian man, white receding hairline, denim jacket, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p023.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly east asian woman, white long straight hair, wearing round sunglasses, lab coat, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p024.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult latin american man, white short hair, with a nose piercing, lab coat, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p025.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult mediterranean man, dyed pink short hair, turtleneck, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p026.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult nordic woman, dyed blue long straight hair, with a nose piercing, raincoat, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p027.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly east asian man, grey buzz cut, with a nose piercing, hoodie, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p028.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly latin american man, grey mohawk, with a face tattoo, formal shirt, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p029.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult east asian woman, dyed blue ponytail, turtleneck, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p030.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly nordic woman, white shaved side hairstyle, hoodie, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p031.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly mediterranean woman, grey bob haircut, with a face tattoo, raincoat, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p032.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult mediterranean woman, black braids, leather jacket, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p033.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged middle eastern man, dyed pink mohawk, with a neck tattoo, work uniform, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p034.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged south asian woman, dyed green ponytail, work uniform, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p035.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly south asian woman, grey braids, denim jacket, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p036.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult middle eastern woman, dyed blue bob haircut, lab coat, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p037.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult middle eastern woman, grey bob haircut, with a nose piercing, denim jacket, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p038.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult south asian man, bald head, with a beard, leather jacket, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p039.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young slavic woman, brown braids, turtleneck, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p040.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult west african woman, red curly hair, raincoat, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p041.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly nordic woman, white curly hair, turtleneck, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p042.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged east asian man, dyed blue short hair, leather jacket, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p043.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged east asian man, red mohawk, wearing a cap, raincoat, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p044.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged latin american man, bald head, with a nose piercing, turtleneck, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p045.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged east asian woman, grey bob haircut, suit jacket, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p046.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged middle eastern man, grey curly hair, wearing a cap, raincoat, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p047.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult latin american woman, dyed green braids, with earrings, lab coat, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p048.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young latin american man, brown receding hairline, leather jacket, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p049.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly middle eastern man, dyed green receding hairline, lab coat, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p050.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult east asian woman, red curly hair, leather jacket, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p051.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult slavic man, dyed blue mohawk, with a face tattoo, formal shirt, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p052.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young south asian woman, dark brown long straight hair, wearing glasses, turtleneck, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p053.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult south asian man, bald head, with a scar on the cheek, turtleneck, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p054.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young mediterranean woman, blonde bun, wearing glasses, work uniform, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p055.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult slavic woman, dyed pink curly hair, work uniform, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p056.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly west african man, white long hair, with a face tattoo, turtleneck, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p057.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly slavic woman, grey ponytail, with earrings, lab coat, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p058.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged west african woman, dyed green bun, with a neck tattoo, formal shirt, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p059.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young slavic man, bald head, raincoat, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p060.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly east asian man, white slicked back hair, with a face tattoo, suit jacket, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p061.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly south asian woman, white braids, turtleneck, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p062.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult nordic woman, red shaved side hairstyle, lab coat, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p063.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged nordic woman, red bob haircut, leather jacket, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p064.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged latin american woman, dark brown long straight hair, wearing round sunglasses, formal shirt, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p065.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged latin american man, dyed pink buzz cut, with earrings, formal shirt, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p066.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly latin american man, grey curly hair, with a mustache, hoodie, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p067.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult mediterranean woman, red curly hair, formal shirt, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p068.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult slavic man, grey buzz cut, with a face tattoo, formal shirt, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p069.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young latin american man, red short hair, wearing round sunglasses, hoodie, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p070.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly south asian man, grey mohawk, with a mustache, formal shirt, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p071.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly east asian man, bald head, with a beard, leather jacket, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p072.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly latin american man, grey slicked back hair, with a face tattoo, suit jacket, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p073.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult nordic man, dark brown slicked back hair, with a face tattoo, suit jacket, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p074.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult slavic man, dark brown receding hairline, with a small cybernetic eye implant, turtleneck, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p075.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young mediterranean woman, dyed pink braids, lab coat, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p076.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult south asian woman, brown shaved side hairstyle, turtleneck, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p077.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly middle eastern woman, white bob haircut, wearing round sunglasses, lab coat, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p078.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult middle eastern woman, black bob haircut, wearing round sunglasses, work uniform, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p079.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged south asian man, bald head, with a face tattoo, work uniform, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p080.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged west african man, red curly hair, wearing a tie, plain t-shirt, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p081.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult slavic woman, dyed green short pixie cut, with a neck tattoo, denim jacket, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p082.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly latin american woman, grey ponytail, plain t-shirt, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p083.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly south asian man, grey long hair, with a mustache, formal shirt, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p084.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult latin american woman, white bob haircut, with a face tattoo, lab coat, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p085.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged south asian man, dark brown long hair, denim jacket, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p086.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly east asian woman, grey curly hair, leather jacket, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p087.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult latin american woman, black braids, wearing a cap, work uniform, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p088.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly middle eastern man, bald head, denim jacket, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p089.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult south asian man, dyed pink curly hair, turtleneck, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p090.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young east asian man, bald head, with a scar on the cheek, hoodie, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p091.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly latin american woman, grey curly hair, leather jacket, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p092.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult mediterranean man, grey long hair, with earrings, suit jacket, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p093.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a elderly east asian woman, white ponytail, leather jacket, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p094.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young nordic man, red short hair, hoodie, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p095.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult middle eastern man, grey receding hairline, formal shirt, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p096.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged middle eastern man, black receding hairline, work uniform, pale green background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p097.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a middle-aged latin american man, blonde curly hair, wearing round sunglasses, formal shirt, pale blue background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p098.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a young slavic woman, brown long straight hair, lab coat, beige background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p099.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult mediterranean woman, blonde curly hair, with a neck tattoo, denim jacket, light grey background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "people/p100.png",
+   "tool": "pixflux",
+   "w": 64,
+   "h": 64,
+   "prompt": "ID card photo, head and shoulders portrait of a adult mediterranean man, dyed blue curly hair, with a mustache, lab coat, white background, facing the camera, neutral expression, digitized photo",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "maps/_tex_neon.png",
+   "tool": "pixflux",
+   "w": 320,
+   "h": 180,
+   "prompt": "top-down abstract cyberpunk circuit board city grid, glowing magenta and cyan lines and nodes on very dark purple, seamless texture",
+   "palette": false,
+   "style": false
+  },
+  {
+   "out": "kinds/shop.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: shop storefront with a striped awning",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/med.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: hospital red cross sign",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/util.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: electric power pylon with lightning bolt",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/telco.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: retro telephone handset",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/home.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: beige 1990s home desktop computer with CRT monitor",
+   "transparent": true,
+   "outline": "single color black outline"
+  },
+  {
+   "out": "kinds/mil.png",
+   "tool": "pixflux",
+   "w": 32,
+   "h": 32,
+   "prompt": "game icon: military radar dish",
+   "transparent": true,
+   "outline": "single color black outline"
+  }
+ ]
+}
