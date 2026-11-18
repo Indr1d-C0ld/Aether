@@ -75,6 +75,7 @@ install -d -m 0750 -o aether -g aether "$DATA"
 STAGE="$PREFIX/app.new"
 rm -rf "$STAGE"; install -d -m 0755 "$STAGE"
 cp -a "$REPO/server" "$REPO/shared" "$REPO/dist" "$REPO/package.json" "$REPO/package-lock.json" "$REPO/LICENSE" "$STAGE/"
+install -d "$STAGE/scripts" && cp -a "$REPO/scripts/admin-account.ts" "$STAGE/scripts/"
 (cd "$STAGE" && env PATH="$NODE_DIR/bin:/usr/bin:/bin" HOME=/root "$NPM" ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error)
 chown -R root:root "$STAGE"; chmod -R go-w "$STAGE"
 rm -rf "$PREFIX/app.old"; [[ -d $APP ]] && mv "$APP" "$PREFIX/app.old"
@@ -111,3 +112,5 @@ curl -fsS -o /dev/null -w 'pagina  %{http_code}\n' "http://127.0.0.1/aether/"
 curl -fsS "http://127.0.0.1/aether/health"; echo
 rm -rf "$PREFIX/app.old"
 say "Fatto: https://timrouter.dns.army/aether/"
+echo "Account dell'amministratore (crearlo o cambiargli la chiave):"
+echo "  sudo -u aether $NODE $APP/scripts/admin-account.ts --db $DATA/aether.db admin_"
