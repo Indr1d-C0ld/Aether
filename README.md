@@ -152,7 +152,7 @@ Per azzerare il mondo: ferma il server e cancella `data/aether.db*`.
 
 ## Amministrazione
 
-Un account staff (handle in `AETHER_ADMINS`, predefinito `admin_`) ha la scheda **Admin**, la sala di controllo:
+Un account staff (handle in `AETHER_ADMINS`, predefinito `admin`) ha la scheda **Admin**, la sala di controllo:
 
 - **panoramica**: handle, connessi, attivi, iscrizioni, guerra, economia, attività degli ultimi 30 giorni, classifiche, contratti per tipo, azioni più usate, stato del mondo e del server;
 - **regolazioni**: 26 manopole su economia, trace e rischio, giustizia, mondo, iscrizioni e accessi, comunicazione (ricompense, durata del trace, velocità degli strumenti, calore, arresti, NPC, bacheca, blackout, iscrizioni aperte/con approvazione/chiuse, manutenzione, avviso in alto…);
@@ -165,7 +165,7 @@ Un account staff (handle in `AETHER_ADMINS`, predefinito `admin_`) ha la scheda 
 L'account non si registra dal gioco: si crea (o se ne cambia la chiave) con
 
 ```bash
-node scripts/admin-account.ts --db percorso/aether.db admin_
+node scripts/admin-account.ts --db percorso/aether.db admin
 ```
 
 ## Carriera e traguardi

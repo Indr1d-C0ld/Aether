@@ -23,7 +23,7 @@ const DB_PATH = process.env.AETHER_DB ?? join(ROOT, "data", "aether.db");
 const store = new Store(DB_PATH);
 // Gli handle dell'amministrazione: non si registrano dal gioco, si creano con scripts/admin-account.ts.
 const ADMIN_HANDLES = new Set(
-  (process.env.AETHER_ADMINS ?? "admin_")
+  (process.env.AETHER_ADMINS ?? "admin")
     .split(",")
     .map((h) => h.trim().toLowerCase())
     .filter(Boolean),

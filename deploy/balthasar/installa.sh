@@ -113,4 +113,4 @@ curl -fsS "http://127.0.0.1/aether/health"; echo
 rm -rf "$PREFIX/app.old"
 say "Fatto: https://timrouter.dns.army/aether/"
 echo "Account dell'amministratore (crearlo o cambiargli la chiave):"
-echo "  sudo -u aether $NODE $APP/scripts/admin-account.ts --db $DATA/aether.db admin_"
+echo "  sudo -u aether $NODE $APP/scripts/admin-account.ts --db $DATA/aether.db admin"

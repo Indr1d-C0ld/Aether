@@ -2,9 +2,9 @@
 // La chiave si scrive al terminale (non resta nella cronologia della shell né in un file),
 // oppure arriva da stdin per gli script: printf '%s\n' "$CHIAVE" | node scripts/admin-account.ts ...
 //
-//   node scripts/admin-account.ts [--db percorso/aether.db] [handle]     (handle predefinito: admin_)
+//   node scripts/admin-account.ts [--db percorso/aether.db] [handle]     (handle predefinito: admin)
 //
-// L'handle deve stare in AETHER_ADMINS del server (predefinito «admin_»): al primo accesso il server
+// L'handle deve stare in AETHER_ADMINS del server (predefinito «admin»): al primo accesso il server
 // gli crea l'agente con i poteri del pannello. Cambiare la chiave chiude le sessioni aperte.
 import { createInterface } from "node:readline";
 import { randomBytes } from "node:crypto";
@@ -12,10 +12,34 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Store } from "../server/db.ts";
 
+// --rinomina <vecchio> <nuovo>: cambia l'handle di un account (a server FERMO: il server tiene gli agenti in memoria)
 const args = process.argv.slice(2);
 const dbAt = args.indexOf("--db");
 const db = dbAt >= 0 ? args[dbAt + 1]! : (process.env.AETHER_DB ?? join(fileURLToPath(new URL("..", import.meta.url)), "data", "aether.db"));
-const handle = args.filter((_, i) => i !== dbAt && i !== dbAt + 1)[0] ?? "admin_";
+const rest = args.filter((_, i) => i !== dbAt && i !== dbAt + 1);
+if (rest[0] === "--rinomina") {
+  const [, from, to] = rest;
+  if (!from || !to || !/^[A-Za-z0-9_\-]{3,16}$/.test(to)) {
+    console.error("uso: --rinomina <vecchio> <nuovo>");
+    process.exit(1);
+  }
+  const st = new Store(db);
+  const acct = st.accountByHandle(from);
+  if (!acct) {
+    console.error(`nessun account «${from}»`);
+    process.exit(1);
+  }
+  if (st.accountByHandle(to)) {
+    console.error(`«${to}» esiste già`);
+    process.exit(1);
+  }
+  st.renameAccount(acct.agentId, to);
+  const doc = st.get<{ handle: string }>("agent", acct.agentId);
+  if (doc) st.put("agent", acct.agentId, { ...doc, handle: to });
+  console.log(`«${from}» ora è «${to}»${doc ? "" : " (l'agente nascerà al primo accesso)"}.`);
+  process.exit(0);
+}
+const handle = rest[0] ?? "admin";
 
 if (!/^[A-Za-z0-9_\-]{3,16}$/.test(handle)) {
   console.error("handle: 3-16 caratteri, lettere, numeri, - e _");

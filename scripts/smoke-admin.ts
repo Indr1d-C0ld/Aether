@@ -7,7 +7,7 @@ import type { GameState, ServerMsg } from "../shared/types.ts";
 
 const port = process.argv[2] ?? "7077";
 const store = new Store(process.env.AETHER_DB!);
-store.createAccount("admin_", "provadmin99", "ag_testadmin");
+store.createAccount("admin", "provadmin99", "ag_testadmin");
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 type Res = Extract<ServerMsg, { t: "res" }>;
@@ -46,10 +46,10 @@ const check = (name: string, ok: boolean) => {
 };
 const tag = Math.random().toString(36).slice(2, 6);
 
-const adm = await open({ t: "auth", mode: "login", handle: "admin_", pass: "provadmin99" });
+const adm = await open({ t: "auth", mode: "login", handle: "admin", pass: "provadmin99" });
 await sleep(600);
 check("l'admin entra e ha il pannello", adm.x.t === "auth_ok" && adm.st.s?.me.admin === true);
-const reserved = await open({ t: "auth", mode: "register", handle: "Admin_", pass: "qualcosa1", faction: "red" });
+const reserved = await open({ t: "auth", mode: "register", handle: "Admin", pass: "qualcosa1", faction: "red" });
 check("l'handle dell'admin non si registra dal gioco", reserved.x.t === "auth_err");
 
 const p1 = await open({ t: "auth", mode: "register", handle: `uno_${tag}`, pass: "segreto123", faction: "blue" });
