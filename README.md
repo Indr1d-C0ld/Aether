@@ -1,11 +1,116 @@
+<p align="center">
+  <img src="docs/img/hero.png" alt="AETHER: skyline al neon sotto la pioggia" width="960">
+</p>
+
 # AETHER
 
-Deck d'intrusione multiplayer e persistente, rosso contro blu, sul Reticolo del 2039.
-Reinterpretazione moderna del modello di Uplink: hacking da film, trace da battere, log che ricordano tutto.
+**Deck d'intrusione multiplayer e persistente, rosso contro blu, sul Reticolo del 2039.**
+
+AETHER è una reinterpretazione moderna di *Uplink*, il simulatore di hacking del 2001, e un tributo al cinema hacker
+degli anni '80 e '90: *WarGames*, *Hackers*, *Johnny Mnemonic*, *Il tagliaerbe*. Non guidi un avatar: sei un handle
+in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordano tutto quello che non cancelli.
+
+![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
+![Node 26](https://img.shields.io/badge/node-26-brightgreen)
+![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
+
+![La schermata d'accesso: scegli un handle e una cellula](docs/img/accesso.jpg)
+
+## Indice
+
+- [Come si gioca](#come-si-gioca)
+- [Rossi e blu](#rossi-e-blu)
+- [Il mondo](#il-mondo)
+- [La regia](#la-regia)
+- [Avvio rapido](#avvio-rapido)
+- [Struttura](#struttura)
+- [Grafica](#grafica) · [Audio](#audio) · [PWA e Android](#pwa-e-android)
+- [Licenza](#licenza)
+
+## Come si gioca
+
+Il cuore è quello di Uplink, portato all'estremo e reso condiviso.
+
+1. **Rimbalza.** Sul planisfero costruisci la catena di relay fra il tuo gateway e il bersaglio. Ogni hop allunga il
+   trace: contano il tipo di relay, i confini attraversati, la distanza, le chiavi che possiedi e quanto hai già
+   consumato quel percorso.
+2. **Entra.** Abbatti proxy e firewall, confondi il monitor, forza la password. Gli strumenti lavorano in tempo reale
+   e si dividono la CPU del tuo deck.
+3. **Fai il lavoro.** Copia, decifra, cancella, altera un fascicolo, sposta denaro, spegni un sistema.
+4. **Cancella le tracce e stacca.** Ogni azione lascia una riga nei log di ogni nodo attraversato. Quello che non
+   cancelli diventa una catena di prove che qualcuno, prima o poi, seguirà fino a te.
+
+![Il planisfero con il rimbalzo, la ricerca dei nodi e il War Dialer](docs/img/mappa.jpg)
+
+Il server è autorevole: decide tempi, trace ed esiti. Il mondo è persistente e uno solo per tutti.
+
+## Rossi e blu
+
+| | Cellula rossa | Cellula blu |
+|---|---|---|
+| Mestiere | Intrusione, furto, sabotaggio | Difesa, forensica, caccia |
+| Contratti | Rubare e distruggere dati, alterare archivi, bonifici, arresti pilotati, sabotaggi, trasporti | Recuperare file, ripristinare archivi, stornare bonifici, bonificare relay, risalire al colpevole |
+| Armi | Password Breaker, bypass, Log Deleter, backdoor, exploit monouso | Forensics, Patch Kit, honeypot, sensori, analista, contro-trace |
+| Rischio | Calore, capi d'accusa, mandato, arresto, cauzione | Reputazione, costi della sala operativa |
+
+Intorno ai contratti c'è tutto il resto:
+
+- **23 tipi di contratto** in cinque gradi di difficoltà, con modificatori e ricompense misurate.
+- **Giustizia**: calore, capi d'accusa, mandati, arresto con sequestro e carcere, cauzione, fedina da ripulire nel casellario.
+- **Bottino e rarità**: exploit monouso, chip da montare sul deck e quattro pezzi leggendari nascosti in nodi che non sono su nessuna mappa.
+- **Mercato**: software e hardware su due canali (uno per cellula), mercato nero fra giocatori, ricettatore, taglie con deposito.
+- **Gateway attaccabili**: il terminale di ogni giocatore è un nodo. Si può entrare, prosciugare, sovraccaricare, e subire la rivalsa.
+- **Fama, etica, imprese e classifiche**, più una guerra permanente fra le due cellule.
+
+<p align="center">
+  <img src="docs/img/strumenti-icone.png" alt="Le icone degli strumenti" width="900">
+</p>
+
+## Il mondo
+
+Il Reticolo ha **320 nodi** su 73 città: banche, negozi, uffici pubblici, ospedali, laboratori, compagnie telefoniche,
+reti elettriche, polizia, redazioni, basi militari, PC di casa. All'inizio ne conosci una trentina: gli altri si trovano
+scandagliando le regioni con il War Dialer, interrogando il Registro, leggendo file e intercettando linee.
+
+Ogni nodo reagisce secondo quello che è. Un negozio non guarda chi entra finché non tocchi la cassa. Una banca blocca
+il login dopo pochi tentativi e ferma i bonifici oltre il tetto dell'antifrode. Di notte la guardia è più lenta, in
+allerta più rapida, e un blackout acceca un'intera regione.
+
+Il planisfero si può vedere in cinque stili:
+
+![I cinque stili della mappa: Reticolo, Uplink, NORAD, Neon, Notte](docs/img/mappe.png)
+
+Nel mondo vivono **100 cittadini** con anagrafe, fedina, titoli di studio, conto in banca, datore di lavoro e PC di casa.
+Sono loro la materia dei contratti sui profili: rintracciare una persona, cambiarle i dati, farla arrestare, svuotarle il conto.
+
+![Alcuni dei cento cittadini del Reticolo](docs/img/cittadini.png)
+
+## La regia
+
+Tutto il cinema da hacker è in scena, e si spegne con l'interruttore «cine».
+
+Gli strumenti lavorano a schermo: oscilloscopio del monitor in loop, raffica di pacchetti falsificati, muro di porte che cade.
+
+![Monitor in loop, tunnel proxy e scansione delle porte del firewall](docs/img/strumenti.jpg)
+
+La password cede un carattere alla volta, mentre il brute force scorre.
+
+![Il Password Breaker blocca i caratteri uno alla volta](docs/img/password.jpg)
+
+Lo schedario sfoglia le foto tessera a raffica prima di fermarsi sulla scheda giusta.
+
+![Confronto delle schede nell'anagrafe](docs/img/schedario.jpg)
+
+E quando il trace stringe, lo schermo te lo dice.
+
+![Trace al 98 per cento: stacca](docs/img/trace.jpg)
 
 ## Avvio rapido
 
+Serve Node 26 o successivo.
+
 ```bash
+git clone https://github.com/Indr1d-C0ld/aether.git
 cd aether
 npm install
 npm run dev        # server di gioco (porta 7077, con --watch) + Vite (porta 5173, o PORT)
@@ -47,6 +152,8 @@ Per azzerare il mondo: ferma il server e cancella `data/aether.db*`.
 
 ## Struttura
 
+Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESIGN.md).
+
 | Cartella | Contenuto |
 |---|---|
 | `shared/types.ts` | Viste inviate al client e protocollo WebSocket |
@@ -68,7 +175,7 @@ le barre (trace e task) fra un aggiornamento e l'altro.
 ## Grafica
 
 Le immagini in pixel art (scena d'accesso, icone dei software e dei nodi, ritratti NPC, icona dell'app) sono generate
-con PixelLab: vedi `ASSETS.md` e `scripts/pixellab.ts`. Se un file manca, il client ripiega sul disegno procedurale.
+con PixelLab: vedi [ASSETS.md](ASSETS.md) e `scripts/pixellab.ts`. Se un file manca, il client ripiega sul disegno procedurale.
 
 ## Audio
 
