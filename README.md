@@ -110,7 +110,7 @@ E quando il trace stringe, lo schermo te lo dice.
 Serve Node 26 o successivo.
 
 ```bash
-git clone https://github.com/Indr1d-C0ld/aether.git
+git clone https://github.com/Indr1d-C0ld/Aether.git
 cd aether
 npm install
 npm run dev        # server di gioco (porta 7077, con --watch) + Vite (porta 5173, o PORT)

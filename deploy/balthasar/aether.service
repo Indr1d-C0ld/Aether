@@ -1,6 +1,6 @@
 [Unit]
 Description=AETHER - server del gioco di hacking multiplayer
-Documentation=https://github.com/Indr1d-C0ld/aether
+Documentation=https://github.com/Indr1d-C0ld/Aether
 After=network-online.target
 Wants=network-online.target
 
