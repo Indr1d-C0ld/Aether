@@ -83,3 +83,10 @@ il browser sblocca l'audio al primo clic o tasto.
 
 Il client è una PWA (manifest + service worker, icone PNG 192 e 512). Per un APK con Bubblewrap serve
 ancora un URL HTTPS pubblico del server: vedi `DESIGN.md`, sezione Prossimi passi.
+
+## Licenza
+
+AETHER è software libero, distribuito sotto la [GNU General Public License versione 3](LICENSE).
+Puoi usarlo, studiarlo, modificarlo e ridistribuirlo alle condizioni di quella licenza; non c'è alcuna garanzia.
+
+AETHER è un tributo a *Uplink* (Introversion Software): non contiene codice né materiale di quel gioco.
