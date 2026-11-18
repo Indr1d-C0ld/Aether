@@ -107,6 +107,9 @@ export type AgentView = {
   bail: number;
   investigations: { org: string; at: number; sweepAt: number; grave: boolean }[];
   feats: string[];
+  counters: Record<string, number>; // contatori personali: statistiche e traguardi
+  admin: boolean; // è l'account dell'amministratore
+  createdAt: number;
   account: string; // il tuo conto, per i bonifici
   pending: { amount: number; clearAt: number; from: string }[]; // bonifici rubati non ancora accreditati
   scanUntil: number; // War Dialer in corso
@@ -318,6 +321,7 @@ export type GameState = {
   market: ListingView[];
   war: { red: number; blue: number };
   serverNow: number;
+  notice: { text: string; tone: "info" | "warn" | "bad" } | null; // avviso dell'amministrazione
 };
 
 // ---- Protocollo WebSocket ----

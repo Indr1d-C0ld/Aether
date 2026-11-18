@@ -56,12 +56,14 @@ await Promise.all([red.ready, blue.ready]);
 await red.auth(`deep_${tag}`, "red");
 await blue.auth(`soc_${tag}`, "blue");
 await sleep(400);
-await red.do("devGrant", { xp: 600, credits: 20000, tools: { proxy: 3, firewall: 3, decrypt: 3, wardialer: 3, breaker: 3 }, hw: { cpu: 5, modem: 3, memory: 3 } });
+await red.do("devGrant", { xp: 600, credits: 20000, tools: { proxy: 3, firewall: 3, decrypt: 3, wardialer: 3, breaker: 3, monbypass: 3 }, hw: { cpu: 5, modem: 3, memory: 3 } });
 const me = () => red.state!.me;
 type Rec = { id: string; name: string; sub: string; fields: { key: string; value: string; options: string[] }[]; account: { number: string; balance: number } | null };
 const search = async (c: Client, q: string) => ((await c.do("searchRecords", { q })).data as { records: Rec[]; total: number });
 const breakIn = async (chain: string[], ip?: string) => {
   await red.do("connect", ip ? { chain, targetIp: ip } : { chain });
+  // con il mandato federale il trace corre: il Monitor Bypass tiene il test lontano dall'arresto
+  if (red.state!.op!.target.sec.monitor > 0) await red.do("run", { tool: "monbypass" });
   if (!red.state!.op!.bypass.proxy) await red.do("run", { tool: "proxy" });
   if (!red.state!.op!.bypass.firewall) await red.do("run", { tool: "firewall" });
   await red.waitTasks();

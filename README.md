@@ -150,6 +150,30 @@ node scripts/playtest.ts 7099       # bilanciamento: un bot gioca a 5 livelli di
 
 Per azzerare il mondo: ferma il server e cancella `data/aether.db*`.
 
+## Amministrazione
+
+Un account staff (handle in `AETHER_ADMINS`, predefinito `admin_`) ha la scheda **Admin**, la sala di controllo:
+
+- **panoramica**: handle, connessi, attivi, iscrizioni, guerra, economia, attività degli ultimi 30 giorni, classifiche, contratti per tipo, azioni più usate, stato del mondo e del server;
+- **regolazioni**: 26 manopole su economia, trace e rischio, giustizia, mondo, iscrizioni e accessi, comunicazione (ricompense, durata del trace, velocità degli strumenti, calore, arresti, NPC, bacheca, blackout, iscrizioni aperte/con approvazione/chiuse, manutenzione, avviso in alto…);
+- **account**: ricerca, approvazione delle iscrizioni, sospensione a tempo o per sempre, scollegamento, cambio di chiave, rinomina, cambio di cellula, crediti/XP/calore/fama/etica, software e hardware, fedina, custodia, cancellazione; scheda con statistiche e traguardi;
+- **connessioni**: chi è collegato, da dove, cosa sta facendo; indirizzi bloccati;
+- **messaggi**: posta a tutti, a una cellula, ai collegati o a un singolo handle; avvisi istantanei; notizie nel feed;
+- **manutenzione**: salvataggio, copia del database, bacheca rigenerata, mondo calmato, amnistia, operazioni chiuse, tutti scollegati;
+- **registro**: ogni azione dell'amministrazione, con chi e quando.
+
+L'account non si registra dal gioco: si crea (o se ne cambia la chiave) con
+
+```bash
+node scripts/admin-account.ts --db percorso/aether.db admin_
+```
+
+## Carriera e traguardi
+
+Ogni giocatore ha la scheda **Carriera**: statistiche personali (operazioni, intrusione, dati, denaro, contratti, esplorazione,
+sistemi, giustizia, difesa, mercato) e **328 traguardi**: 82 serie su ogni aspetto del gioco, ciascuna in quattro gradi
+(bronzo, argento, oro, platino), più le 18 imprese speciali. Il catalogo è in `shared/achievements.ts`.
+
 ## Pubblicazione su un server
 
 AETHER è pensato per stare dietro un reverse proxy, anche sotto un percorso:

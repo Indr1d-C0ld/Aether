@@ -69,6 +69,38 @@ export class Store {
     return got.length === want.length && timingSafeEqual(got, want) ? row.agent_id : null;
   }
 
+  /** Nuova chiave per un account esistente (chi la cambia, chiude anche le sessioni aperte). */
+  setPassword(agentId: string, pass: string) {
+    const salt = randomBytes(16).toString("hex");
+    const hash = scryptSync(pass, salt, 32).toString("hex");
+    const r = this.db.prepare("update accounts set salt = ?, hash = ? where agent_id = ?").run(salt, hash, agentId);
+    this.revokeTokens(agentId);
+    return Number(r.changes) > 0;
+  }
+
+  accountByHandle(handle: string): { handle: string; agentId: string } | null {
+    const row = this.db.prepare("select handle, agent_id from accounts where handle_key = ?").get(handle.toLowerCase()) as { handle: string; agent_id: string } | undefined;
+    return row ? { handle: row.handle, agentId: row.agent_id } : null;
+  }
+
+  renameAccount(agentId: string, handle: string) {
+    this.db.prepare("update accounts set handle_key = ?, handle = ? where agent_id = ?").run(handle.toLowerCase(), handle, agentId);
+  }
+
+  deleteAccount(agentId: string) {
+    this.db.prepare("delete from accounts where agent_id = ?").run(agentId);
+    this.revokeTokens(agentId);
+  }
+
+  revokeTokens(agentId: string) {
+    this.db.prepare("delete from tokens where agent_id = ?").run(agentId);
+  }
+
+  /** Copia coerente del database (VACUUM INTO): per le copie a mano dal pannello. */
+  snapshot(path: string) {
+    this.db.prepare("vacuum into ?").run(path);
+  }
+
   issueToken(agentId: string) {
     const token = randomBytes(24).toString("base64url");
     this.db.prepare("insert into tokens (token, agent_id, created) values (?, ?, ?)").run(token, agentId, Date.now());

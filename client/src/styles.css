@@ -1557,3 +1557,222 @@ table.board tr.you td {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* ---------- carriera: traguardi e statistiche ---------- */
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 10px;
+}
+.stat-grid.compact {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+}
+.stat-tile {
+  padding: 10px 12px;
+  display: grid;
+  gap: 2px;
+  align-content: start;
+}
+.stat-tile.hot {
+  border-color: var(--faction);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--faction) 40%, transparent);
+}
+.stat-row {
+  font-size: 13px;
+  padding: 2px 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--line) 60%, transparent);
+  gap: 10px;
+}
+.bar-row,
+.spark-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 1.2fr) 2fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.bar {
+  height: 8px;
+  background: var(--void);
+  border: 1px solid var(--line);
+  position: relative;
+}
+.bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--faction);
+}
+.spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 26px;
+}
+.spark i {
+  flex: 1;
+  min-width: 2px;
+  background: var(--line);
+}
+.ach-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  background: var(--void);
+  padding: 10px 14px;
+}
+.ach-tiercount {
+  font-size: 13px;
+}
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 8px;
+}
+.ach {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: var(--void);
+  padding: 9px 10px;
+}
+.ach.done {
+  box-shadow: inset 0 0 0 1px rgb(126 249 255 / 0.25);
+}
+.ach-pips {
+  display: flex;
+  gap: 3px;
+  flex: none;
+}
+.ach-pips i {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--line-hi);
+  transform: rotate(45deg);
+}
+
+/* ---------- avviso dell'amministrazione ---------- */
+.notice {
+  margin-bottom: 12px;
+  padding: 6px 12px;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 8%, transparent);
+}
+.notice.warn {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
+}
+.notice.bad {
+  border-color: var(--red);
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+}
+
+/* ---------- pannello dell'amministratore ---------- */
+.admin textarea,
+.admin input:not([type="checkbox"]):not([type="range"]),
+.admin select {
+  max-width: 100%;
+}
+.admin textarea {
+  width: 100%;
+  font: inherit;
+  background: var(--void);
+  color: inherit;
+  border: 1px solid var(--line-hi);
+  padding: 6px 8px;
+  resize: vertical;
+}
+.admin-split {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr;
+  gap: 12px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .admin-split {
+    grid-template-columns: 1fr;
+  }
+}
+.acct-row,
+.linkrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: 1px solid transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+.acct-row:hover,
+.linkrow:hover {
+  border-color: var(--line-hi);
+}
+.acct-row.on {
+  border-color: var(--faction);
+  background: color-mix(in srgb, var(--faction) 8%, transparent);
+}
+.linkrow {
+  padding: 2px 0;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-hi);
+  flex: none;
+}
+.dot.on {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+.setting {
+  display: grid;
+  gap: 4px;
+  padding: 6px 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--line) 60%, transparent);
+}
+.table-wrap {
+  overflow-x: auto;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.admin-table th {
+  text-align: left;
+  color: var(--dim);
+  font-weight: normal;
+  border-bottom: 1px solid var(--line);
+  padding: 4px 6px;
+}
+.admin-table td {
+  border-bottom: 1px dashed color-mix(in srgb, var(--line) 60%, transparent);
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+.audit-row {
+  display: grid;
+  grid-template-columns: 80px minmax(60px, 120px) 1fr;
+  gap: 8px;
+  font-size: 13px;
+  padding: 2px 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--line) 60%, transparent);
+}
+.admin input[type="range"] {
+  accent-color: var(--faction);
+}

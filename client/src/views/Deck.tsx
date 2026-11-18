@@ -16,8 +16,10 @@ import { Shop } from "./Shop.tsx";
 import { Gateway } from "./Gateway.tsx";
 import { Ranks } from "./Ranks.tsx";
 import { Feed } from "./Feed.tsx";
+import { Career } from "./Career.tsx";
+import { AdminView } from "./Admin.tsx";
 
-export type ViewId = "map" | "conn" | "board" | "mail" | "shop" | "gateway" | "ranks" | "feed";
+export type ViewId = "map" | "conn" | "board" | "mail" | "shop" | "gateway" | "ranks" | "feed" | "career" | "admin";
 
 export type DeckCtx = {
   state: GameState;
@@ -108,7 +110,9 @@ export function Deck({ snap }: { snap: Snapshot }) {
     { id: "shop", label: "Mercato" },
     { id: "gateway", label: "Gateway" },
     { id: "ranks", label: "Classifiche" },
+    { id: "career", label: "Carriera" },
     { id: "feed", label: "Feed", badge: state.intrusions.length ? "!" : undefined, alert: state.intrusions.length > 0 },
+    ...(me.admin ? [{ id: "admin" as ViewId, label: "Admin", badge: "★" }] : []),
   ];
 
   return (
@@ -165,6 +169,7 @@ export function Deck({ snap }: { snap: Snapshot }) {
       </nav>
 
       <main className="main">
+        {state.notice ? <div className={`notice ${state.notice.tone}`}>{state.notice.text}</div> : null}
         {me.jailUntil > serverNow ? <JailScreen ctx={ctx} /> : null}
         {state.intrusions.length && view !== "feed" ? <IntrusionAlert ctx={ctx} /> : null}
         {view === "map" && <MapView ctx={ctx} trace={trace?.frac ?? null} />}
@@ -175,6 +180,8 @@ export function Deck({ snap }: { snap: Snapshot }) {
         {view === "gateway" && <Gateway ctx={ctx} />}
         {view === "ranks" && <Ranks ctx={ctx} />}
         {view === "feed" && <Feed ctx={ctx} />}
+        {view === "career" && <Career ctx={ctx} />}
+        {view === "admin" && me.admin && <AdminView ctx={ctx} />}
       </main>
 
       <CinemaLayer state={state} traceFrac={trace?.frac ?? null} serverNow={serverNow} />

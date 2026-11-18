@@ -5,7 +5,9 @@ import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { WebSocketServer, type WebSocket } from "ws";
 import { Store } from "./db.ts";
-import { Game } from "./game.ts";
+import { Game, type AgentDoc } from "./game.ts";
+import { installAdmin } from "./admin.ts";
+import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
@@ -19,6 +21,14 @@ const FLUSH_TICKS = Math.max(1, Math.round(Number(process.env.AETHER_FLUSH_S ?? 
 const DB_PATH = process.env.AETHER_DB ?? join(ROOT, "data", "aether.db");
 
 const store = new Store(DB_PATH);
+// Gli handle dell'amministrazione: non si registrano dal gioco, si creano con scripts/admin-account.ts.
+const ADMIN_HANDLES = new Set(
+  (process.env.AETHER_ADMINS ?? "admin_")
+    .split(",")
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean),
+);
+const STARTED_AT = Date.now();
 const sockets = new Map<string, Set<WebSocket>>();
 
 function send(ws: WebSocket, msg: ServerMsg) {
@@ -51,7 +61,7 @@ const http = createServer(async (req, res) => {
   if (url.pathname === "/health") {
     res.writeHead(200, { "content-type": "application/json" });
     // per la landing e il bot di Balthasar: numeri, mai nomi
-    const humans = [...game.agents.values()].filter((a) => !a.npc);
+    const humans = [...game.agents.values()].filter((a) => !a.npc && !a.staff);
     res.end(
       JSON.stringify({
         ok: true,
@@ -108,11 +118,14 @@ function clientIp(req: IncomingMessage) {
 /** Finestre scorrevoli per indirizzo: login sbagliati, registrazioni. Solo in memoria. */
 class Limiter {
   hits = new Map<string, number[]>();
-  max: number;
+  maxFn: () => number;
   windowMs: number;
-  constructor(max: number, windowMs: number) {
-    this.max = max;
+  constructor(max: () => number, windowMs: number) {
+    this.maxFn = max;
     this.windowMs = windowMs;
+  }
+  get max() {
+    return this.maxFn();
   }
   recent(key: string) {
     const t = Date.now();
@@ -134,8 +147,79 @@ class Limiter {
 }
 // In sviluppo e nei test (AETHER_DEV=1) i limiti sono larghissimi: i test registrano decine di handle da 127.0.0.1.
 const DEV = process.env.AETHER_DEV === "1";
-const badLogins = new Limiter(DEV ? 1e6 : 8, 15 * 60_000); // 8 chiavi sbagliate in 15 minuti, poi stop
-const signups = new Limiter(DEV ? 1e6 : 4, 60 * 60_000); // 4 handle nuovi all'ora per indirizzo
+// i limiti si regolano dal pannello dell'amministratore
+const badLogins = new Limiter(() => (DEV ? 1e6 : game.num("loginFails")), 15 * 60_000);
+const signups = new Limiter(() => (DEV ? 1e6 : game.num("signupsPerHour")), 60 * 60_000);
+
+// ------------------------------------------------------------ connessioni aperte (per il pannello)
+type Conn = { ws: WebSocket; ip: string; since: number; msgs: number; agentId: string | null };
+const conns = new Set<Conn>();
+
+function ipBanned(ip: string) {
+  const t = Date.now();
+  return (game.meta.ipBans ?? []).some((b) => b.ip === ip && (!b.until || b.until > t));
+}
+
+function closeConn(c: Conn, reason: string) {
+  send(c.ws, { t: "toast", text: reason, tone: "bad" });
+  send(c.ws, { t: "auth_err", error: reason });
+  setTimeout(() => c.ws.close(4001, "chiuso"), 150);
+}
+
+/** Primo accesso, ultimo accesso, indirizzi, giorni di gioco: per il pannello e per i traguardi. */
+function onLogin(a: AgentDoc, ip: string) {
+  const day = new Date().toISOString().slice(0, 10);
+  a.lastSeen = Date.now();
+  a.lastIp = ip;
+  a.ips = [ip, ...(a.ips ?? []).filter((x) => x !== ip)].slice(0, 8);
+  a.logins = (a.logins ?? 0) + 1;
+  game.bump(a, "login");
+  if (a.lastDay !== day) {
+    a.lastDay = day;
+    game.bump(a, "days");
+  }
+  game.touch("agent", a.id);
+}
+
+/** Chi non può entrare, e perché (null = entra). */
+function gate(a: AgentDoc): string | null {
+  if (game.banned(a)) return `account sospeso${a.ban?.reason ? `: ${a.ban.reason}` : ""}${a.ban?.until ? ` (fino al ${new Date(a.ban.until).toLocaleString("it-IT")})` : ""}`;
+  if (a.awaiting) return "iscrizione in attesa di approvazione dell'amministratore";
+  if (game.on("maintenance") && !a.staff) return String(game.cfg("maintenanceMsg"));
+  return null;
+}
+
+installAdmin(game, {
+  dbPath: DB_PATH,
+  startedAt: STARTED_AT,
+  adminHandles: ADMIN_HANDLES,
+  sessions(): AdminSession[] {
+    return [...conns].map((c) => {
+      const a = c.agentId ? game.agents.get(c.agentId) : null;
+      const op = c.agentId ? game.ops.get(c.agentId) : null;
+      return { agentId: c.agentId, handle: a?.handle ?? null, ip: c.ip, since: c.since, msgs: c.msgs, op: op ? (game.nodes.get(op.chain.at(-1)!)?.org ?? null) : null };
+    });
+  },
+  kick(agentId, reason) {
+    let n = 0;
+    for (const c of conns) if (c.agentId === agentId) (closeConn(c, reason), (n += 1));
+    return n;
+  },
+  kickIp(ip, reason) {
+    let n = 0;
+    for (const c of conns) if (c.ip === ip) (closeConn(c, reason), (n += 1));
+    return n;
+  },
+  kickAll(reason) {
+    let n = 0;
+    for (const c of conns) {
+      if (c.agentId && game.agents.get(c.agentId)?.staff) continue;
+      closeConn(c, reason);
+      n += 1;
+    }
+    return n;
+  },
+});
 setInterval(() => {
   for (const l of [badLogins, signups]) for (const k of [...l.hits.keys()]) l.recent(k);
 }, 10 * 60_000).unref();
@@ -143,12 +227,21 @@ setInterval(() => {
 wss.on("connection", (ws, req) => {
   let agentId: string | null = null;
   const ip = clientIp(req);
+  const conn: Conn = { ws, ip, since: Date.now(), msgs: 0, agentId: null };
+  if (ipBanned(ip)) {
+    send(ws, { t: "auth_err", error: "indirizzo bloccato dall'amministrazione" });
+    ws.close(4003, "bloccato");
+    return;
+  }
+  conns.add(conn);
   // raffiche: oltre 30 messaggi al secondo da una connessione, si chiude
   let burst = 0;
   let burstAt = Date.now();
 
   const bind = (id: string) => {
     agentId = id;
+    conn.agentId = id;
+    onLogin(game.agents.get(id)!, ip);
     if (!sockets.has(id)) sockets.set(id, new Set());
     sockets.get(id)!.add(ws);
     game.online.add(id);
@@ -162,6 +255,7 @@ wss.on("connection", (ws, req) => {
       burstAt = now;
     }
     if (++burst > 30) return ws.close(1008, "troppi messaggi");
+    conn.msgs += 1;
     let msg: ClientMsg;
     try {
       msg = JSON.parse(String(raw)) as ClientMsg;
@@ -171,6 +265,8 @@ wss.on("connection", (ws, req) => {
     if (msg.t === "hello") {
       const id = store.agentForToken(msg.token);
       if (!id || !game.agents.has(id)) return send(ws, { t: "auth_err", error: "sessione scaduta" });
+      const why = gate(game.agents.get(id)!);
+      if (why) return send(ws, { t: "auth_err", error: why });
       bind(id);
       send(ws, { t: "auth_ok", token: msg.token });
       return pushState(id, true);
@@ -179,6 +275,10 @@ wss.on("connection", (ws, req) => {
       const handle = String(msg.handle ?? "").trim();
       const pass = String(msg.pass ?? "");
       if (msg.mode === "register") {
+        const reg = String(game.cfg("registrations"));
+        if (reg === "closed") return send(ws, { t: "auth_err", error: "iscrizioni chiuse: riprova più avanti" });
+        if (game.on("maintenance")) return send(ws, { t: "auth_err", error: String(game.cfg("maintenanceMsg")) });
+        if (ADMIN_HANDLES.has(handle.toLowerCase())) return send(ws, { t: "auth_err", error: "handle riservato" });
         if (signups.blocked(ip)) return send(ws, { t: "auth_err", error: `troppi handle nuovi da questo indirizzo: riprova fra ${signups.wait(ip)} min` });
         if (!HANDLE_RE.test(handle)) return send(ws, { t: "auth_err", error: "handle: 3-16 caratteri, lettere, numeri, - e _" });
         if (pass.length < 6) return send(ws, { t: "auth_err", error: "chiave: almeno 6 caratteri" });
@@ -186,8 +286,19 @@ wss.on("connection", (ws, req) => {
         const clash = store.handleTaken(handle) || [...game.agents.values()].some((a) => a.handle.toLowerCase() === handle.toLowerCase());
         if (clash) return send(ws, { t: "auth_err", error: "handle già in uso" });
         signups.add(ip);
-        const agent = game.createAgent(handle, faction);
+        const awaiting = reg === "approval";
+        const agent = game.createAgent(handle, faction, undefined, awaiting);
         store.createAccount(handle, pass, agent.id);
+        if (awaiting) {
+          agent.awaiting = true;
+          agent.lastIp = ip;
+          agent.ips = [ip];
+          game.touch("agent", agent.id);
+          game.gstat("signup");
+          for (const id of game.online) if (game.agents.get(id)?.staff) game.out.toast(id, `Iscrizione da approvare: ${handle}`, "info");
+          game.flush();
+          return send(ws, { t: "auth_err", error: "iscrizione ricevuta: l'amministratore deve approvarla prima che tu possa entrare" });
+        }
         game.flush();
         const token = store.issueToken(agent.id);
         bind(agent.id);
@@ -196,11 +307,19 @@ wss.on("connection", (ws, req) => {
       }
       if (badLogins.blocked(ip)) return send(ws, { t: "auth_err", error: `troppi tentativi sbagliati: riprova fra ${badLogins.wait(ip)} min` });
       const id = store.verify(handle, pass);
+      // il primo accesso dell'amministratore crea il suo agente
+      if (id && !game.agents.has(id) && ADMIN_HANDLES.has(handle.toLowerCase())) game.createStaff(store.accountByHandle(handle)!.handle, id);
+      if (id && game.agents.has(id) && ADMIN_HANDLES.has(handle.toLowerCase()) && !game.agents.get(id)!.staff) {
+        game.agents.get(id)!.staff = true;
+        game.touch("agent", id);
+      }
       if (!id || !game.agents.has(id)) {
         badLogins.add(ip);
         console.warn(`AETHER · accesso rifiutato per «${handle.slice(0, 16)}» da ${ip}`);
         return send(ws, { t: "auth_err", error: "handle o chiave errati" });
       }
+      const why = gate(game.agents.get(id)!);
+      if (why) return send(ws, { t: "auth_err", error: why });
       const token = store.issueToken(id);
       bind(id);
       send(ws, { t: "auth_ok", token });
@@ -215,7 +334,10 @@ wss.on("connection", (ws, req) => {
   });
 
   ws.on("close", () => {
+    conns.delete(conn);
     if (!agentId) return;
+    const me = game.agents.get(agentId);
+    if (me) me.lastSeen = Date.now();
     const set = sockets.get(agentId);
     set?.delete(ws);
     if (!set?.size) {

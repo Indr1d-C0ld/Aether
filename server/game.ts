@@ -3,6 +3,8 @@
 // trace, task degli strumenti) avanzano in un tick a 4 Hz.
 
 import { randomBytes } from "node:crypto";
+import { TIER_FAME as ACH_FAME, TIER_NAME as ACH_TIER, achId, trackValue, tracksFor } from "../shared/achievements.ts";
+import { DEFAULT_SETTINGS, type AuditRow, type IpBan, type Settings } from "../shared/admin.ts";
 import type { Store } from "./db.ts";
 import { WORLD, WORLD_CITIES } from "./worldgen.ts";
 import { CITIES, CIVIL, CLEARANCES, CRIMES, DEGREES, GRADES, PEOPLE, STATUSES, personById, type Person } from "./people.ts";
@@ -185,6 +187,15 @@ type Agent = {
   grudges: Record<string, number>; // quante volte ha colpito ciascuna organizzazione
   fenced: Record<string, number>; // file già venduti al ricettatore (nodo:file → quando)
   heistAt: number; // ultimo bonifico rubato verso il proprio conto
+  // amministrazione e accessi
+  staff?: boolean; // l'account dell'amministratore: fuori dalle classifiche
+  ban?: { until: number; reason: string; by: string; at: number } | null; // until 0 = per sempre
+  awaiting?: boolean; // iscrizione in attesa di approvazione
+  lastSeen?: number;
+  lastIp?: string;
+  ips?: string[];
+  logins?: number;
+  lastDay?: string;
 };
 
 type Sensor = { ownerId: string; until: number; lines: { at: number; text: string }[] };
@@ -316,7 +327,19 @@ type Op = {
   grave: boolean; // ha toccato denaro: l'indagine è rapida
 };
 
-type Meta = { feed: FeedItem[]; war: { red: number; blue: number }; lastPulse: number; lastDecay: number; blackout?: Partial<Record<Region, number>> };
+type Meta = {
+  feed: FeedItem[];
+  war: { red: number; blue: number };
+  lastPulse: number;
+  lastDecay: number;
+  blackout?: Partial<Record<Region, number>>;
+  // amministrazione
+  settings?: Settings;
+  totals?: Record<string, number>; // contatori globali dei giocatori (non NPC)
+  daily?: Record<string, Record<string, number>>; // gli stessi, giorno per giorno (ultimi 60)
+  audit?: AuditRow[];
+  ipBans?: IpBan[];
+};
 
 /** Tutti i nodi del mondo: quelli scritti a mano e quelli generati. */
 const ALL_SEEDS: SeedNode[] = [...SEED_NODES, ...WORLD.nodes];
@@ -353,7 +376,7 @@ export class Game {
   private persistDirty = new Set<string>();
   out: Outbox;
 
-  private store: Store;
+  store: Store;
 
   constructor(store: Store, out: Outbox) {
     this.store = store;
@@ -362,6 +385,18 @@ export class Game {
   }
 
   // ------------------------------------------------------------ persistenza
+
+  // ------------------------------------------------------------ impostazioni dell'amministratore
+
+  cfg(key: string): number | boolean | string {
+    return this.meta.settings?.[key] ?? DEFAULT_SETTINGS[key]!;
+  }
+  num(key: string) {
+    return Number(this.cfg(key));
+  }
+  on(key: string) {
+    return this.cfg(key) === true;
+  }
 
   load() {
     for (const a of this.store.all<Agent>("agent")) this.agents.set(a.id, a);
@@ -792,6 +827,7 @@ export class Game {
       a.credits += sum;
       this.touch("agent", a.id);
       if (!a.npc) {
+        this.bump(a, "earned", sum);
         this.mail(a, "CONTO", `Accredito: ${fmtCr(sum)}`, `Il bonifico dal conto di ${hit[0]!.from} è arrivato. Nessuno ha fatto domande.`);
         if (sum >= 5000) this.feat(a, "banker");
       }
@@ -849,6 +885,11 @@ export class Game {
   }
 
   giveItem(agent: Agent, item: Item) {
+    if (!agent.npc) {
+      this.bump(agent, "loot");
+      if (item.rarity >= 3) this.bump(agent, "rare");
+      if (item.rarity >= 4) this.bump(agent, "legend");
+    }
     agent.storage.push({ key: uid("st"), name: item.name, nodeId: "loot", fileId: item.code, size: 1, at: now(), rarity: item.rarity, item });
     this.touch("agent", agent.id);
     if (!agent.npc) this.out.toast(agent.id, `Bottino: ${item.name}`, "ok");
@@ -996,7 +1037,46 @@ export class Game {
   bump(agent: Agent, key: string, n = 1) {
     agent.counters[key] = (agent.counters[key] ?? 0) + n;
     this.touch("agent", agent.id);
+    if (!agent.npc) {
+      this.gstat(key, n);
+      this.achieve(agent, key);
+    }
     return agent.counters[key]!;
+  }
+
+  /** Statistiche globali: totale e giorno per giorno (solo giocatori veri). */
+  gstat(key: string, n = 1) {
+    const totals = (this.meta.totals ??= {});
+    totals[key] = (totals[key] ?? 0) + n;
+    const daily = (this.meta.daily ??= {});
+    const day = new Date().toISOString().slice(0, 10);
+    const d = (daily[day] ??= {});
+    d[key] = (d[key] ?? 0) + n;
+    const days = Object.keys(daily).sort();
+    for (const old of days.slice(0, Math.max(0, days.length - 60))) delete daily[old];
+    this.touch("meta", "world");
+  }
+
+  /** Controlla i traguardi delle serie che dipendono da quel contatore (o da un valore dell'agente). */
+  achieve(agent: Agent, key: string) {
+    if (agent.npc) return;
+    for (const tr of tracksFor(key)) {
+      const v = trackValue(tr, agent.counters, { xp: agent.xp, fame: agent.fame, credits: agent.credits });
+      tr.goals.forEach((goal, tier) => {
+        const id = achId(tr.key, tier);
+        if (v < goal || agent.feats.includes(id)) return;
+        agent.feats.push(id);
+        this.addFame(agent, ACH_FAME[tier]!);
+        this.out.toast(agent.id, `Traguardo ${ACH_TIER[tier]}: ${tr.names[tier]}`, "ok");
+        if (tier >= 2) this.mail(agent, "RETICOLO", `Traguardo ${ACH_TIER[tier]}: ${tr.names[tier]}`, `${tr.desc.replace("{n}", goal.toLocaleString("it-IT"))}\n\n+${ACH_FAME[tier]} fama.`);
+        if (tier === 3) this.feed(`${agent.handle} ha conquistato «${tr.names[tier]}».`, "sys");
+      });
+    }
+  }
+
+  /** I traguardi legati a XP, fama e crediti si controllano ogni tanto, non a ogni variazione. */
+  achieveSelf(agent: Agent) {
+    for (const k of ["$xp", "$fame", "$credits"]) this.achieve(agent, k);
   }
 
   bumpArchivist(agent: Agent) {
@@ -1007,8 +1087,13 @@ export class Game {
   /** Chiamata ogni volta che qualcuno ottiene l'accesso admin su un nodo. */
   gotAdmin(_op: Op, agent: Agent, target: WNode) {
     if (agent.npc) return;
+    if (target.kind === "gateway") {
+      const owner = this.gatewayOwner(target);
+      if (owner && owner.id !== agent.id) this.bump(agent, "gw");
+    } else this.bump(agent, `k:${target.kind}`);
     if (!agent.adminNodes.includes(target.id) && target.kind !== "gateway") {
       agent.adminNodes.push(target.id);
+      this.bump(agent, "nodes");
       if (agent.adminNodes.length >= 10) this.feat(agent, "planet");
       this.touch("agent", agent.id);
     }
@@ -1046,10 +1131,16 @@ export class Game {
   }
 
   arrest(agent: Agent, reason: string) {
-    if (agent.npc) {
+    if (agent.npc || agent.staff) {
       agent.heat = 45;
       return;
     }
+    if (!this.on("arrests")) {
+      agent.heat = 80;
+      this.out.toast(agent.id, "Calore al massimo: oggi la Guardia del Reticolo chiude un occhio.", "warn");
+      return;
+    }
+    this.bump(agent, "arrests");
     const op = this.ops.get(agent.id);
     if (op) {
       this.reversePending(op.id);
@@ -1057,8 +1148,8 @@ export class Game {
     }
     this.reversePending(null, agent);
     const fine = Math.round(agent.credits * Math.min(0.4, 0.2 + agent.arrests * 0.05));
-    const secs = jailSeconds(agent.charges, agent.arrests);
-    agent.counters.bail = bailCost(agent.charges, agent.arrests);
+    const secs = Math.round(jailSeconds(agent.charges, agent.arrests) * this.num("jailMult"));
+    agent.counters.bail = Math.round(bailCost(agent.charges, agent.arrests) * this.num("bailMult"));
     agent.credits -= fine;
     const seized = agent.storage.length;
     agent.storage = [];
@@ -1147,6 +1238,7 @@ export class Game {
   discover(agent: Agent, n: WNode) {
     if (agent.discovered.includes(n.id)) return;
     agent.discovered.push(n.id);
+    this.bump(agent, "hidden");
     this.touch("agent", agent.id);
     this.mail(agent, "WAR DIALER", `Portante trovata: ${n.ip}`, `${n.name} · ${n.org}\n${n.blurb}\n\nNon è su nessuna mappa. Ora è sulla tua.`);
     this.addFame(agent, 3);
@@ -1165,7 +1257,10 @@ export class Game {
 
   /** Applica la scala globale delle ricompense ai contratti generati (non alle taglie né ai contratti di prova). */
   priced<T extends Mission | null>(m: T): T {
-    if (m && !m.postedBy && !m.ownerId) m.reward = Math.round((m.reward * REWARD_SCALE) / 10) * 10;
+    if (m && !m.postedBy && !m.ownerId) {
+      m.reward = Math.round((m.reward * REWARD_SCALE * this.num("rewardMult")) / 10) * 10;
+      m.xp = Math.round(m.xp * this.num("xpMult"));
+    }
     return m;
   }
 
@@ -1396,6 +1491,7 @@ export class Game {
   }
 
   eventMission(type: "restore" | "recover" | "reverse" | "restart", node: WNode, fill: (m: Mission) => void) {
+    if (Math.random() >= this.num("eventChance")) return;
     const m = this.baseMission("blue", type, node);
     m.requires = type === "reverse" || type === "restore" ? [] : ["patch"];
     m.expiresAt = now() + 35 * 60_000;
@@ -1472,8 +1568,17 @@ export class Game {
 
   // ------------------------------------------------------------ account
 
-  createAgent(handle: string, faction: Faction): Agent {
-    const id = uid("ag");
+  /** L'account dell'amministratore: un agente come gli altri, fuori dalle classifiche e dai bersagli. */
+  createStaff(handle: string, id: string): Agent {
+    const agent = this.createAgent(handle, "red", id, true);
+    agent.staff = true;
+    agent.credits = 0;
+    this.touch("agent", agent.id);
+    return agent;
+  }
+
+  createAgent(handle: string, faction: Faction, forcedId?: string, quiet = false): Agent {
+    const id = forcedId ?? uid("ag");
     const tools: Agent["tools"] = faction === "red" ? { breaker: 1, firewall: 1, logdel: 1, tracker: 1, wardialer: 1 } : { forensics: 1, patch: 1, tracker: 1, wardialer: 1 };
     const agent: Agent = {
       id,
@@ -1481,7 +1586,7 @@ export class Game {
       faction,
       npc: false,
       skill: 0,
-      credits: START_CREDITS,
+      credits: this.num("startCredits"),
       xp: 0,
       heat: 0,
       gatewayIp: this.freshIp(),
@@ -1501,8 +1606,10 @@ export class Game {
     this.agents.set(id, agent);
     this.touch("agent", id);
     this.ensureGateway(agent);
+    if (quiet) return agent;
     this.welcome(agent);
     this.feed(`Nuovo handle sul Reticolo: ${handle} (${faction === "red" ? "cellula rossa" : "cellula blu"}).`, "sys");
+    this.gstat("signup");
     return agent;
   }
 
@@ -1570,8 +1677,14 @@ export class Game {
   }
 
   addHeat(agent: Agent, delta: number, reason: string) {
-    if (delta > 0) delta = Math.max(1, Math.round(delta * (1 + this.chip(agent, "heat") / 100)));
+    if (delta > 0) {
+      const mult = this.num("heatMult");
+      if (mult <= 0) return;
+      delta = Math.max(1, Math.round(delta * (1 + this.chip(agent, "heat") / 100) * mult));
+    }
+    const was = agent.heat;
     agent.heat = clamp(agent.heat + delta, 0, 100);
+    if (was < 100 && agent.heat >= 100 && !agent.npc) this.bump(agent, "heatmax");
     this.touch("agent", agent.id);
     this.dirty.add(agent.id);
     if (delta > 0 && !agent.npc) this.out.toast(agent.id, `Calore +${delta}: ${reason}`, "warn");
@@ -1617,6 +1730,7 @@ export class Game {
     const n = this.node(nodeId);
     if (!n || n.kind === "gateway" || n.hidden) return false;
     agent.knownNodes.push(nodeId);
+    this.bump(agent, "seen");
     this.touch("agent", agent.id);
     return true;
   }
@@ -1694,7 +1808,7 @@ export class Game {
   fillBoard() {
     for (const faction of ["red", "blue"] as Faction[]) {
       const open = [...this.missions.values()].filter((m) => m.faction === faction && m.status === "open" && !m.ownerId && !m.postedBy).length;
-      for (let i = open, tries = 0; i < BOARD_PER_FACTION && tries < 20; tries += 1) {
+      for (let i = open, tries = 0; i < this.num("boardSize") && tries < 20; tries += 1) {
         const m = this.priced(this.safeRoll(faction));
         if (!m) break;
         // niente doppioni: stesso tipo sullo stesso nodo già in bacheca
@@ -1910,7 +2024,7 @@ export class Game {
     const node = this.node(op.nodeId);
     const actor = this.agents.get(op.agentId);
     // banche, polizia e militari indagano in fretta; chi è già ricercato ha gli inquirenti addosso
-    let delay = op.grave || node?.kind === "bank" || node?.kind === "law" || node?.kind === "mil" ? SWEEP_DELAY / 2 : SWEEP_DELAY;
+    let delay = (op.grave || node?.kind === "bank" || node?.kind === "law" || node?.kind === "mil" ? SWEEP_DELAY / 2 : SWEEP_DELAY) * this.num("sweepMult");
     if (actor && warrantLevel(actor.charges) >= 2) delay /= 2;
     const inc: Incident = { opId: op.id, actorId: op.agentId, nodeId: op.nodeId, at: now(), sweepAt: now() + delay, resolved: false, touched: op.touched, grave: Boolean(op.grave) };
     this.incidents.set(inc.opId, inc);
@@ -2014,6 +2128,7 @@ export class Game {
     const entry = this.sysList(op, target).find((c) => c.id === cmd);
     if (!entry) return { ok: false, error: "questo sistema non ha quel comando" };
     if (entry.blocked) return { ok: false, error: entry.blocked };
+    if ((cmd === "blackout" && !this.on("sysBlackout")) || (cmd === "shutdown" && !this.on("sysShutdown"))) return { ok: false, error: "comando disattivato dall'amministrazione del Reticolo" };
     const from = this.prevIp(op, agent);
     const cool = (min: number) => {
       target.cooldown = { ...(target.cooldown ?? {}), [cmd]: now() + min * 60_000 };
@@ -2188,6 +2303,7 @@ export class Game {
       const actor = this.agents.get(inc.actorId);
       if (actor) {
         actor.stats.clean += 1;
+        if (!actor.npc) this.bump(actor, "ghost");
         actor.xp += 25;
         this.addFame(actor, 1);
         if (actor.stats.clean >= 5) this.feat(actor, "ghost5");
@@ -2300,6 +2416,7 @@ export class Game {
         wanted: [...this.missions.values()].filter((m) => m.type === "copy" && m.status === "open" && m.nodeId === l.file.nodeId && m.fileId === l.file.fileId).length,
       }));
     const board: BoardRow[] = [...this.agents.values()]
+      .filter((a) => !a.staff && !a.awaiting)
       .map((a) => ({
         handle: a.handle,
         faction: a.faction,
@@ -2345,6 +2462,7 @@ export class Game {
       market,
       war: this.meta.war,
       serverNow: t,
+      notice: String(this.cfg("motd") ?? "").trim() ? { text: String(this.cfg("motd")).trim(), tone: this.cfg("motdTone") as "info" | "warn" | "bad" } : null,
     };
   }
 
@@ -2398,6 +2516,9 @@ export class Game {
         .filter((i) => i.actorId === a.id && !i.resolved && i.touched)
         .map((i) => ({ org: this.node(i.nodeId)?.kind === "gateway" ? "un gateway privato" : (this.node(i.nodeId)?.org ?? "?"), at: i.at, sweepAt: i.sweepAt, grave: Boolean(i.grave) })),
       feats: a.feats,
+      counters: a.counters,
+      admin: Boolean(a.staff),
+      createdAt: a.createdAt,
       account: a.account,
       pending: a.pending.map((p) => ({ amount: p.amount, clearAt: p.clearAt, from: p.from })),
       scanUntil: a.scanUntil,
@@ -2551,14 +2672,14 @@ export class Game {
     rate *= WARRANT_TRACE[warrantLevel(agent.charges)]! * op.guard * (1 + this.chip(agent, "trace") / 100);
     // la fama ha un prezzo: i monitor conoscono la firma dei nomi noti
     if (agent.faction === "red") rate *= 1 + fameTier(agent.fame).index * 0.02;
-    return rate;
+    return rate / this.num("traceMult");
   }
 
   taskRate(op: Op, agent: Agent, task: Task) {
     if (task.state !== "run") return 0;
-    if (task.usesModem) return modemSpeed(agent.hw.modem) * (1 + this.chip(agent, "modem") / 100);
+    if (task.usesModem) return modemSpeed(agent.hw.modem) * (1 + this.chip(agent, "modem") / 100) * this.num("toolSpeed");
     const cpuTasks = op.tasks.filter((k) => k.state === "run" && !k.usesModem).length || 1;
-    return (cpuPower(agent.hw.cpu) * (1 + this.chip(agent, "cpu") / 100) * (agent.overloadUntil > now() ? 0.5 : 1)) / cpuTasks;
+    return ((cpuPower(agent.hw.cpu) * (1 + this.chip(agent, "cpu") / 100) * (agent.overloadUntil > now() ? 0.5 : 1)) / cpuTasks) * this.num("toolSpeed");
   }
 
   tick(dtMs: number) {
@@ -2610,8 +2731,8 @@ export class Game {
     if (t - this.meta.lastDecay > 30_000) {
       this.meta.lastDecay = t;
       for (const a of this.agents.values()) {
-        if (a.heat > 0) {
-          a.heat = Math.max(0, a.heat - 1);
+        if (a.heat > 0 && this.num("heatDecay") > 0) {
+          a.heat = Math.max(0, a.heat - this.num("heatDecay"));
           this.touch("agent", a.id);
         }
         // la fama sbiadisce: circa l'1% l'ora, se non la alimenti
@@ -2706,6 +2827,7 @@ export class Game {
     const fine = Math.max(300, Math.round(agent.credits * 0.15));
     agent.credits = Math.max(0, agent.credits - fine);
     agent.stats.caught += 1;
+    if (!agent.npc) this.bump(agent, "traced");
     this.reversePending(op.id);
     this.endOp(op, "caught");
     this.mail(agent, "GUARDIA DEL RETICOLO", `Tracciato · ${target.org}`, `Il monitor di ${target.org} ha risalito il rimbalzo fino al tuo gateway ${agent.gatewayIp}. Multa: ${fmtCr(fine)}.`);
@@ -2753,6 +2875,13 @@ export class Game {
       agent.stats.ops += 1;
       this.touch("agent", agent.id);
       this.dirty.add(agent.id);
+      if (how === "clean" && !agent.npc) {
+        const total = op.trace.hopTimes.reduce((q, v) => q + v, 0);
+        if (op.trace.active && total > 0 && op.trace.progressMs / total >= 0.9) this.bump(agent, "close");
+        if (op.chain.length - 1 >= 6) this.bump(agent, "longroute");
+        const tn0 = this.node(target);
+        if (tn0 && KIND_PROFILE[tn0.kind]?.night && isNight(tn0.x, now())) this.bump(agent, "night");
+      }
     }
     if (how === "clean" && op.access !== "client") this.registerIncident({ id: op.id, agentId: op.agentId, nodeId: target, touched: op.touched, stolen: op.stolen, grave: op.grave });
     // WarGames: l'unica mossa vincente è non giocare
@@ -2771,6 +2900,46 @@ export class Game {
   act(agentId: string, a: string, p: Record<string, unknown>): { ok: boolean; error?: string; note?: string; data?: unknown } {
     const agent = this.agents.get(agentId);
     if (!agent) return { ok: false, error: "agente sconosciuto" };
+    if (a.startsWith("admin.")) {
+      if (!agent.staff) return { ok: false, error: "azione riservata all'amministratore" };
+      return this.adminAct ? this.adminAct(agent, a.slice(6), p) : { ok: false, error: "pannello non disponibile" };
+    }
+    if (this.banned(agent)) return { ok: false, error: "account sospeso" };
+    const before = agent.credits;
+    const r = this.actInner(agent, a, p);
+    if (r.ok && !agent.npc) {
+      if (a !== "readMail" && a !== "dropFile" && a !== "take" && a !== "abandon") this.bump(agent, `a:${a}`);
+      if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
+      if (a === "connect") {
+        const op = this.ops.get(agent.id);
+        const tn = op ? this.node(op.chain.at(-1)!) : null;
+        if (op && op.chain.length > 1) this.bump(agent, "hops", op.chain.length - 1);
+        if (tn && tn.kind !== "gateway") this.bump(agent, `r:${regionAt(tn.x, tn.y)}`);
+      }
+      if (a === "transfer" && String(p.to ?? "") === agent.account) this.bump(agent, "stolen", Math.max(0, Math.round(Number(p.amount) || 0)));
+      const delta = agent.credits - before;
+      if (delta > 0) this.bump(agent, "earned", delta);
+      if (delta < 0 && (a === "buyTool" || a === "buyHw")) this.bump(agent, "spent", -delta);
+      this.achieveSelf(agent);
+    }
+    return r;
+  }
+
+  /** Il pannello dell'amministratore (server/admin.ts lo aggancia qui). */
+  adminAct: ((admin: Agent, a: string, p: Record<string, unknown>) => { ok: boolean; error?: string; note?: string; data?: unknown }) | null = null;
+
+  banned(agent: Agent) {
+    if (!agent.ban) return false;
+    if (agent.ban.until && agent.ban.until < now()) {
+      agent.ban = null;
+      this.touch("agent", agent.id);
+      return false;
+    }
+    return true;
+  }
+
+  actInner(agent: Agent, a: string, p: Record<string, unknown>): { ok: boolean; error?: string; note?: string; data?: unknown } {
+    const agentId = agent.id;
     this.dirty.add(agentId);
     if (agent.jailUntil > now() && a !== "readMail" && a !== "payBail") return { ok: false, error: "sei in custodia: aspetta, o paga la cauzione" };
     try {
@@ -2942,6 +3111,8 @@ export class Game {
     const victim = this.gatewayOwner(target);
     if (victim) {
       if (victim.id === agent.id) return { ok: false, error: "quello è il tuo gateway" };
+      if (!this.on("pvpGateways")) return { ok: false, error: "i gateway degli altri handle sono fuori portata: lo ha deciso l'amministrazione" };
+      if (victim.staff) return { ok: false, error: "nessuna portante" };
       if (agent.xp < GATEWAY_PROTECTION_XP) return { ok: false, error: `per attaccare un gateway servono ${GATEWAY_PROTECTION_XP} XP` };
       if (!victim.npc && victim.xp < GATEWAY_PROTECTION_XP) return { ok: false, error: "gateway protetto: quell'handle è appena arrivato sul Reticolo" };
       if (!victim.npc) this.ensureGateway(victim);
@@ -3218,9 +3389,11 @@ export class Game {
           if (forge && l.fromIp) {
             l.fromIp = forge;
             l.forged = true;
+            this.bump(agent, "forged");
           } else {
             l.removed = version >= 2 ? "clean" : "gap";
             l.removedAt = now();
+            this.bump(agent, "logs");
           }
         }
         this.touch("node", target.id);
@@ -3356,6 +3529,7 @@ export class Game {
             owner.credits += bounty;
             owner.xp += 80;
             owner.stats.defense += 1;
+            if (!owner.npc) this.bump(owner, "honeytrip");
             this.touch("agent", owner.id);
             this.meta.war.blue += 2;
             this.learn(owner, agent.gatewayIp, agent.handle, `ha copiato il tuo honeypot su ${target.org}`);
@@ -3417,6 +3591,7 @@ export class Game {
         break;
       }
     }
+    if (task.state !== "fail" && !agent.npc) this.bump(agent, `t:${task.tool}`);
     this.touch("agent", agent.id);
   }
 
@@ -3644,6 +3819,7 @@ export class Game {
           inc.resolved = true;
           this.touch("incident", inc.opId);
           agent.stats.attributions += 1;
+          this.bump(agent, "attrib");
           if (agent.stats.attributions >= 5) this.feat(agent, "hound");
           // un tuo sensore era sul nodo violato: il cliente paga meglio le prove di prima mano
           if (node.logs.some((l) => l.opId === inc.opId && l.mirrors?.includes(agent.id))) m.reward = Math.round(m.reward * (1 + SENSOR_BONUS));
@@ -3793,11 +3969,17 @@ export class Game {
     }
     // le taglie pagano quello che c'è in deposito; i contratti dei clienti risentono dei chip
     if (!m.postedBy) pay = Math.round(pay * (1 + this.chip(agent, "payout") / 100));
+    if (!agent.npc) {
+      this.bump(agent, `m:${m.type}`);
+      if (tier >= 3) this.bump(agent, "elite");
+      if (m.postedBy) this.bump(agent, "bounty");
+      if (notes.includes("senza traccia +50%")) this.bump(agent, "ghostpay");
+    }
     m.reward = pay;
     this.addFame(agent, [2, 4, 8, 15, 30][tier]!);
     this.feat(agent, "first");
     if (tier >= 3) this.feed(`LUMEN NEWS · Si parla di ${agent.handle}: «${m.title}» è il colpo della settimana.`, agent.faction);
-    if (!m.ownerId && Math.random() < TIER_LOOT[tier]! + this.chip(agent, "luck") / 100) {
+    if (!m.ownerId && Math.random() < (TIER_LOOT[tier]! + this.chip(agent, "luck") / 100) * this.num("lootMult")) {
       const item = this.rollItem([[70, 25, 5, 0], [50, 35, 13, 2], [30, 40, 24, 6], [15, 35, 35, 15], [0, 25, 45, 30]][tier]!);
       this.giveItem(agent, item);
       notes.push(`bottino: ${item.name}`);
@@ -3863,6 +4045,10 @@ export class Game {
     if (seller) {
       seller.credits += net;
       this.touch("agent", seller.id);
+      if (!seller.npc) {
+        this.bump(seller, "sold");
+        this.bump(seller, "earned", net);
+      }
       if (!seller.npc) this.mail(seller, "MERCATO NERO", `Venduto: ${l.file.name}`, `Un compratore ha pagato ${fmtCr(l.price)}. Al netto della trattenuta ti restano ${fmtCr(net)}.`);
     }
     this.feed(`Sul mercato nero è passato di mano ${l.file.name}.`, "sys");
@@ -3876,7 +4062,7 @@ export class Game {
     // lo stesso file non lo ricompra a prezzo pieno: sul mercato non vale niente una seconda copia
     const fkey = `${st.nodeId}:${st.fileId}`;
     const repeat = !st.item && now() - (agent.fenced[fkey] ?? 0) < FENCE_MEMORY;
-    const price = Math.round(this.priceOf(st) * (repeat ? FENCE_REPEAT : 1));
+    const price = Math.round(this.priceOf(st) * (repeat ? FENCE_REPEAT : 1) * this.num("fenceMult"));
     if (!st.item) agent.fenced[fkey] = now();
     agent.storage = agent.storage.filter((x) => x !== st);
     agent.credits += price;
@@ -4199,6 +4385,7 @@ export class Game {
   // ------------------------------------------------------------ NPC
 
   pulse() {
+    if (!this.on("npcActive")) return;
     const ghosts = [...this.agents.values()].filter((a) => a.npc);
     if (!ghosts.length) return;
     const g = pick(ghosts);
@@ -4270,6 +4457,9 @@ export class Game {
 }
 
 class UserError extends Error {}
+
+export type AgentDoc = Agent;
+export type MissionDoc = Mission;
 
 function renderLog(l: LogEntry) {
   return l.text.replace("{FROM}", l.fromIp ?? "?");
