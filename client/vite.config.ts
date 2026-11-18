@@ -6,6 +6,8 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   root,
+  // AETHER_BASE: il percorso sotto cui il gioco è pubblicato (su Balthasar «/aether/»)
+  base: process.env.AETHER_BASE ?? "/",
   plugins: [react()],
   server: {
     host: "0.0.0.0",

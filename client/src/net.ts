@@ -58,7 +58,7 @@ class Net {
 
   private open() {
     const proto = location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${proto}://${location.host}/ws`);
+    const ws = new WebSocket(`${proto}://${location.host}${import.meta.env.BASE_URL}ws`);
     this.ws = ws;
     this.set({ status: "connecting" });
     ws.onopen = () => {

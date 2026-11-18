@@ -1,0 +1,47 @@
+[Unit]
+Description=AETHER - server del gioco di hacking multiplayer
+Documentation=https://github.com/Indr1d-C0ld/aether
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aether
+Group=aether
+WorkingDirectory=/opt/aether/app
+Environment=NODE_ENV=production
+Environment=AETHER_HOST=127.0.0.1
+Environment=AETHER_PORT=7077
+Environment=AETHER_DB=/var/lib/aether/aether.db
+Environment=AETHER_FLUSH_S=300
+ExecStart=/opt/aether/node/bin/node --disable-warning=ExperimentalWarning /opt/aether/app/server/main.ts
+Restart=on-failure
+RestartSec=10
+# il mondo si salva all'arresto: tempo per scriverlo
+TimeoutStopSec=30
+Nice=5
+MemoryMax=768M
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/aether
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectKernelLogs=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+RestrictRealtime=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

@@ -150,6 +150,23 @@ node scripts/playtest.ts 7099       # bilanciamento: un bot gioca a 5 livelli di
 
 Per azzerare il mondo: ferma il server e cancella `data/aether.db*`.
 
+## Pubblicazione su un server
+
+AETHER è pensato per stare dietro un reverse proxy, anche sotto un percorso:
+
+- `AETHER_BASE=/aether/ npm run build` compila il client per quel percorso (indirizzi, WebSocket, service worker);
+- `AETHER_HOST=127.0.0.1` fa ascoltare il server solo in locale, `AETHER_FLUSH_S` decide ogni quanti secondi il mondo va su disco;
+- il server legge l'indirizzo vero da `X-Forwarded-For` (solo se la connessione arriva dal proxy locale) e limita
+  login sbagliati (8 in 15 minuti) e registrazioni (4 all'ora) per indirizzo;
+- `/health` risponde con numeri (giocatori, connessi, operazioni in corso, guerra), mai con nomi.
+
+In `deploy/balthasar/` c'è l'installazione completa per un server Debian con Apache:
+Node 26 verificato in `/opt/aether/node`, servizio systemd in sandbox, conf Apache per `/aether/` e `/aether/ws`.
+
+```bash
+sudo bash deploy/balthasar/installa.sh
+```
+
 ## Struttura
 
 Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESIGN.md).

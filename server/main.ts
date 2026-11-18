@@ -1,5 +1,5 @@
 // Server AETHER: HTTP statico (build del client) + WebSocket autoritativo.
-import { createServer } from "node:http";
+import { createServer, type IncomingMessage } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,6 +11,11 @@ import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const DIST = join(ROOT, "dist");
 const PORT = Number(process.env.AETHER_PORT ?? 7077);
+// Dietro un proxy (Apache su Balthasar) il server ascolta solo in locale: AETHER_HOST=127.0.0.1
+const HOST = process.env.AETHER_HOST ?? "0.0.0.0";
+// Ogni quanti secondi il mondo va su disco. In sviluppo 2 s; su una SSD da risparmiare qualche minuto
+// (si salva comunque alla registrazione di un handle e all'arresto del servizio).
+const FLUSH_TICKS = Math.max(1, Math.round(Number(process.env.AETHER_FLUSH_S ?? 2) * 4));
 const DB_PATH = process.env.AETHER_DB ?? join(ROOT, "data", "aether.db");
 
 const store = new Store(DB_PATH);
@@ -45,7 +50,20 @@ const http = createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", "http://x");
   if (url.pathname === "/health") {
     res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ ok: true, online: game.online.size }));
+    // per la landing e il bot di Balthasar: numeri, mai nomi
+    const humans = [...game.agents.values()].filter((a) => !a.npc);
+    res.end(
+      JSON.stringify({
+        ok: true,
+        online: game.online.size,
+        players: humans.length,
+        red: humans.filter((a) => a.faction === "red").length,
+        blue: humans.filter((a) => a.faction === "blue").length,
+        live: [...game.ops.keys()].filter((id) => !game.agents.get(id)?.npc).length,
+        war: game.meta.war,
+        uptime: Math.round(process.uptime()),
+      }),
+    );
     return;
   }
   let path = normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, "");
@@ -73,11 +91,61 @@ const http = createServer(async (req, res) => {
   }
 });
 
-const wss = new WebSocketServer({ server: http, path: "/ws" });
+// Un messaggio del client è un comando di poche centinaia di byte: niente di più grande passa.
+const wss = new WebSocketServer({ server: http, path: "/ws", maxPayload: 16 * 1024 });
 const HANDLE_RE = /^[A-Za-z0-9_\-]{3,16}$/;
 
-wss.on("connection", (ws) => {
+// ------------------------------------------------------------ difese per un server su internet
+// L'indirizzo vero: se la connessione arriva dal proxy locale, l'ultima voce di X-Forwarded-For
+// (quella scritta da Apache, che un client non può falsificare); altrimenti il socket.
+function clientIp(req: IncomingMessage) {
+  const sock = req.socket.remoteAddress ?? "?";
+  const local = sock === "127.0.0.1" || sock === "::1" || sock === "::ffff:127.0.0.1";
+  const fwd = String(req.headers["x-forwarded-for"] ?? "").split(",").map((s) => s.trim()).filter(Boolean).at(-1);
+  return local && fwd ? fwd : sock;
+}
+
+/** Finestre scorrevoli per indirizzo: login sbagliati, registrazioni. Solo in memoria. */
+class Limiter {
+  hits = new Map<string, number[]>();
+  max: number;
+  windowMs: number;
+  constructor(max: number, windowMs: number) {
+    this.max = max;
+    this.windowMs = windowMs;
+  }
+  recent(key: string) {
+    const t = Date.now();
+    const list = (this.hits.get(key) ?? []).filter((x) => t - x < this.windowMs);
+    if (list.length) this.hits.set(key, list);
+    else this.hits.delete(key);
+    return list;
+  }
+  blocked(key: string) {
+    return this.recent(key).length >= this.max;
+  }
+  add(key: string) {
+    this.hits.set(key, [...this.recent(key), Date.now()]);
+  }
+  wait(key: string) {
+    const list = this.recent(key);
+    return list.length ? Math.ceil((list[0]! + this.windowMs - Date.now()) / 60_000) : 0;
+  }
+}
+// In sviluppo e nei test (AETHER_DEV=1) i limiti sono larghissimi: i test registrano decine di handle da 127.0.0.1.
+const DEV = process.env.AETHER_DEV === "1";
+const badLogins = new Limiter(DEV ? 1e6 : 8, 15 * 60_000); // 8 chiavi sbagliate in 15 minuti, poi stop
+const signups = new Limiter(DEV ? 1e6 : 4, 60 * 60_000); // 4 handle nuovi all'ora per indirizzo
+setInterval(() => {
+  for (const l of [badLogins, signups]) for (const k of [...l.hits.keys()]) l.recent(k);
+}, 10 * 60_000).unref();
+
+wss.on("connection", (ws, req) => {
   let agentId: string | null = null;
+  const ip = clientIp(req);
+  // raffiche: oltre 30 messaggi al secondo da una connessione, si chiude
+  let burst = 0;
+  let burstAt = Date.now();
 
   const bind = (id: string) => {
     agentId = id;
@@ -88,6 +156,12 @@ wss.on("connection", (ws) => {
   };
 
   ws.on("message", (raw) => {
+    const now = Date.now();
+    if (now - burstAt > 1000) {
+      burst = 0;
+      burstAt = now;
+    }
+    if (++burst > 30) return ws.close(1008, "troppi messaggi");
     let msg: ClientMsg;
     try {
       msg = JSON.parse(String(raw)) as ClientMsg;
@@ -105,11 +179,13 @@ wss.on("connection", (ws) => {
       const handle = String(msg.handle ?? "").trim();
       const pass = String(msg.pass ?? "");
       if (msg.mode === "register") {
+        if (signups.blocked(ip)) return send(ws, { t: "auth_err", error: `troppi handle nuovi da questo indirizzo: riprova fra ${signups.wait(ip)} min` });
         if (!HANDLE_RE.test(handle)) return send(ws, { t: "auth_err", error: "handle: 3-16 caratteri, lettere, numeri, - e _" });
         if (pass.length < 6) return send(ws, { t: "auth_err", error: "chiave: almeno 6 caratteri" });
         const faction: Faction = msg.faction === "blue" ? "blue" : "red";
         const clash = store.handleTaken(handle) || [...game.agents.values()].some((a) => a.handle.toLowerCase() === handle.toLowerCase());
         if (clash) return send(ws, { t: "auth_err", error: "handle già in uso" });
+        signups.add(ip);
         const agent = game.createAgent(handle, faction);
         store.createAccount(handle, pass, agent.id);
         game.flush();
@@ -118,8 +194,13 @@ wss.on("connection", (ws) => {
         send(ws, { t: "auth_ok", token });
         return pushState(agent.id, true);
       }
+      if (badLogins.blocked(ip)) return send(ws, { t: "auth_err", error: `troppi tentativi sbagliati: riprova fra ${badLogins.wait(ip)} min` });
       const id = store.verify(handle, pass);
-      if (!id || !game.agents.has(id)) return send(ws, { t: "auth_err", error: "handle o chiave errati" });
+      if (!id || !game.agents.has(id)) {
+        badLogins.add(ip);
+        console.warn(`AETHER · accesso rifiutato per «${handle.slice(0, 16)}» da ${ip}`);
+        return send(ws, { t: "auth_err", error: "handle o chiave errati" });
+      }
       const token = store.issueToken(id);
       bind(id);
       send(ws, { t: "auth_ok", token });
@@ -175,7 +256,7 @@ setInterval(() => {
     }
     if (game.ops.has(id) || tickN % 4 === 0) pushState(id);
   }
-  if (tickN % 8 === 0) game.flush();
+  if (tickN % FLUSH_TICKS === 0) game.flush();
 }, 250);
 
 process.on("SIGINT", () => {
@@ -187,6 +268,6 @@ process.on("SIGTERM", () => {
   process.exit(0);
 });
 
-http.listen(PORT, "0.0.0.0", () => {
-  console.log(`AETHER · server su http://0.0.0.0:${PORT} · db ${DB_PATH}`);
+http.listen(PORT, HOST, () => {
+  console.log(`AETHER · server su http://${HOST}:${PORT} · db ${DB_PATH} · salvataggio ogni ${FLUSH_TICKS / 4} s`);
 });

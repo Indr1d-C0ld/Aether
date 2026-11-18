@@ -149,7 +149,7 @@ export function loadBaseMap(style: string): Promise<HTMLCanvasElement> {
       resolve(c);
     };
     img.onerror = () => resolve(buildBaseMap());
-    img.src = `/art/maps/${style}.png`;
+    img.src = `${import.meta.env.BASE_URL}art/maps/${style}.png`;
   });
 }
 
