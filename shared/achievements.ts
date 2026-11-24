@@ -5,7 +5,7 @@
 // Le chiavi «$…» vengono dall'agente stesso (fama, XP, crediti), quelle che finiscono con «*» contano
 // i contatori con quel prefisso (es. «k:*» = tipi di nodo diversi violati).
 
-export type AchCat = "intrusione" | "dati" | "denaro" | "contratti" | "esplorazione" | "sistemi" | "giustizia" | "difesa" | "mercato" | "carriera";
+export type AchCat = "intrusione" | "dati" | "denaro" | "contratti" | "esplorazione" | "sistemi" | "giustizia" | "difesa" | "mercato" | "sociale" | "carriera";
 
 export const ACH_CAT: Record<AchCat, string> = {
   intrusione: "Intrusione",
@@ -17,6 +17,7 @@ export const ACH_CAT: Record<AchCat, string> = {
   giustizia: "Giustizia e rischio",
   difesa: "Difesa e caccia",
   mercato: "Mercato e bottino",
+  sociale: "Rete e compagnia",
   carriera: "Carriera",
 };
 
@@ -83,15 +84,21 @@ export const TRACKS: Track[] = [
 
   // ---------------------------------------------------------------- contratti
   T("a:deliver", "contratti", "Primo contratto|Professionista|Veterano|Leggenda della bacheca", [1, 25, 100, 500], "Consegna {n} contratti."),
-  T("m:*", "contratti", "Versatile|Coltellino svizzero|Uomo per tutte le stagioni|Tutti i mestieri", [3, 6, 9, 11], "Consegna {n} tipi di contratto diversi."),
+  T("m:*", "contratti", "Versatile|Coltellino svizzero|Uomo per tutte le stagioni|Tutti i mestieri", [3, 6, 9, 12], "Consegna {n} tipi di contratto diversi."),
+  T("m:chain", "contratti", "Primo atto|Sceneggiatore|Regista|Kolossal", [1, 5, 20, 60], "Porta a termine {n} operazioni a tappe."),
+  T("m:spree", "contratti", "Raffica|Serie positiva|Inarrestabile|Millecinquecentosette", [1, 5, 20, 60], "Porta a termine {n} raffiche."),
+  T("m:stunt", "contratti", "Colpo di scena|Controfigura|Stuntman|Senza rete", [1, 5, 20, 60], "Porta a termine {n} colpi di scena."),
+  T("m:audit", "difesa", "Ispettore|Revisore dei conti|Commissario|Corte dei conti", [1, 5, 20, 60], "Porta a termine {n} ispezioni."),
+  T("sc:*", "contratti", "Cinefilo|Videoteca|Cineteca|Tutti i film", [3, 8, 15, 24], "Completa {n} copioni diversi."),
   T("elite", "contratti", "Colpo grosso|Lavori difficili|Solo il meglio|Impossibile è un'opinione", [1, 10, 50, 200], "Consegna {n} contratti di grado 3 o superiore."),
   T("ghostpay", "contratti", "Senza traccia|Mani pulite|Fantasma pagato|Il lavoro perfetto", [1, 10, 50, 200], "Incassa {n} bonus «senza traccia»."),
   T("bounty", "contratti", "Cacciatore di taglie|Mercenario|Sicario digitale|Il nome che fa paura", [1, 5, 20, 100], "Esegui {n} taglie di altri handle."),
 
   // ---------------------------------------------------------------- esplorazione
   T("a:wardial", "esplorazione", "Giochiamo?|Telefono rosso|Centralinista|WOPR", [1, 10, 50, 200], "Lancia {n} scansioni con il War Dialer."),
-  T("seen", "esplorazione", "Prime coordinate|Cartografo|Esploratore|La mappa è il territorio", [10, 60, 150, 290], "Metti {n} nodi sulla tua mappa."),
-  T("hidden", "esplorazione", "Fuori dalla mappa|Segreti|Archeologo|Tutti e quattro", [1, 2, 3, 4], "Trova {n} nodi nascosti."),
+  T("seen", "esplorazione", "Prime coordinate|Cartografo|Esploratore|La mappa è il territorio", [10, 80, 220, 480], "Metti {n} nodi sulla tua mappa."),
+  T("hidden", "esplorazione", "Fuori dalla mappa|Segreti|Archeologo|Tutti e quattro", [1, 4, 9, 17], "Trova {n} nodi nascosti."),
+  T("rumor", "esplorazione", "Soffiata|Orecchie lunghe|Confidente|L'Oracolo sono io", [1, 3, 6, 12], "Ricevi {n} soffiate sui nodi nascosti."),
   T("a:registry", "esplorazione", "Pagine gialle|Elenco telefonico|Informatore|Chi è chi", [1, 10, 50, 200], "Interroga il Registro {n} volte."),
   T("r:*", "esplorazione", "Fuori porta|Intercontinentale|Globetrotter|Il mondo intero", [2, 3, 5, 6], "Opera in {n} regioni del mondo."),
   T("a:connect", "esplorazione", "Carrier|Abbonato|Sempre in linea|Vivo nel Reticolo", [1, 50, 250, 1000], "Apri {n} connessioni."),
@@ -104,6 +111,8 @@ export const TRACKS: Track[] = [
   T("sys:tap", "sistemi", "Orecchio teso|Cimice|Grande orecchio|Echelon", [1, 5, 20, 100], "Intercetta {n} linee."),
   T("sys:reroute", "sistemi", "Deviazione|Scambio|Smistatore|Centrale fantasma", [1, 5, 20, 100], "Devia {n} volte la tua linea."),
   T("sys:warrant", "sistemi", "Soffiata|Mandato|Giustiziere|Il distretto è mio", [1, 5, 20, 100], "Fai emettere {n} mandati."),
+  T("t:worm", "sistemi", "Primo verme|Allevatore|Botnet|Il virus Da Vinci", [1, 10, 50, 200], "Pianta {n} worm."),
+  T("wormcr", "denaro", "Spiccioli|Rendita|Mungitura|Superman III", [500, 5000, 25000, 100000], "Incassa {n} CR dalla tua botnet.", true),
   T("a:overload", "sistemi", "Surriscaldamento|Ventole al massimo|Fusione|Sindrome cinese", [1, 5, 25, 100], "Sovraccarica {n} gateway."),
 
   // ---------------------------------------------------------------- giustizia
@@ -127,17 +136,28 @@ export const TRACKS: Track[] = [
   T("a:deploySensor", "difesa", "Microspia|Rete di sensori|Ascolto totale|Panopticon", [1, 10, 50, 200], "Piazza {n} sensori."),
   T("a:counter", "difesa", "Contrattacco|Rispedito al mittente|Caccia al topo|Inseguitore", [1, 10, 50, 200], "Lancia {n} contro-trace."),
   T("a:restart", "difesa", "Riavvio|Pronto soccorso|Rianimatore|Phoenix", [1, 5, 25, 100], "Rimetti in linea {n} sistemi spenti."),
+  T("dewormed", "difesa", "Insetticida|Disinfestatore|Antivirus|Immunità di gregge", [1, 10, 50, 200], "Schiaccia {n} worm."),
   T("a:hireAnalyst", "difesa", "Turno di notte|Squadra|Sala operativa|Il SOC non dorme", [1, 5, 25, 100], "Ingaggia {n} volte l'analista."),
 
   // ---------------------------------------------------------------- mercato
   T("loot", "mercato", "Trovato qualcosa|Cacciatore di tesori|Razziatore|Il bottino è mio", [1, 10, 50, 200], "Trova {n} oggetti."),
   T("rare", "mercato", "Raro|Pezzo pregiato|Da collezione|Wunderkammer", [1, 5, 20, 60], "Trova {n} oggetti rari o migliori."),
-  T("legend", "mercato", "Collezionista|Reliquia|Mito|Tutte le leggende", [1, 2, 3, 4], "Trova {n} pezzi leggendari."),
+  T("legend", "mercato", "Collezionista|Reliquia|Mito|Tutte le leggende", [1, 3, 6, 12], "Trova {n} pezzi leggendari."),
+  T("gadget", "mercato", "Aggeggio|Cintura multiuso|Q|Ispettore Gadget", [1, 20, 100, 400], "Usa {n} volte un gadget."),
+  T("xdcc", "mercato", "Leecher|Abbonato|Collezionista di zip|Ratio 1:0", [1, 7, 30, 100], "Scarica {n} pacchetti dal bot XDCC."),
   T("a:equip", "mercato", "Saldatore|Overclock|Wetware|Cyborg", [1, 5, 20, 50], "Monta {n} chip sul deck."),
   T("a:fence", "mercato", "Ricettatore|Affari sporchi|Giro di merce|Il mercato nero sono io", [1, 25, 100, 500], "Vendi {n} file al ricettatore."),
   T("sold", "mercato", "Prima vendita|Bancarella|Negozio|Monopolio", [1, 10, 50, 200], "Vendi {n} file ad altri handle."),
   T("a:buyListing", "mercato", "Compratore|Buon cliente|Collezionista di segreti|Insider", [1, 10, 50, 200], "Compra {n} file al mercato nero."),
   T("a:postBounty", "mercato", "Mandante|Committente|Burattinaio|L'uomo nell'ombra", [1, 5, 20, 100], "Metti {n} taglie in bacheca."),
+
+  // ---------------------------------------------------------------- sociale
+  T("ircmsg", "sociale", "Lurker|Chiacchierone|Regular|Idle da record", [10, 200, 1000, 5000], "Scrivi {n} righe su ReticoloNet."),
+  T("traded", "sociale", "Baratto|Mercante|Trafficante|Via della seta", [1, 10, 50, 200], "Concludi {n} scambi con altri handle."),
+  T("paid", "sociale", "Mancia|Mecenate|Banchiere della crew|Filantropo", [1000, 10000, 50000, 200000], "Manda {n} CR ad altri handle.", true),
+  T("duelwin", "sociale", "Primo sangue|Duellante|Pistolero|Il più veloce del Reticolo", [1, 5, 25, 100], "Vinci {n} duelli."),
+  T("duellose", "sociale", "Lezione|Sparring|Sacco da boxe|Sa perdere", [1, 5, 25, 100], "Perdi {n} duelli. Succede."),
+  T("a:crewDonate", "sociale", "Colletta|Socio|Tesoriere|Cassa comune", [1, 10, 50, 200], "Versa {n} volte nella cassa della crew."),
 
   // ---------------------------------------------------------------- carriera
   T("$xp", "carriera", "Apprendista|Esperto|Maestro|Elite", [1000, 10000, 50000, 150000], "Raggiungi {n} XP."),
@@ -259,6 +279,23 @@ export const STAT_LABEL: Record<string, string> = {
   days: "Giorni di gioco",
   "a:buyTool": "Software comprati",
   "a:buyHw": "Hardware comprato",
+  "m:chain": "Operazioni a tappe",
+  "m:spree": "Raffiche",
+  "m:stunt": "Colpi di scena",
+  "m:audit": "Ispezioni",
+  "sc:*": "Copioni diversi completati",
+  rumor: "Soffiate ricevute",
+  gadget: "Gadget usati",
+  xdcc: "Pacchetti XDCC",
+  "t:worm": "Worm piantati",
+  wormcr: "Crediti dalla botnet",
+  dewormed: "Worm schiacciati",
+  ircmsg: "Righe su ReticoloNet",
+  traded: "Scambi conclusi",
+  paid: "Crediti mandati ad altri",
+  duelwin: "Duelli vinti",
+  duellose: "Duelli persi",
+  "a:crewDonate": "Versamenti alla crew",
   signup: "Iscrizioni",
   login: "Accessi",
 };

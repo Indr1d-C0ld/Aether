@@ -49,14 +49,16 @@ export function Ranks({ ctx }: { ctx: DeckCtx }) {
                   <td className="px" style={{ fontSize: 20 }}>{i + 1}</td>
                   <td>
                     {r.npc ? <Art src={art.npc(r.handle)} size={24} className="npc-face" /> : null}
-                    <span className={r.faction === "red" ? "t-mag" : "t-cyan"}>{r.handle}</span>{" "}
+                    <span className={r.faction === "red" ? "t-mag" : "t-cyan"}>{r.handle}</span> {r.crew ? <span className="faint">[{r.crew}]</span> : null}{" "}
                     {r.npc ? <span className="faint" style={{ fontSize: 11 }}>npc</span> : r.online ? <span className="t-green" style={{ fontSize: 11 }}>● online</span> : null}
                     <div className="faint" style={{ fontSize: 11 }}>
                       {r.fameTitle}
                       {r.warrant >= 2 ? <span className="t-red"> · ricercato</span> : null}
                     </div>
                   </td>
-                  <td className="dim">{r.rank}</td>
+                  <td className="dim">
+                    <span className="faint">{r.level}</span> {r.rank}
+                  </td>
                   <td className="px" style={{ fontSize: 20 }}>{t.key === "credits" ? fmtCr(r.credits) : String(r[t.key])}</td>
                   <td className={r.heat > 70 ? "t-red" : "dim"}>{r.heat}</td>
                 </tr>

@@ -178,6 +178,16 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
                 Per bonificare un relay serve l'accesso admin (contratto di bonifica o password).
               </p>
             ) : null}
+            {me.faction === "red" && op.access === "admin" && !["relay", "gateway", "home"].includes(target.kind) && (tools.worm ?? 0) > 0 ? (
+              <button className="btn" disabled={running("worm") || target.myWorm} onClick={() => run("worm")}>
+                {target.myWorm ? "Il tuo worm è al lavoro qui" : `Pianta un worm v${tools.worm}`}
+              </button>
+            ) : null}
+            {me.faction === "blue" && inside && target.worms ? (
+              <p className="t-amber" style={{ margin: 0, fontSize: 13 }}>
+                {target.worms} worm in questo sistema: il Patch Kit in modalità rinforzo li schiaccia.
+              </p>
+            ) : null}
             {me.faction === "red" && op.access === "admin" && target.kind === "relay" ? (
               <button className="btn" disabled={!tools.bdkit || running("bdkit") || target.mineBackdoor} onClick={() => run("bdkit")}>
                 {target.mineBackdoor ? "Backdoor già installato" : tools.bdkit ? "Installa backdoor" : "Serve il Kit Backdoor"}

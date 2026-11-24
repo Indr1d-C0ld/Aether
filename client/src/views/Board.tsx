@@ -58,6 +58,21 @@ function MissionCard({ m, ctx }: { m: MissionView; ctx: DeckCtx }) {
           {m.title}
         </div>
         <p style={{ margin: 0, fontSize: 14 }}>{m.brief}</p>
+        {m.objectives.length ? (
+          <ul className="objectives">
+            {m.objectives.map((o, i) => (
+              <li key={i} className={m.mine && o.have >= o.n ? "done" : ""}>
+                <span className="box">{m.mine && o.have >= o.n ? "■" : "□"}</span> {o.label}
+                {m.mine && o.n > 1 ? (
+                  <span className="faint">
+                    {" "}
+                    {o.have}/{o.n}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         {m.mods.length ? (
           <p className="t-amber" style={{ margin: 0, fontSize: 12 }}>
             {m.mods.map((mod) => MOD_INFO[mod].desc).join(" ")}
@@ -75,6 +90,7 @@ function MissionCard({ m, ctx }: { m: MissionView; ctx: DeckCtx }) {
           {m.clientAccess ? <span className="chip fac">credenziali cliente</span> : null}
           {m.postedBy ? <span className="chip amber">taglia di {m.postedByMe ? "te" : m.postedBy}</span> : null}
           {m.minXp ? <span className={`chip ${locked ? "red" : ""}`}>min {m.minXp} XP</span> : null}
+          {m.limitMin ? <span className="chip red">{m.limitMin} minuti da quando accetti</span> : null}
           {mins < 600 ? <span className={`chip ${mins < 15 ? "red" : ""}`}>scade in {mins}′</span> : null}
           {m.mods.map((mod) => (
             <span key={mod} className="chip amber" title={MOD_INFO[mod].desc}>

@@ -203,6 +203,7 @@ const TITLE: Record<string, string> = {
   logdel: "RISCRITTURA DEI LOG",
   patch: "PATCH DEL KERNEL",
   bdkit: "INIEZIONE BACKDOOR",
+  worm: "WORM · REPLICAZIONE",
   honey: "ESCA IN POSA",
   forensics: "RICOSTRUZIONE FORENSE",
 };

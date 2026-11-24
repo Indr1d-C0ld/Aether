@@ -1,5 +1,6 @@
 // Collegamento WebSocket al server autoritativo, con riconnessione e azioni a promessa.
 import type { ClientMsg, Faction, GameState, ServerMsg } from "../../shared/types.ts";
+import { ircStore } from "./irc.ts";
 
 export type Toast = { id: number; text: string; tone: "ok" | "warn" | "bad" | "info" };
 export type NetStatus = "connecting" | "online" | "offline";
@@ -73,6 +74,8 @@ class Net {
         case "auth_ok":
           writeToken(msg.token);
           this.set({ authed: true, authError: null });
+          // la rete IRC si aggancia a ogni (ri)collegamento
+          void this.do("ircSync", {}, true);
           break;
         case "auth_err":
           if (msg.error === "sessione scaduta") writeToken(null);
@@ -88,6 +91,9 @@ class Net {
           break;
         case "toast":
           this.toast(msg.text, msg.tone);
+          break;
+        case "irc":
+          ircStore.on(msg.ev);
           break;
       }
     };
@@ -118,16 +124,19 @@ class Net {
   logout() {
     writeToken(null);
     this.set({ authed: false, state: null });
+    ircStore.reset();
     this.ws?.close();
   }
 
-  do(a: string, p: Record<string, unknown> = {}): Promise<Res> {
+  /** quiet: niente toast per l'esito (la chat risponde nelle sue finestre). */
+  do(a: string, p: Record<string, unknown> = {}, quiet = false): Promise<Res> {
     const id = ++this.seq;
     return new Promise((resolve) => {
       this.pending.set(id, resolve);
       this.send({ t: "do", id, a, p });
     }).then((r) => {
       const res = r as Res;
+      if (quiet) return res;
       if (!res.ok && res.error) this.toast(res.error, "warn");
       else if (res.note) this.toast(res.note, "ok");
       return res;

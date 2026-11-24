@@ -6,6 +6,8 @@ import { randomBytes } from "node:crypto";
 import { TIER_FAME as ACH_FAME, TIER_NAME as ACH_TIER, achId, trackValue, tracksFor } from "../shared/achievements.ts";
 import { DEFAULT_SETTINGS, type AuditRow, type IpBan, type Settings } from "../shared/admin.ts";
 import type { Store } from "./db.ts";
+import { rollScene, type Objective, type SNode } from "./scenarios.ts";
+import { specLevel, type SpecId } from "../shared/progress.ts";
 import { WORLD, WORLD_CITIES } from "./worldgen.ts";
 import { CITIES, CIVIL, CLEARANCES, CRIMES, DEGREES, GRADES, PEOPLE, STATUSES, personById, type Person } from "./people.ts";
 import {
@@ -25,6 +27,8 @@ import {
   dataRarity,
   ethicsTitle,
   exploitDef,
+  gadgetDef,
+  GADGETS,
   fameTier,
   featDef,
   jailSeconds,
@@ -52,6 +56,7 @@ import {
   modemSpeed,
   monitorBypassFactor,
   rankOf,
+  levelOf,
   storageCap,
   toolCost,
   toolDef,
@@ -89,6 +94,9 @@ import {
   socPresidioMin,
   socSensors,
   REWARD_SCALE,
+  WORM_CAP,
+  WORM_LIFE_MIN,
+  wormYield,
   RELAY_CLASS,
   WEAR_WINDOW,
   regionAt,
@@ -196,6 +204,9 @@ type Agent = {
   ips?: string[];
   logins?: number;
   lastDay?: string;
+  deeds?: Deed[]; // le ultime gesta: servono a spuntare gli obiettivi delle operazioni
+  buffs?: Record<string, number>; // effetti a tempo (cpu, modem) o a consumo (dice, fixer): scadenza o contatore
+  cooldowns?: Record<string, number>; // gadget: quando tornano pronti
 };
 
 type Sensor = { ownerId: string; until: number; lines: { at: number; text: string }[] };
@@ -241,6 +252,7 @@ type WNode = Omit<SeedNode, "files" | "records"> & {
   cooldown?: Record<string, number>; // comandi di sistema: quando tornano disponibili
   logs: LogEntry[];
   backdoors: { ownerId: string; version: number; at: number }[];
+  worms?: { ownerId: string; version: number; at: number }[];
   patch: { until: number; level: number; by: string } | null;
   activity: number;
 };
@@ -280,7 +292,12 @@ type Mission = {
   delivered?: boolean;
   ledgerId?: string;
   clientNodes?: string[]; // nodi su cui il contratto dà credenziali cliente
+  objectives?: Objective[]; // operazioni a tappe: cosa va fatto dopo aver accettato
+  scene?: string; // il copione da cui nasce
+  limitMin?: number; // tempo massimo dall'accettazione
 };
+
+type Deed = { at: number; d: string; node: string; kind: string; region: string };
 
 type Listing = { id: string; sellerId: string; file: StoredFile; price: number; createdAt: number; expiresAt: number };
 
@@ -875,6 +892,11 @@ export class Game {
       }
     }
     r = Math.min(3, r);
+    const gads = GADGETS.filter((g) => g.rarity === r);
+    if (gads.length && Math.random() < 0.16) {
+      const g = pick(gads);
+      return { kind: "gadget", code: g.code, rarity: g.rarity, name: g.name, desc: `${g.desc} Si ricarica in ${g.cooldownMin} minuti.` };
+    }
     if (Math.random() < 0.55) {
       const same = EXPLOITS.filter((e) => e.rarity === r);
       const e = same.length ? pick(same) : pick(EXPLOITS.filter((q) => q.rarity <= r));
@@ -892,6 +914,7 @@ export class Game {
     }
     agent.storage.push({ key: uid("st"), name: item.name, nodeId: "loot", fileId: item.code, size: 1, at: now(), rarity: item.rarity, item });
     this.touch("agent", agent.id);
+    this.dirty.add(agent.id);
     if (!agent.npc) this.out.toast(agent.id, `Bottino: ${item.name}`, "ok");
     if (item.rarity >= 4) this.feat(agent, "legend");
   }
@@ -958,12 +981,115 @@ export class Game {
 
   useItem(agent: Agent, key: string) {
     const st = agent.storage.find((x) => x.key === key);
-    const def = st?.item?.kind === "exploit" ? exploitDef(st.item.code) : null;
-    if (!st || !def) return { ok: false, error: "non è un exploit" };
+    const gadget = st?.item?.kind === "gadget" ? gadgetDef(st.item.code) : null;
+    const def = gadget ?? (st?.item?.kind === "exploit" ? exploitDef(st.item.code) : null);
+    if (!st || !def) return { ok: false, error: "non si può usare" };
     const { op, target } = this.requireOpSafe(agent);
     if (def.where === "op" && (!op || !target)) return { ok: false, error: "si usa durante una connessione" };
     const from = op ? this.prevIp(op, agent) : "";
+    const cds = (agent.cooldowns ??= {});
+    if (gadget && (cds[gadget.code] ?? 0) > now()) return { ok: false, error: `si sta ricaricando: ${Math.ceil(((cds[gadget.code] ?? 0) - now()) / 60_000)} min` };
+    const buffs = (agent.buffs ??= {});
+    let extra = "";
+    const revealSome = (n: number) => {
+      const pool = [...this.nodes.values()].filter((x) => x.kind !== "gateway" && !x.hidden && !agent.knownNodes.includes(x.id)).sort(() => Math.random() - 0.5).slice(0, n);
+      for (const x of pool) this.reveal(agent, x.id);
+      return pool.length;
+    };
     switch (def.code) {
+      // ---- gadget
+      case "walkman":
+        if (agent.heat <= 0) return { ok: false, error: "non hai calore da smaltire" };
+        agent.heat = Math.max(0, agent.heat - 8);
+        break;
+      case "pager":
+        if (!revealSome(2)) return { ok: false, error: "conosci già tutto quello che c'è da conoscere" };
+        break;
+      case "bluebox":
+      case "tokens":
+        agent.relayUse = {};
+        break;
+      case "jammer":
+        if (!op!.trace.active) return { ok: false, error: "nessun trace da fermare" };
+        op!.frozenUntil = now() + 8_000;
+        break;
+      case "modelm":
+        buffs.cpu = now() + 30_000;
+        break;
+      case "scanner": {
+        const w = this.wardensOf(target!.id).map((a) => a.handle);
+        const sn = (target!.sensors ?? []).filter((x) => x.until > now()).length;
+        extra = ` · ${w.length ? `presidiano: ${w.join(", ")}` : "nessuno presidia"} · ${sn} sensori${target!.worms?.length ? ` · ${target!.worms.length} worm` : ""}`;
+        break;
+      }
+      case "glove":
+      case "rewind":
+        if (!op!.trace.active) return { ok: false, error: "nessun trace da confondere" };
+        op!.trace.progressMs *= def.code === "glove" ? 0.85 : 0.65;
+        break;
+      case "deckard": {
+        const pw = target!.password.toUpperCase();
+        extra = ` · ${[...pw].map((ch, i) => (i % 2 === 0 ? ch : "·")).join("")}`;
+        break;
+      }
+      // ---- exploit della seconda ondata
+      case "map":
+        if (!revealSome(5)) return { ok: false, error: "conosci già tutto quello che c'è da conoscere" };
+        break;
+      case "turbo":
+        buffs.modem = now() + 90_000;
+        break;
+      case "overclock":
+        buffs.cpu = now() + 60_000;
+        break;
+      case "plague": {
+        if (op!.access === "admin" || op!.access === "client") return { ok: false, error: "sei già dentro" };
+        const pw = target!.password.toUpperCase();
+        if (!DICTIONARY.includes(pw)) return { ok: false, error: "questa password non è una parola comune: l'agenda non serve" };
+        op!.dictOptions = [pw, pick(DICTIONARY.filter((w) => w !== pw))].sort(() => Math.random() - 0.5);
+        break;
+      }
+      case "relaykeys": {
+        const rel = op!.chain.slice(0, -1).filter((id) => !agent.relayKeys.includes(id));
+        if (!rel.length) return { ok: false, error: "nessun relay nuovo in questo rimbalzo" };
+        agent.relayKeys.push(...rel);
+        break;
+      }
+      case "dice":
+        buffs.dice = 1;
+        break;
+      case "fixer":
+        buffs.fixer = 1;
+        break;
+      case "zmon":
+        if (op!.bypass.monitor) return { ok: false, error: "il monitor è già cieco" };
+        op!.bypass.monitor = true;
+        op!.monitorVersion = 3;
+        break;
+      case "decoder": {
+        const enc = target!.files.filter((f) => f.encryption && !f.deleted && !op!.decrypted.has(f.id));
+        if (op!.access !== "admin" && op!.access !== "client") return { ok: false, error: "serve l'accesso admin" };
+        if (!enc.length) return { ok: false, error: "niente da decifrare" };
+        for (const f of enc) op!.decrypted.add(f.id);
+        break;
+      }
+      case "bribe":
+        if (agent.heat <= 0) return { ok: false, error: "non hai calore da smaltire" };
+        agent.heat = Math.max(0, agent.heat - 60);
+        break;
+      case "coords": {
+        const secret = [...this.nodes.values()].filter((n) => n.hidden && !agent.discovered.includes(n.id));
+        if (!secret.length) return { ok: false, error: "non ti resta niente da scoprire" };
+        this.discover(agent, pick(secret));
+        break;
+      }
+      case "icebreaker":
+        op!.bypass.proxy = true;
+        op!.bypass.firewall = true;
+        op!.bypass.monitor = true;
+        op!.monitorVersion = 3;
+        this.log(target!, "WARN security subsystem fault src={FROM}", { opId: op!.id, actorId: agent.id, fromIp: from });
+        break;
       case "alibi":
         if (agent.heat <= 0) return { ok: false, error: "non hai calore da smaltire" };
         agent.heat = Math.max(0, agent.heat - 25);
@@ -1012,9 +1138,14 @@ export class Game {
         this.gotAdmin(op!, agent, target!);
         break;
     }
-    agent.storage = agent.storage.filter((x) => x !== st);
+    if (gadget) {
+      cds[gadget.code] = now() + gadget.cooldownMin * 60_000;
+      this.bump(agent, "gadget");
+    }
+    else agent.storage = agent.storage.filter((x) => x !== st);
     this.touch("agent", agent.id);
-    return { ok: true, note: `${def.name}: usato` };
+    this.dirty.add(agent.id);
+    return { ok: true, note: `${def.name}: ${gadget ? "attivato" : "usato"}${extra}` };
   }
 
   // ------------------------------------------------------------ fama, imprese, etica
@@ -1042,6 +1173,28 @@ export class Game {
       this.achieve(agent, key);
     }
     return agent.counters[key]!;
+  }
+
+  spec(agent: Agent, id: SpecId) {
+    return agent.npc ? 0 : specLevel(agent.counters, id);
+  }
+
+  /** Annota una gesta del giocatore (ultime 250): le operazioni a obiettivi le leggono da qui. */
+  deed(agent: Agent, d: string, node: WNode | null | undefined) {
+    if (agent.npc) return;
+    const list = (agent.deeds ??= []);
+    list.push({ at: now(), d, node: node?.id ?? "", kind: node?.kind ?? "", region: node ? regionAt(node.x, node.y) : "" });
+    if (list.length > 250) list.splice(0, list.length - 250);
+    for (const m of this.missions.values()) if (m.takenBy === agent.id && m.status === "taken" && m.objectives) this.dirty.add(agent.id);
+  }
+
+  /** Quante volte un obiettivo risulta fatto da quando il contratto è stato accettato. */
+  objectiveCount(agent: Agent, m: Mission, o: Objective) {
+    const hits = (agent.deeds ?? []).filter(
+      (x) => x.at >= (m.takenAt ?? 0) && x.d === o.deed && (!o.nodeId || x.node === o.nodeId) && (!o.kind || x.kind === o.kind) && (!o.region || x.region === o.region) && (!o.sub || this.node(x.node)?.sub === o.sub),
+    );
+    if (!o.distinct) return hits.length;
+    return new Set(hits.map((x) => (o.distinct === "node" ? x.node : o.distinct === "kind" ? x.kind : x.region)).filter(Boolean)).size;
   }
 
   /** Statistiche globali: totale e giorno per giorno (solo giocatori veri). */
@@ -1087,6 +1240,8 @@ export class Game {
   /** Chiamata ogni volta che qualcuno ottiene l'accesso admin su un nodo. */
   gotAdmin(_op: Op, agent: Agent, target: WNode) {
     if (agent.npc) return;
+    this.deed(agent, "admin", target);
+    this.onAdmin?.(agent, target);
     if (target.kind === "gateway") {
       const owner = this.gatewayOwner(target);
       if (owner && owner.id !== agent.id) this.bump(agent, "gw");
@@ -1680,7 +1835,7 @@ export class Game {
     if (delta > 0) {
       const mult = this.num("heatMult");
       if (mult <= 0) return;
-      delta = Math.max(1, Math.round(delta * (1 + this.chip(agent, "heat") / 100) * mult));
+      delta = Math.max(1, Math.round(delta * (1 + this.chip(agent, "heat") / 100) * mult * (1 - this.spec(agent, "sabotaggio") * 0.015)));
     }
     const was = agent.heat;
     agent.heat = clamp(agent.heat + delta, 0, 100);
@@ -1866,6 +2021,41 @@ export class Game {
     };
   }
 
+  /** Un'operazione a tappe presa dai copioni di server/scenarios.ts. */
+  rollSceneMission(faction: Faction, only?: string): Mission | null {
+    const targets = this.openTargets();
+    const relays = [...this.nodes.values()].filter((n) => n.kind === "relay");
+    const homes = [...this.nodes.values()].filter((n) => n.kind === "home");
+    const snode = (n: WNode): SNode => ({ id: n.id, org: n.org, name: n.name, kind: n.kind, sub: n.sub, city: n.city, tier: this.tierOf(n), files: this.plainFiles(n).map((f) => ({ id: f.id, name: f.name })) });
+    const sc = rollScene(faction, {
+      pick,
+      client: cap(pick(faction === "red" ? CLIENTS_RED : CLIENTS_BLUE)),
+      any: (minTier = 0) => targets.filter((n) => this.tierOf(n) >= minTier).map(snode),
+      nodes: (kind, minTier = 0, sub) => (kind === "relay" ? relays : kind === "home" ? homes : targets).filter((n) => n.kind === kind && this.tierOf(n) >= minTier && (!sub || n.sub === sub)).map(snode),
+    }, only);
+    const node = sc ? this.node(sc.nodeId) : null;
+    if (!sc || !node) return null;
+    const m = this.baseMission(faction, sc.type, node);
+    m.title = sc.title;
+    m.brief = sc.brief;
+    m.scene = sc.id;
+    m.objectives = sc.objectives;
+    m.reward += sc.reward;
+    m.xp += sc.xp;
+    m.minXp = sc.minXp;
+    if (sc.tier !== undefined) m.tier = sc.tier;
+    m.limitMin = sc.limitMin;
+    m.clientNodes = sc.clientNodes;
+    m.expiresAt = now() + 90 * 60_000;
+    const req = new Set<ToolId>(sc.requires ?? []);
+    for (const o of sc.objectives) {
+      const on = o.nodeId ? this.node(o.nodeId) : null;
+      if (on && faction === "red") for (const t of this.secRequires(on)) req.add(t);
+    }
+    m.requires = [...req];
+    return m;
+  }
+
   secRequires(node: WNode): ToolId[] {
     const req: ToolId[] = [];
     if (node.proxy > 0) req.push("proxy");
@@ -1879,6 +2069,7 @@ export class Game {
     const targets = this.openTargets();
     const relays = [...this.nodes.values()].filter((n) => n.kind === "relay");
     const client = pick(CLIENTS_RED);
+    if (Math.random() < 0.3) return this.rollSceneMission("red");
     const kind = Math.random();
     if (kind < 0.1) return this.rollProfile("red");
     if (kind < 0.18) return this.rollTransfer();
@@ -1981,6 +2172,7 @@ export class Game {
     const targets = this.openTargets();
     const client = pick(CLIENTS_BLUE);
     // cacce, ripristini, recuperi e storni nascono da quello che fanno i rossi; qui i lavori ordinari
+    if (Math.random() < 0.3) return this.rollSceneMission("blue");
     const kindB = Math.random();
     if (kindB < 0.2) return this.rollProfile("blue");
     if (kindB < 0.28) return this.rollFindata("blue");
@@ -2349,6 +2541,7 @@ export class Game {
       // dei PC di casa e dei gateway il contratto dà il nome, non l'indirizzo
       if (mn && mn.kind !== "home" && mn.kind !== "gateway") known.add(m.nodeId);
       if (m.destNodeId) known.add(m.destNodeId);
+      for (const o of m.objectives ?? []) if (o.nodeId) known.add(o.nodeId);
     }
     for (const id of op?.chain ?? []) known.add(id);
     const nodes: NodeView[] | null = withNodes
@@ -2392,6 +2585,8 @@ export class Game {
         mine: m.takenBy === me.id,
         expiresAt: m.expiresAt,
         needsAnswer: ["hunt", "locate", "profile", "findata", "tracemoney"].includes(m.type),
+        objectives: (m.objectives ?? []).map((o) => ({ label: o.label, n: o.n, have: m.takenBy === me.id ? Math.min(o.n, this.objectiveCount(me, m, o)) : 0 })),
+        limitMin: m.status === "open" ? (m.limitMin ?? null) : null,
         tier: m.tier ?? 0,
         mods: m.mods ?? [],
         answerHint: m.type === "findata" ? "numero di conto (00-000000)" : m.type === "tracemoney" ? "nome e cognome" : m.type === "profile" ? "ID Reticolo (LX-000-0000)" : m.type === "locate" ? "IP del suo gateway" : m.type === "hunt" ? "IP del gateway colpevole" : null,
@@ -2424,6 +2619,8 @@ export class Game {
         credits: a.credits,
         heat: a.heat,
         rank: rankOf(a.xp, a.faction).name,
+        level: levelOf(a.xp),
+        crew: this.crewOf?.(a) ?? null,
         ghostScore: a.stats.clean * 10 + a.stats.ops * 2 - a.stats.caught * 15,
         defense: a.stats.attributions * 12 + a.stats.defense * 6,
         sabotage: a.stats.sabotage,
@@ -2462,6 +2659,10 @@ export class Game {
       market,
       war: this.meta.war,
       serverNow: t,
+      crews: [],
+      duels: [],
+      trades: [],
+      ...(this.socialView?.(me) ?? {}),
       notice: String(this.cfg("motd") ?? "").trim() ? { text: String(this.cfg("motd")).trim(), tone: this.cfg("motdTone") as "info" | "warn" | "bad" } : null,
     };
   }
@@ -2477,6 +2678,10 @@ export class Game {
       heat: a.heat,
       rank: r.name,
       rankIndex: r.index,
+      level: levelOf(a.xp),
+      crew: this.crewOf?.(a) ?? null,
+      cooldowns: a.cooldowns ?? {},
+      buffs: a.buffs ?? {},
       nextXp: r.next,
       gatewayIp: a.gatewayIp,
       hw: a.hw,
@@ -2554,6 +2759,8 @@ export class Game {
       patched: Boolean(n.patch && n.patch.until > now()),
       backdoors: me.faction === "blue" || mine ? visibleDoors.length : null,
       mineBackdoor: mine,
+      myWorm: Boolean(n.worms?.some((w) => w.ownerId === me.id)),
+      worms: me.faction === "blue" ? (n.worms?.length ?? 0) : 0,
       wardens: seeWardens ? this.wardensOf(n.id).map((a) => a.handle) : [],
       activity: n.activity,
       catalog: n.kind === "gateway" ? [] : this.plainFiles(n).map((f) => ({ id: f.id, name: f.name })),
@@ -2672,14 +2879,15 @@ export class Game {
     rate *= WARRANT_TRACE[warrantLevel(agent.charges)]! * op.guard * (1 + this.chip(agent, "trace") / 100);
     // la fama ha un prezzo: i monitor conoscono la firma dei nomi noti
     if (agent.faction === "red") rate *= 1 + fameTier(agent.fame).index * 0.02;
-    return rate / this.num("traceMult");
+    return (rate * (1 - this.spec(agent, "furtivita") * 0.01)) / this.num("traceMult");
   }
 
   taskRate(op: Op, agent: Agent, task: Task) {
     if (task.state !== "run") return 0;
-    if (task.usesModem) return modemSpeed(agent.hw.modem) * (1 + this.chip(agent, "modem") / 100) * this.num("toolSpeed");
+    const t = now();
+    if (task.usesModem) return modemSpeed(agent.hw.modem) * (1 + this.chip(agent, "modem") / 100) * this.num("toolSpeed") * ((agent.buffs?.modem ?? 0) > t ? 3 : 1) * (1 + this.spec(agent, "dati") * 0.02);
     const cpuTasks = op.tasks.filter((k) => k.state === "run" && !k.usesModem).length || 1;
-    return ((cpuPower(agent.hw.cpu) * (1 + this.chip(agent, "cpu") / 100) * (agent.overloadUntil > now() ? 0.5 : 1)) / cpuTasks) * this.num("toolSpeed");
+    return ((cpuPower(agent.hw.cpu) * (1 + this.chip(agent, "cpu") / 100) * (agent.overloadUntil > t ? 0.5 : 1) * ((agent.buffs?.cpu ?? 0) > t ? 1.5 : 1) * (1 + this.spec(agent, "intrusione") * 0.01)) / cpuTasks) * this.num("toolSpeed");
   }
 
   tick(dtMs: number) {
@@ -2815,6 +3023,7 @@ export class Game {
     }
     if (t - this.meta.lastPulse > 45_000) {
       this.meta.lastPulse = t;
+      this.wormTick();
       this.pulse();
       this.dropLoot();
       this.fillBoard();
@@ -2876,6 +3085,9 @@ export class Game {
       this.touch("agent", agent.id);
       this.dirty.add(agent.id);
       if (how === "clean" && !agent.npc) {
+        const tnode = this.node(target);
+        // uscita pulita: eri admin e nel log non resta nessuna tua riga leggibile
+        if (tnode && op.access === "admin" && !tnode.logs.some((l) => l.actorId === agent.id && l.opId === op.id && l.removed === null && l.fromIp)) this.deed(agent, "ghostexit", tnode);
         const total = op.trace.hopTimes.reduce((q, v) => q + v, 0);
         if (op.trace.active && total > 0 && op.trace.progressMs / total >= 0.9) this.bump(agent, "close");
         if (op.chain.length - 1 >= 6) this.bump(agent, "longroute");
@@ -2906,9 +3118,18 @@ export class Game {
     }
     if (this.banned(agent)) return { ok: false, error: "account sospeso" };
     const before = agent.credits;
+    const opBefore = this.ops.get(agent.id);
+    const nodeBefore = opBefore ? this.node(opBefore.chain.at(-1)!) : null;
     const r = this.actInner(agent, a, p);
     if (r.ok && !agent.npc) {
-      if (a !== "readMail" && a !== "dropFile" && a !== "take" && a !== "abandon") this.bump(agent, `a:${a}`);
+      if (a === "sys") this.deed(agent, `sys:${String(p.cmd)}`, nodeBefore);
+      else if (a === "alter" || a === "transfer") this.deed(agent, a, nodeBefore);
+      else if (a === "searchRecords") this.deed(agent, "search", nodeBefore);
+      else if (a === "login") this.deed(agent, "typed", nodeBefore);
+      else if (a === "wardial") this.deed(agent, "wardial", null);
+      else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
+      else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -2924,6 +3145,12 @@ export class Game {
     }
     return r;
   }
+
+  /** Crew, duelli, scambi e rete IRC (server/social.ts e server/irc.ts si agganciano qui). */
+  socialAct: ((agent: Agent, a: string, p: Record<string, unknown>) => { ok: boolean; error?: string; note?: string; data?: unknown } | null) | null = null;
+  socialView: ((me: Agent) => Record<string, unknown>) | null = null;
+  onAdmin: ((agent: Agent, target: { id: string; org: string }) => void) | null = null;
+  crewOf: ((agent: Agent) => string | null) | null = null;
 
   /** Il pannello dell'amministratore (server/admin.ts lo aggancia qui). */
   adminAct: ((admin: Agent, a: string, p: Record<string, unknown>) => { ok: boolean; error?: string; note?: string; data?: unknown }) | null = null;
@@ -2941,7 +3168,7 @@ export class Game {
   actInner(agent: Agent, a: string, p: Record<string, unknown>): { ok: boolean; error?: string; note?: string; data?: unknown } {
     const agentId = agent.id;
     this.dirty.add(agentId);
-    if (agent.jailUntil > now() && a !== "readMail" && a !== "payBail") return { ok: false, error: "sei in custodia: aspetta, o paga la cauzione" };
+    if (agent.jailUntil > now() && a !== "readMail" && a !== "payBail" && a !== "irc" && a !== "ircSync") return { ok: false, error: "sei in custodia: aspetta, o paga la cauzione" };
     try {
       switch (a) {
         case "deploySensor":
@@ -3021,6 +3248,10 @@ export class Game {
           if (p.hw && typeof p.hw === "object") Object.assign(agent.hw, p.hw as Record<string, number>);
           if (typeof p.fame === "number") agent.fame += p.fame;
           if (typeof p.item === "string") this.giveItem(agent, LEGENDARY[p.item] ?? this.rollItem([0, 0, 1, 1]));
+          if (typeof p.gadget === "string") {
+            const g = gadgetDef(p.gadget);
+            if (g) this.giveItem(agent, { kind: "gadget", code: g.code, rarity: g.rarity, name: g.name, desc: g.desc });
+          }
           if (typeof p.exploit === "string") {
             const e = exploitDef(p.exploit);
             if (e) this.giveItem(agent, { kind: "exploit", code: e.code, rarity: e.rarity, name: e.name, desc: e.desc });
@@ -3039,7 +3270,7 @@ export class Game {
               sabotage: () => this.rollSabotage(),
               home: () => this.rollHomeJob(),
             };
-            const m = roll[p.mission]?.();
+            const m = p.mission.startsWith("scene:") ? this.rollSceneMission(agent.faction, p.mission.slice(6)) : roll[p.mission]?.();
             if (!m) return { ok: false, error: "tipo non disponibile" };
             m.minXp = 0;
             m.status = "taken";
@@ -3075,7 +3306,7 @@ export class Game {
           return { ok: true };
         }
         default:
-          return { ok: false, error: `azione sconosciuta: ${a}` };
+          return this.socialAct?.(agent, a, p) ?? { ok: false, error: `azione sconosciuta: ${a}` };
       }
     } catch (err) {
       console.error(err);
@@ -3303,6 +3534,15 @@ export class Game {
         if (op.access === "none") return { ok: false, error: "prima entra nel nodo" };
         work = toolWork(tool, { version });
         break;
+      case "worm": {
+        if (target.kind === "relay" || target.kind === "gateway" || target.kind === "home") return { ok: false, error: "un worm ha bisogno di un sistema con del traffico: non qui" };
+        if (op.access !== "admin") return { ok: false, error: "serve l'accesso admin" };
+        if (target.worms?.some((w) => w.ownerId === agent.id)) return { ok: false, error: "qui hai già un worm" };
+        const alive = [...this.nodes.values()].filter((n) => n.worms?.some((w) => w.ownerId === agent.id)).length;
+        if (alive >= WORM_CAP[version - 1]!) return { ok: false, error: `la tua botnet è al completo (${alive} worm): serve una versione più alta` };
+        work = toolWork(tool, { version });
+        break;
+      }
       case "bdkit":
         if (target.kind !== "relay") return { ok: false, error: "i backdoor si installano sui relay" };
         if (op.access !== "admin") return { ok: false, error: "serve l'accesso admin al relay" };
@@ -3412,6 +3652,13 @@ export class Game {
         this.touch("node", target.id);
         break;
       }
+      case "worm":
+        target.worms = [...(target.worms ?? []), { ownerId: agent.id, version, at: now() }];
+        op.touched = true;
+        this.log(target, "SYS daemon spawned src={FROM}", { opId: op.id, actorId: agent.id, fromIp: from });
+        this.meta.war.red += 1;
+        this.touch("node", target.id);
+        break;
       case "bdkit":
         target.backdoors.push({ ownerId: agent.id, version, at: now() });
         op.touched = true;
@@ -3446,6 +3693,19 @@ export class Game {
         } else {
           target.patch = { until: now() + 30 * 60_000, level: version >= 3 ? 2 : 1, by: agent.id };
           task.note = "nodo rinforzato per 30 minuti";
+          const dead = (target.worms ?? []).filter((w) => w.ownerId !== agent.id);
+          if (dead.length) {
+            target.worms = [];
+            agent.credits += dead.length * 180;
+            agent.stats.defense += dead.length;
+            this.meta.war.blue += dead.length;
+            this.bump(agent, "dewormed", dead.length);
+            task.note = `nodo rinforzato · ${dead.length} worm schiacciat${dead.length === 1 ? "o" : "i"} (+${fmtCr(dead.length * 180)})`;
+            for (const w of dead) {
+              const owner = this.agents.get(w.ownerId);
+              if (owner && !owner.npc) this.mail(owner, "BOTNET", `Worm perso: ${target.org}`, `${agent.handle} ha rinforzato ${target.org} e il tuo worm non c'è più.`);
+            }
+          }
         }
         this.touch("node", target.id);
         break;
@@ -3591,7 +3851,10 @@ export class Game {
         break;
       }
     }
-    if (task.state !== "fail" && !agent.npc) this.bump(agent, `t:${task.tool}`);
+    if (task.state !== "fail" && !agent.npc) {
+      this.bump(agent, `t:${task.tool}`);
+      this.deed(agent, `t:${task.tool}`, target);
+    }
     this.touch("agent", agent.id);
   }
 
@@ -3732,8 +3995,10 @@ export class Game {
     if (this.node(m.nodeId)?.kind !== "home") this.reveal(agent, m.nodeId);
     this.reveal(agent, m.destNodeId);
     for (const id of m.clientNodes ?? []) this.reveal(agent, id);
+    for (const o of m.objectives ?? []) this.reveal(agent, o.nodeId);
+    if (m.limitMin) m.expiresAt = Math.min(m.expiresAt, now() + m.limitMin * 60_000);
     this.touch("mission", m.id);
-    return { ok: true, note: "contratto accettato" };
+    return { ok: true, note: m.limitMin ? `contratto accettato: hai ${m.limitMin} minuti` : "contratto accettato" };
   }
 
   abandon(agent: Agent, missionId: string) {
@@ -3929,6 +4194,15 @@ export class Game {
         }
         break;
       }
+      case "chain":
+      case "spree":
+      case "stunt":
+      case "audit": {
+        const left = (m.objectives ?? []).filter((o) => this.objectiveCount(agent, m, o) < o.n);
+        ok = !left.length;
+        if (!ok) fail = `manca: ${left[0]!.label}`;
+        break;
+      }
       case "sabotage":
         ok = node.offlineBy === agent.id && (node.cooldown?.shutdown ?? 0) - 40 * 60_000 >= (m.takenAt ?? 0);
         if (!ok) fail = "non risulta che tu abbia spento quel sistema dopo aver accettato";
@@ -3968,9 +4242,15 @@ export class Game {
       } else notes.push("hai lasciato tracce: niente bonus");
     }
     // le taglie pagano quello che c'è in deposito; i contratti dei clienti risentono dei chip
-    if (!m.postedBy) pay = Math.round(pay * (1 + this.chip(agent, "payout") / 100));
+    if (!m.postedBy) pay = Math.round(pay * (1 + this.chip(agent, "payout") / 100 + this.spec(agent, "finanza") * 0.01));
+    if (agent.buffs?.fixer && !m.postedBy) {
+      pay = Math.round(pay * 1.5);
+      agent.buffs.fixer = 0;
+      notes.push("parola del fixer +50%");
+    }
     if (!agent.npc) {
       this.bump(agent, `m:${m.type}`);
+      if (m.scene) this.bump(agent, `sc:${m.scene}`);
       if (tier >= 3) this.bump(agent, "elite");
       if (m.postedBy) this.bump(agent, "bounty");
       if (notes.includes("senza traccia +50%")) this.bump(agent, "ghostpay");
@@ -3979,14 +4259,16 @@ export class Game {
     this.addFame(agent, [2, 4, 8, 15, 30][tier]!);
     this.feat(agent, "first");
     if (tier >= 3) this.feed(`LUMEN NEWS · Si parla di ${agent.handle}: «${m.title}» è il colpo della settimana.`, agent.faction);
-    if (!m.ownerId && Math.random() < (TIER_LOOT[tier]! + this.chip(agent, "luck") / 100) * this.num("lootMult")) {
+    const sure = Boolean(agent.buffs?.dice);
+    if (sure) agent.buffs!.dice = 0;
+    if (!m.ownerId && (sure || Math.random() < (TIER_LOOT[tier]! + this.chip(agent, "luck") / 100 + this.spec(agent, "esplorazione") * 0.005) * this.num("lootMult"))) {
       const item = this.rollItem([[70, 25, 5, 0], [50, 35, 13, 2], [30, 40, 24, 6], [15, 35, 35, 15], [0, 25, 45, 30]][tier]!);
       this.giveItem(agent, item);
       notes.push(`bottino: ${item.name}`);
     }
     if (agent.faction === "blue") agent.ethics = clamp(agent.ethics + 1, -100, 100);
     agent.credits += m.reward;
-    agent.xp += m.xp;
+    agent.xp += Math.round(m.xp * (1 + this.chip(agent, "xp") / 100 + this.spec(agent, "difesa") * 0.01));
     this.meta.war[agent.faction] += 1 + Math.round(m.reward / 1000);
     this.touch("mission", m.id);
     this.touch("agent", agent.id);
@@ -4062,7 +4344,7 @@ export class Game {
     // lo stesso file non lo ricompra a prezzo pieno: sul mercato non vale niente una seconda copia
     const fkey = `${st.nodeId}:${st.fileId}`;
     const repeat = !st.item && now() - (agent.fenced[fkey] ?? 0) < FENCE_MEMORY;
-    const price = Math.round(this.priceOf(st) * (repeat ? FENCE_REPEAT : 1) * this.num("fenceMult"));
+    const price = Math.round(this.priceOf(st) * (repeat ? FENCE_REPEAT : 1) * this.num("fenceMult") * (1 + this.chip(agent, "fence") / 100));
     if (!st.item) agent.fenced[fkey] = now();
     agent.storage = agent.storage.filter((x) => x !== st);
     agent.credits += price;
@@ -4384,6 +4666,32 @@ export class Game {
 
   // ------------------------------------------------------------ NPC
 
+  /** La botnet: ogni worm vivo rende qualche credito al suo padrone; dopo un'ora si spegne da solo. */
+  wormTick() {
+    const t = now();
+    const gain = new Map<string, number>();
+    for (const n of this.nodes.values()) {
+      if (!n.worms?.length) continue;
+      const live = n.worms.filter((w) => t - w.at < WORM_LIFE_MIN * 60_000 && this.agents.has(w.ownerId));
+      if (live.length !== n.worms.length) {
+        n.worms = live;
+        this.touch("node", n.id);
+      }
+      if ((n.offlineUntil ?? 0) > t) continue;
+      for (const w of live) gain.set(w.ownerId, (gain.get(w.ownerId) ?? 0) + wormYield(this.tierOf(n), w.version));
+    }
+    for (const [id, cr] of gain) {
+      const a = this.agents.get(id)!;
+      a.credits += cr;
+      this.touch("agent", id);
+      this.dirty.add(id);
+      if (!a.npc) {
+        this.bump(a, "wormcr", cr);
+        this.bump(a, "earned", cr);
+      }
+    }
+  }
+
   pulse() {
     if (!this.on("npcActive")) return;
     const ghosts = [...this.agents.values()].filter((a) => a.npc);
@@ -4459,6 +4767,7 @@ export class Game {
 class UserError extends Error {}
 
 export type AgentDoc = Agent;
+export type NodeDoc = WNode;
 export type MissionDoc = Mission;
 
 function renderLog(l: LogEntry) {

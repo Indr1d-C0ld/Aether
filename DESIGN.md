@@ -314,6 +314,24 @@ Solo scena: non decide nulla, legge lo stato che arriva dal server e non blocca 
 - **Trace che stringe**: cornice rossa che pulsa oltre il 50%, più veloce oltre il 75%, e sopra il 90% la scritta «STACCA».
 - **Dettagli**: crediti che scorrono fino al nuovo valore, uscita dei comandi battuta a macchina, War Dialer con il registro delle chiamate (ATDT … NO CARRIER / CARRIER).
 
+## Rete, compagnia e mondo allargato (0.3.0)
+
+**Operazioni a obiettivi** (`server/scenarios.ts`). 25 copioni rossi e 7 blu, ognuno un cliché: «Yippee-ki-yay» (blackout + furto), «Too many secrets», «Free Kevin», «Sessanta secondi» (a tempo), «1507 sistemi»… Il motore annota le *gesta* del giocatore (`Game.deed`: admin, t:copy, sys:blackout, ghostexit, alter…) e il contratto le conta da quando è stato accettato; un obiettivo può chiedere un nodo preciso, un tipo, o n volte «diverse» per nodo, tipo o regione. Tipi nuovi: Operazione, Raffica, Colpo di scena, Ispezione. Circa il 30% della bacheca. Aggiungere un copione = una voce in quel file.
+
+**Oggetti.** 14 exploit nuovi; **gadget** (`GADGETS`): non si consumano, hanno un tempo di ricarica; chip con due effetti nuovi (esperienza, ricettatore); 8 leggendari nuovi in altrettanti nodi segreti; fino a 6 slot per i chip. Effetti a tempo in `agent.buffs`.
+
+**Worm e botnet.** Strumento rosso: un worm per sistema, 4/8/12 vivi secondo la versione, 60 minuti di vita, resa `wormYield(grado, versione)` ogni 45 s (al massimo ~5.000 CR/ora con tutto al massimo). Il Patch Kit dei blu, in modalità rinforzo, li schiaccia (+180 CR l'uno).
+
+**Mondo.** Un secondo giro del generatore con un seme suo (`EXTRA` in `server/worldgen.ts`) aggiunge ~200 nodi senza toccare quelli di prima: BBS, sale LAN, zaibatsu, arcologie, centrali nucleari, radio pirata, silos, più una settantina di insegne-tributo. 13 nodi segreti nuovi in `server/content.ts` (17 in tutto). In totale 527 nodi.
+
+**Crescita.** 20 ranghi (fino a 640.000 XP), livello 1-99 (`levelOf`), sette **specializzazioni** (`shared/progress.ts`) che salgono con i contatori personali e danno fino al 10% nel loro campo.
+
+**Fra giocatori** (`server/social.ts`). Crew (stessa cellula, max 12, cassa, classifica), duelli (stessa posta, bersaglio a sorte alla portata del più debole, 10 minuti, 5% al banco), scambio di oggetti con prezzo o in regalo, crediti (5% di commissione, 20.000 CR al giorno, da 200 XP).
+
+**ReticoloNet** (`server/irc.ts`, testi in `server/irc-text.ts`). Canali pubblici, di cellula (`#rossi`, `#blu`), di crew, e due segreti; query; operatori; MOTD; CTCP; netsplit; bot (X, Oracolo con `!voce`, Lumen che rilancia il feed, XDCC-Kestrel con un pacchetto al giorno, e gli handle NPC che chiacchierano solo se c'è qualcuno). I comandi di gioco (`/paga`, `/dcc`, `/sfida`, `/crew`) chiamano gli stessi gesti di `social.ts`: la chat non ha poteri suoi. L'amministratore è IRC operator (`/wallops`, `/kill`, `/silence`) e può mettere la rete in sola lettura dalle regolazioni. Gli arretrati si salvano col mondo.
+
+**Dev-log** (`shared/devlog.ts`): le novità in cima alla pagina d'ingresso e nella scheda Feed. Ogni modifica visibile ai giocatori aggiunge una voce.
+
 ## Bilanciamento iniziale (in `shared/rules.ts`)
 
 - Monitor 1/2/3/4/5: 13 / 9,5 / 7,2 / 5,4 / 4 secondi per hop. Collegarsi diretti dà al monitor un solo hop.

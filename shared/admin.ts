@@ -57,6 +57,7 @@ export const SETTINGS: SettingDef[] = [
   N("Iscrizioni e accessi", "loginFails", "Chiavi sbagliate tollerate", "Tentativi falliti in 15 minuti prima del blocco dell'indirizzo.", 8, 3, 50, 1),
   B("Iscrizioni e accessi", "maintenance", "Manutenzione", "Solo l'admin può entrare; chi è collegato viene scollegato con il messaggio qui sotto.", false),
   { key: "maintenanceMsg", group: "Iscrizioni e accessi", label: "Messaggio di manutenzione", desc: "Mostrato a chi prova a entrare.", kind: "text", def: "Il Reticolo è in manutenzione. Torna fra poco." },
+  B("Comunicazione", "chatEnabled", "Rete IRC attiva", "Se spento, ReticoloNet resta in sola lettura: nessuno può scrivere.", true),
   { key: "motd", group: "Comunicazione", label: "Avviso in alto", desc: "Una riga mostrata a tutti sopra il deck. Vuoto = nessun avviso.", kind: "text", def: "" },
   {
     key: "motdTone",

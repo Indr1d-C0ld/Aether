@@ -6,6 +6,7 @@ import { sfx } from "../audio.ts";
 import { music } from "../music.ts";
 import { AudioToggles } from "./AudioToggles.tsx";
 import { art } from "../art.tsx";
+import { DevLog } from "./DevLog.tsx";
 
 export function Access({ snap }: { snap: Snapshot }) {
   const [mode, setMode] = useState<"register" | "login">("register");
@@ -155,6 +156,9 @@ export function Access({ snap }: { snap: Snapshot }) {
             </p>
           </div>
         </form>
+        <div className="access-wide">
+          <DevLog />
+        </div>
       </div>
     </div>
   );

@@ -20,7 +20,8 @@ export type ToolId =
   | "bdkit" // Kit Backdoor (rosso): avvelena un relay
   | "honey" // Kit Honeypot (blu): trasforma un file in trappola
   | "patch" // Patch Kit (blu): rinforza un nodo, bonifica i backdoor
-  | "wardialer"; // War Dialer: compone numeri a tappeto e scopre nodi nascosti
+  | "wardialer" // War Dialer: compone numeri a tappeto e scopre nodi nascosti
+  | "worm"; // Worm (rosso): un parassita che rende spiccioli finché un blu non lo schiaccia
 
 export type HardwareId = "cpu" | "modem" | "memory" | "shield" | "soc";
 
@@ -67,7 +68,11 @@ export type MissionType =
   | "tracemoney" // segui un bonifico e scopri chi ha incassato
   | "arrest" // fai finire qualcuno nei guai con la giustizia
   | "sabotage" // spegni un sistema
-  | "restart"; // blu: rimetti in linea un sistema spento
+  | "restart" // blu: rimetti in linea un sistema spento
+  | "chain" // operazione in più tappe su nodi precisi
+  | "spree" // raffica: tanti sistemi diversi prima della scadenza
+  | "stunt" // colpo di scena: una cosa sola, fatta in un modo preciso
+  | "audit"; // blu: giro d'ispezione su più sedi
 
 export type AgentView = {
   id: string;
@@ -78,6 +83,10 @@ export type AgentView = {
   heat: number;
   rank: string;
   rankIndex: number;
+  level: number; // livello numerico 1-99
+  crew: string | null; // sigla della crew
+  cooldowns: Record<string, number>; // gadget: quando tornano pronti
+  buffs: Record<string, number>; // effetti attivi (scadenza) o in attesa (contatore)
   nextXp: number | null;
   gatewayIp: string;
   hw: Record<HardwareId, number>;
@@ -155,6 +164,8 @@ export type NodeView = {
   patched: boolean;
   backdoors: number | null; // null = non visibile a te
   mineBackdoor: boolean;
+  myWorm: boolean; // hai un worm su questo nodo
+  worms: number; // worm altrui visibili (ai blu, da dentro)
   wardens: string[]; // handle blu che presidiano (visibile ai blu e a chi ha monitor bypass v2+)
   activity: number; // 0..1: quanto traffico recente (glow sulla mappa)
   catalog: { id: string; name: string }[]; // file noti sul nodo (per le taglie)
@@ -198,6 +209,8 @@ export type MissionView = {
   tier: number; // grado 0-4: paga, rischio e probabilità di bottino
   mods: MissionMod[];
   answerHint: string | null; // cosa va consegnato, se serve una risposta
+  objectives: { label: string; n: number; have: number }[]; // operazioni a tappe
+  limitMin: number | null; // tempo massimo dall'accettazione (finché è in bacheca)
 };
 
 export type ListingView = {
@@ -223,6 +236,8 @@ export type BoardRow = {
   credits: number;
   heat: number;
   rank: string;
+  level: number;
+  crew: string | null;
   ghostScore: number;
   defense: number;
   sabotage: number;
@@ -322,7 +337,36 @@ export type GameState = {
   war: { red: number; blue: number };
   serverNow: number;
   notice: { text: string; tone: "info" | "warn" | "bad" } | null; // avviso dell'amministrazione
+  crews: CrewView[];
+  duels: DuelView[];
+  trades: TradeView[];
 };
+
+export type CrewView = {
+  tag: string;
+  name: string;
+  faction: Faction;
+  motto: string;
+  leader: string;
+  members: { handle: string; rank: string; level: number; online: boolean }[];
+  score: number;
+  bank: number;
+  mine: boolean;
+  lead: boolean;
+  invited: boolean;
+};
+export type DuelView = { id: string; foe: string; stake: number; state: "offered" | "live"; incoming: boolean; node: string | null; nodeId: string | null; expiresAt: number };
+export type TradeView = { id: string; with: string; incoming: boolean; name: string; rarity: number; price: number; expiresAt: number };
+
+// ---- rete IRC ----
+export type IrcLine = { id: number; at: number; chan: string; nick: string; kind: "msg" | "act" | "join" | "part" | "quit" | "topic" | "mode" | "notice" | "sys" | "kick"; text: string };
+export type IrcUser = { nick: string; mode: "" | "+" | "@" | "~"; away: boolean; bot: boolean };
+export type IrcChan = { name: string; topic: string; users: IrcUser[]; modes: string };
+export type IrcEvent =
+  | { e: "line"; line: IrcLine }
+  | { e: "chan"; chan: IrcChan }
+  | { e: "gone"; chan: string }
+  | { e: "sync"; server: string; nick: string; host: string; motd: string[]; chans: IrcChan[]; backlog: IrcLine[] };
 
 // ---- Protocollo WebSocket ----
 
@@ -337,4 +381,5 @@ export type ServerMsg =
   // `nodes` arriva a intervalli: quando è null il client tiene l'elenco che ha già
   | { t: "state"; s: Omit<GameState, "nodes"> & { nodes: NodeView[] | null } }
   | { t: "res"; id: number; ok: boolean; error?: string; note?: string; data?: unknown }
-  | { t: "toast"; text: string; tone: "ok" | "warn" | "bad" | "info" };
+  | { t: "toast"; text: string; tone: "ok" | "warn" | "bad" | "info" }
+  | { t: "irc"; ev: IrcEvent };

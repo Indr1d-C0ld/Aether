@@ -253,7 +253,7 @@ export function LedgerPanel({ op, ctx }: { op: OpView; ctx: DeckCtx }) {
 /** Exploit monouso e carichi da consegnare: quello che hai in archivio e puoi usare qui. */
 export function Arsenal({ op, ctx }: { op: OpView; ctx: DeckCtx }) {
   const me = ctx.state.me;
-  const exploits = me.storage.filter((s) => s.item?.kind === "exploit");
+  const exploits = me.storage.filter((s) => s.item?.kind === "exploit" || s.item?.kind === "gadget");
   const cargo = me.storage.filter((s) => s.cargo);
   if (!exploits.length && !cargo.length) return null;
   const frozen = op.frozenUntil > ctx.serverNow;
@@ -272,8 +272,8 @@ export function Arsenal({ op, ctx }: { op: OpView; ctx: DeckCtx }) {
                 {s.item!.desc}
               </div>
             </span>
-            <button className="btn small" onClick={() => void net.do("useItem", { key: s.key })}>
-              Usa
+            <button className="btn small" disabled={s.item!.kind === "gadget" && (me.cooldowns[s.item!.code] ?? 0) > ctx.serverNow} onClick={() => void net.do("useItem", { key: s.key })}>
+              {s.item!.kind === "gadget" ? ((me.cooldowns[s.item!.code] ?? 0) > ctx.serverNow ? `${Math.ceil(((me.cooldowns[s.item!.code] ?? 0) - ctx.serverNow) / 60_000)}′` : "Attiva") : "Usa"}
             </button>
           </div>
         ))}

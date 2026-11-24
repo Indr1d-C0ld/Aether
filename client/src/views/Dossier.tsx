@@ -67,7 +67,7 @@ export function InventoryPanel({ ctx }: { ctx: DeckCtx }) {
                 <span style={{ minWidth: 0 }}>
                   <span style={{ color: r ? rarityColor(r) : undefined }}>{f.name}</span>{" "}
                   <span className="faint" style={{ fontSize: 11 }}>
-                    {f.item ? (f.item.kind === "chip" ? "chip" : "exploit") : "dati"} · {rarityName(r)} · {f.size} GQ
+                    {f.item ? f.item.kind : "dati"} · {rarityName(r)} · {f.size} GQ
                   </span>
                   <div className="faint" style={{ fontSize: 12 }}>
                     {f.item ? (f.item.kind === "chip" ? <span className="t-green">{describeEffects(f.item.effects)}</span> : f.item.desc) : `da ${n?.org ?? "un nodo fuori mappa"}`}
@@ -85,6 +85,11 @@ export function InventoryPanel({ ctx }: { ctx: DeckCtx }) {
                       Usa
                     </button>
                   ) : null}
+                  {f.item?.kind === "gadget" ? (
+                    <button className="btn small" disabled={(me.cooldowns[f.item.code] ?? 0) > ctx.serverNow} onClick={() => void net.do("useItem", { key: f.key })}>
+                      {(me.cooldowns[f.item.code] ?? 0) > ctx.serverNow ? `pronto fra ${Math.ceil(((me.cooldowns[f.item.code] ?? 0) - ctx.serverNow) / 60_000)}′` : "Attiva"}
+                    </button>
+                  ) : null}
                   <button className="btn small danger" onClick={() => void net.do("dropFile", { key: f.key })}>
                     Butta
                   </button>
@@ -94,7 +99,7 @@ export function InventoryPanel({ ctx }: { ctx: DeckCtx }) {
           })
         ) : (
           <p className="dim" style={{ margin: 0 }}>
-            Vuoto. Qui finiscono i file copiati e il bottino: exploit monouso e chip per il gateway.
+            Vuoto. Qui finiscono i file copiati e il bottino: exploit monouso, gadget che si ricaricano e chip per il gateway.
           </p>
         )}
         <p className="faint" style={{ margin: 0, fontSize: 12 }}>

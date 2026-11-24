@@ -5,6 +5,8 @@ import { MISSION_LABEL, REGION_NAME, KIND_LABEL, fmtCr } from "../../../shared/r
 import type { MissionType, NodeKind } from "../../../shared/types.ts";
 import type { Region } from "../../../shared/rules.ts";
 import type { DeckCtx } from "./Deck.tsx";
+import { SPEC_DEFS, SPEC_TITLES, specLevel, specNeed, specPoints } from "../../../shared/progress.ts";
+import { levelOf, levelXp } from "../../../shared/rules.ts";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("it-IT");
 
@@ -57,7 +59,61 @@ export function Career({ ctx }: { ctx: DeckCtx }) {
           ))}
         </div>
       </div>
+      <Progress ctx={ctx} />
       {tab === "traguardi" ? <Achievements counters={me.counters} feats={me.feats} self={self} /> : <Stats ctx={ctx} />}
+    </div>
+  );
+}
+
+/** Livello numerico e specializzazioni: quello che fai ti rende più bravo a farlo. */
+function Progress({ ctx }: { ctx: DeckCtx }) {
+  const me = ctx.state.me;
+  const lv = levelOf(me.xp);
+  const a = levelXp(lv);
+  const b = levelXp(lv + 1);
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <span className="label">Livello e specializzazioni</span>
+        <span className="px t-fac" style={{ fontSize: 22 }}>
+          Livello {lv} · {me.rank}
+        </span>
+      </div>
+      <div className="panel-body list">
+        <div className="meter" style={{ height: 8 }}>
+          <i style={{ width: `${lv >= 99 ? 100 : ((me.xp - a) / (b - a)) * 100}%` }} />
+        </div>
+        <span className="faint" style={{ fontSize: 12 }}>
+          {lv >= 99 ? "Livello massimo." : `${me.xp.toLocaleString("it-IT")} XP · al livello ${lv + 1} ne mancano ${(b - me.xp).toLocaleString("it-IT")}`}
+          {me.nextXp ? ` · prossimo rango a ${me.nextXp.toLocaleString("it-IT")} XP` : " · hai il rango più alto"}
+        </span>
+        <div className="spec-grid">
+          {SPEC_DEFS.map((d) => {
+            const l = specLevel(me.counters, d.id);
+            const p = specPoints(me.counters, d.id);
+            const from = specNeed(l);
+            const to = specNeed(l + 1);
+            return (
+              <div key={d.id} className={`spec ${l ? "on" : ""}`}>
+                <div className="spread">
+                  <span className="px" style={{ fontSize: 20 }}>
+                    {d.name}
+                  </span>
+                  <span className="t-amber">
+                    {l}/10 · {SPEC_TITLES[l]}
+                  </span>
+                </div>
+                <div className="meter" style={{ height: 6 }}>
+                  <i style={{ width: `${l >= 10 ? 100 : Math.max(0, ((p - from) / (to - from)) * 100)}%` }} />
+                </div>
+                <div className={l ? "t-green" : "faint"} style={{ fontSize: 12 }}>
+                  {l ? `+${(l * d.per).toFixed(d.per % 1 ? 1 : 0)}${d.unit} ${d.perk}` : `${d.perk}: +${d.per}${d.unit} per livello`}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

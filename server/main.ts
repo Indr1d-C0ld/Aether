@@ -7,6 +7,8 @@ import { WebSocketServer, type WebSocket } from "ws";
 import { Store } from "./db.ts";
 import { Game, type AgentDoc } from "./game.ts";
 import { installAdmin } from "./admin.ts";
+import { installSocial } from "./social.ts";
+import { installIrc } from "./irc.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -189,6 +191,18 @@ function gate(a: AgentDoc): string | null {
   return null;
 }
 
+const social = installSocial(game);
+const irc = installIrc(game, social, (agentId, ev) => {
+  for (const ws of sockets.get(agentId) ?? []) send(ws, { t: "irc", ev });
+});
+// la chat passa da Game.act come le altre azioni: «irc» (una riga scritta) e «ircSync» (ricollega le finestre)
+const socialAct = game.socialAct;
+game.socialAct = (agent, a, p) => {
+  if (a === "irc") return irc.input(agent, String(p.text ?? ""), String(p.where ?? "*"));
+  if (a === "ircSync") return irc.connected(agent), { ok: true };
+  return socialAct?.(agent, a, p) ?? null;
+};
+
 installAdmin(game, {
   dbPath: DB_PATH,
   startedAt: STARTED_AT,
@@ -242,6 +256,7 @@ wss.on("connection", (ws, req) => {
     agentId = id;
     conn.agentId = id;
     onLogin(game.agents.get(id)!, ip);
+    // la rete IRC parte quando il client la chiede (ircSync), per non mandare arretrati a chi non la apre
     if (!sockets.has(id)) sockets.set(id, new Set());
     sockets.get(id)!.add(ws);
     game.online.add(id);
@@ -343,6 +358,7 @@ wss.on("connection", (ws, req) => {
     if (!set?.size) {
       sockets.delete(agentId);
       game.online.delete(agentId);
+      if (me) irc.disconnected(me);
     }
   });
 });
@@ -378,14 +394,19 @@ setInterval(() => {
     }
     if (game.ops.has(id) || tickN % 4 === 0) pushState(id);
   }
-  if (tickN % FLUSH_TICKS === 0) game.flush();
+  if (tickN % FLUSH_TICKS === 0) {
+    irc.save();
+    game.flush();
+  }
 }, 250);
 
 process.on("SIGINT", () => {
+  irc.save();
   game.flush();
   process.exit(0);
 });
 process.on("SIGTERM", () => {
+  irc.save();
   game.flush();
   process.exit(0);
 });

@@ -1,6 +1,7 @@
 import { clockShort } from "../../../shared/rules.ts";
 import { net } from "../net.ts";
 import type { DeckCtx } from "./Deck.tsx";
+import { DevLog } from "./DevLog.tsx";
 
 export function Feed({ ctx }: { ctx: DeckCtx }) {
   const { state } = ctx;
@@ -40,6 +41,7 @@ export function Feed({ ctx }: { ctx: DeckCtx }) {
           ))}
         </div>
       </div>
+      <DevLog first={0} />
     </div>
   );
 }

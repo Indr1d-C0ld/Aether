@@ -24,10 +24,10 @@ export const ITEM_FENCE = [150, 400, 1200, 4000, 15000];
 
 // ------------------------------------------------------------ oggetti
 
-export type ChipEffect = "cpu" | "trace" | "modem" | "storage" | "heat" | "payout" | "luck" | "hops";
+export type ChipEffect = "cpu" | "trace" | "modem" | "storage" | "heat" | "payout" | "luck" | "hops" | "xp" | "fence";
 
 export type Item = {
-  kind: "exploit" | "chip";
+  kind: "exploit" | "chip" | "gadget";
   code: string;
   rarity: number;
   name: string;
@@ -47,7 +47,36 @@ export const EXPLOITS: ExploitDef[] = [
   { code: "ghost", name: "Rotta fantasma", rarity: 2, where: "op", desc: "Rimescola il rimbalzo: il trace riparte da zero." },
   { code: "skeleton", name: "Chiave scheletro", rarity: 3, where: "op", desc: "Accesso admin immediato, senza password. Lascia comunque la riga di login." },
   { code: "lawyer", name: "Avvocato di Lumen", rarity: 3, where: "any", desc: "Fa cadere il tuo capo d'accusa più grave." },
+  // --- seconda ondata
+  { code: "map", name: "Mappa rubata", rarity: 0, where: "any", desc: "Una pagina strappata dall'elenco di un tecnico: 5 nodi nuovi sulla tua mappa." },
+  { code: "turbo", name: "Compressione V.42bis", rarity: 0, where: "any", desc: "Per 90 secondi copi e carichi tre volte più in fretta." },
+  { code: "tokens", name: "Gettoni di Cereal Killer", rarity: 0, where: "any", desc: "Azzera l'usura di tutti i tuoi relay: i monitor dimenticano i tuoi percorsi abituali." },
+  { code: "overclock", name: "Overclock a ghiaccio secco", rarity: 1, where: "any", desc: "Per 60 secondi i tuoi strumenti vanno una volta e mezza più veloci." },
+  { code: "plague", name: "Agenda di The Plague", rarity: 1, where: "op", desc: "Le quattro password più usate: amore, sesso, segreto e… Restringe subito la rosa a due candidati, se è una parola comune." },
+  { code: "relaykeys", name: "Mazzo del centralinista", rarity: 1, where: "op", desc: "Le chiavi admin di tutti i relay del rimbalzo in corso." },
+  { code: "dice", name: "Dado truccato di Deckard", rarity: 1, where: "any", desc: "Il prossimo contratto che consegni lascia sicuramente un bottino." },
+  { code: "zmon", name: "0-day Monitor", rarity: 2, where: "op", desc: "Acceca il monitor come un Monitor Bypass v3, all'istante." },
+  { code: "decoder", name: "Scatola nera di Setec", rarity: 2, where: "op", desc: "Niente più segreti: decifra all'istante tutti i file del nodo." },
+  { code: "rewind", name: "Nastro riavvolto", rarity: 2, where: "op", desc: "Il trace torna indietro del 35%." },
+  { code: "bribe", name: "Bustarella al distretto", rarity: 2, where: "any", desc: "Calore −60. Qualcuno ha perso il tuo fascicolo per qualche giorno." },
+  { code: "fixer", name: "Parola del fixer", rarity: 2, where: "any", desc: "Il prossimo contratto che consegni paga il 50% in più." },
+  { code: "coords", name: "Coordinate cifrate", rarity: 3, where: "any", desc: "Un numero che non è su nessun elenco: scopri un nodo nascosto." },
+  { code: "icebreaker", name: "Rompighiaccio Kuang", rarity: 3, where: "op", desc: "Proxy, firewall e monitor giù insieme. Lento a caricarsi nei romanzi, istantaneo qui." },
 ];
+
+/** Gadget: non si consumano. Si usano dall'archivio e poi devono ricaricarsi. */
+export type GadgetDef = { code: string; name: string; rarity: number; desc: string; where: "op" | "any"; cooldownMin: number };
+export const GADGETS: GadgetDef[] = [
+  { code: "walkman", name: "Walkman con la cassetta giusta", rarity: 1, where: "any", cooldownMin: 10, desc: "Abbassa la tensione: calore −8." },
+  { code: "pager", name: "Cercapersone Motorola", rarity: 1, where: "any", cooldownMin: 30, desc: "Qualcuno ti passa un indirizzo: 2 nodi nuovi sulla mappa." },
+  { code: "bluebox", name: "Blue Box", rarity: 2, where: "any", cooldownMin: 20, desc: "2600 Hz nella cornetta: azzera l'usura dei tuoi relay." },
+  { code: "jammer", name: "Disturbatore a onde corte", rarity: 2, where: "op", cooldownMin: 6, desc: "Trace congelato per 8 secondi." },
+  { code: "modelm", name: "Tastiera Model M", rarity: 2, where: "any", cooldownMin: 8, desc: "Il rumore giusto: strumenti una volta e mezza più veloci per 30 secondi." },
+  { code: "scanner", name: "Scanner di frequenze", rarity: 2, where: "op", cooldownMin: 5, desc: "Ascolta la sala server: ti dice chi presidia il nodo e quanti sensori ci sono." },
+  { code: "glove", name: "Power Glove modificato", rarity: 3, where: "op", cooldownMin: 12, desc: "«È così brutto che…» Il trace torna indietro del 15%." },
+  { code: "deckard", name: "Macchina Esper", rarity: 3, where: "op", cooldownMin: 15, desc: "Ingrandisci. Fermo. Rivela per intero la password del nodo… o quasi: metà dei caratteri." },
+];
+export const gadgetDef = (code: string) => GADGETS.find((g) => g.code === code) ?? null;
 
 export const exploitDef = (code: string) => EXPLOITS.find((e) => e.code === code) ?? null;
 
@@ -60,6 +89,8 @@ export const CHIP_LABEL: Record<ChipEffect, string> = {
   payout: "ricompense dei contratti",
   luck: "probabilità di bottino",
   hops: "hop nel rimbalzo",
+  xp: "esperienza dei contratti",
+  fence: "prezzi del ricettatore",
 };
 
 /** Valore dell'effetto di un chip per rarità (percentuali, GQ o hop). */
@@ -72,6 +103,8 @@ export const CHIP_POWER: Record<ChipEffect, number[]> = {
   payout: [3, 5, 8, 12, 18],
   luck: [5, 8, 12, 18, 25],
   hops: [0, 0, 1, 1, 2],
+  xp: [4, 7, 11, 16, 25],
+  fence: [8, 14, 22, 32, 45],
 };
 
 export const CHIP_NAMES: Record<ChipEffect, string[]> = {
@@ -83,6 +116,8 @@ export const CHIP_NAMES: Record<ChipEffect, string[]> = {
   payout: ["Agenda del broker", "Rubrica di Pale Market", "Commercialista ombra", "Fixer personale", "La mano di Plague"],
   luck: ["Dado truccato", "Fiuto da rigattiere", "Orecchio in sala server", "Talpa al mercato", "Deck di Zero Cool"],
   hops: ["", "", "Tabella di instradamento", "Chiave di centrale", "Occhiali di Acid Burn"],
+  xp: ["Manuale fotocopiato", "Numero di Phrack", "Rainbow Books", "Costrutto di un vecchio maestro", "ROM del Flatline"],
+  fence: ["Bilancino", "Lente da gioielliere", "Contatto a Chiba", "Tavolo al Chatsubo", "Nastro di Max"],
 };
 
 /** Leggendari unici: due effetti e un nome da film. Vivono nei nodi nascosti. */
@@ -111,6 +146,70 @@ export const LEGENDARY: Record<string, Item> = {
     desc: "Capacità raddoppiata, e poi raddoppiata ancora. I ricordi d'infanzia non ci stanno più.",
     effects: { storage: 80, modem: 60 },
   },
+  kuang: {
+    kind: "chip",
+    code: "kuang",
+    rarity: 4,
+    name: "Kuang Grade Mark Eleven",
+    desc: "Rompighiaccio militare cinese. Si finge parte del sistema finché il sistema non è lui.",
+    effects: { cpu: 35, trace: -10 },
+  },
+  flatline: {
+    kind: "chip",
+    code: "flatline",
+    rarity: 4,
+    name: "ROM del Flatline",
+    desc: "Un costrutto con la risata di un morto. Chiede solo una cosa in cambio: di essere cancellato, alla fine.",
+    effects: { xp: 25, luck: 15 },
+  },
+  setec: {
+    kind: "chip",
+    code: "setec",
+    rarity: 4,
+    name: "Scatola di Setec Astronomy",
+    desc: "Anagramma di «too many secrets». Era su una segreteria telefonica, dentro un calcolatore tascabile.",
+    effects: { modem: 80, payout: 12 },
+  },
+  laughing: {
+    kind: "chip",
+    code: "laughing",
+    rarity: 4,
+    name: "Marchio dell'Uomo che Ride",
+    desc: "«Pensai che avrei potuto fingere di essere uno di quei sordomuti.» Nessuna telecamera ricorda la tua faccia.",
+    effects: { heat: -40, trace: -12 },
+  },
+  disc: {
+    kind: "chip",
+    code: "disc",
+    rarity: 4,
+    name: "Disco d'identità",
+    desc: "Tutto quello che fai o impari resta inciso qui. Se lo perdi, vieni deresoluto.",
+    effects: { payout: 20, xp: 20 },
+  },
+  redpill: {
+    kind: "chip",
+    code: "redpill",
+    rarity: 4,
+    name: "Pillola rossa",
+    desc: "Resti nel paese delle meraviglie, e vedi quant'è profonda la tana del bianconiglio.",
+    effects: { luck: 30, hops: 2 },
+  },
+  headroom: {
+    kind: "chip",
+    code: "headroom",
+    rarity: 4,
+    name: "Nastro di Max",
+    desc: "Venti minuti nel futuro. Balbetta, ma vende qualunque cosa a chiunque.",
+    effects: { fence: 45, payout: 10 },
+  },
+  cyberspace7: {
+    kind: "chip",
+    code: "cyberspace7",
+    rarity: 4,
+    name: "Ono-Sendai Cyberspace 7",
+    desc: "Un'allucinazione consensuale vissuta ogni giorno da miliardi di operatori. Questo è il biglietto di prima classe.",
+    effects: { cpu: 20, storage: 40 },
+  },
   jobe: {
     kind: "chip",
     code: "jobe",
@@ -122,7 +221,7 @@ export const LEGENDARY: Record<string, Item> = {
 };
 
 export function chipSlots(rankIndex: number) {
-  return Math.min(4, 1 + Math.floor(rankIndex / 3));
+  return Math.min(6, 1 + Math.floor(rankIndex / 3));
 }
 
 export function describeEffects(effects: Partial<Record<ChipEffect, number>> | undefined) {

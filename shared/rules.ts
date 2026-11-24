@@ -8,9 +8,21 @@ export const HEAT_BURN = 100;
 export const MAX_TOOL_VERSION = 3;
 export const MAX_HW = 5;
 
-export const RANK_CUTS = [0, 200, 550, 1100, 2000, 3500, 6000, 10000, 16000, 25000, 38000, 56000];
-const RANK_RED = ["Collegamento", "Courier", "Runner", "Operatore", "Intruso", "Spettro", "Architetto", "Maestro", "Élite", "Tecnomante", "Mito", "TERMINALE"];
-const RANK_BLUE = ["Collegamento", "Analista", "Sentinella", "Operatore", "Custode", "Warden", "Arbitro", "Maestro", "Élite", "Inquisitore", "Mito", "TERMINALE"];
+export const RANK_CUTS = [0, 200, 550, 1100, 2000, 3500, 6000, 10000, 16000, 25000, 38000, 56000, 80000, 110000, 150000, 200000, 270000, 360000, 480000, 640000];
+const RANK_RED = [
+  "Collegamento", "Courier", "Runner", "Operatore", "Intruso", "Spettro", "Architetto", "Maestro", "Élite", "Tecnomante", "Mito",
+  "Cowboy della console", "Fantasma nel guscio", "Rompighiaccio", "Signore del Reticolo", "Entità", "Costrutto", "Singolarità", "Deus ex machina", "TERMINALE",
+];
+const RANK_BLUE = [
+  "Collegamento", "Analista", "Sentinella", "Operatore", "Custode", "Warden", "Arbitro", "Maestro", "Élite", "Inquisitore", "Mito",
+  "Sceriffo del Reticolo", "Occhio di Turing", "Muro di ghiaccio", "Gran Custode", "Oracolo", "Demiurgo", "Sentinella eterna", "Panopticon", "TERMINALE",
+];
+
+/** Livello numerico (1-99): sale in fretta all'inizio, poi sempre più piano. */
+export function levelOf(xp: number) {
+  return Math.min(99, 1 + Math.floor(Math.sqrt(Math.max(0, xp) / 66)));
+}
+export const levelXp = (level: number) => (level - 1) ** 2 * 66;
 
 export function rankOf(xp: number, faction: Faction) {
   let index = 0;
@@ -100,6 +112,14 @@ export const TOOLS: ToolDef[] = [
     baseCost: 1300,
     blurb: "Ricostruisce le righe rimosse con un Log Deleter v1 (e dalla v3 anche v2), entro 30 minuti.",
     versions: ["v1 · recupera buchi", "v2 · più veloce", "v3 · recupera anche le cancellazioni pulite"],
+  },
+  {
+    id: "worm",
+    name: "Worm",
+    faction: "red",
+    baseCost: 2600,
+    blurb: "Un parassita che screma spiccioli dal nodo, ogni 45 secondi, per un'ora: la tua botnet. Un blu col Patch Kit lo schiaccia.",
+    versions: ["v1 · 4 worm vivi", "v2 · 8 worm, resa +40%", "v3 · 12 worm, resa +70%"],
   },
   {
     id: "bdkit",
@@ -309,6 +329,8 @@ export function toolWork(tool: ToolId | "copy" | "delete", opts: { level?: numbe
       return 8 / v;
     case "bdkit":
       return 9;
+    case "worm":
+      return 11 / v;
     case "honey":
       return 6;
     case "patch":
@@ -384,6 +406,10 @@ export const MISSION_LABEL: Record<MissionType, string> = {
   arrest: "Arresto",
   sabotage: "Sabotaggio",
   restart: "Riavvio",
+  chain: "Operazione",
+  spree: "Raffica",
+  stunt: "Colpo di scena",
+  audit: "Ispezione",
 };
 
 // ------------------------------------------------------------ planisfero e rimbalzo
@@ -495,3 +521,9 @@ export function clockShort(ms: number) {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
+
+// ------------------------------------------------------------ botnet
+export const WORM_CAP = [4, 8, 12];
+export const WORM_LIFE_MIN = 60;
+/** Crediti che un worm rende a ogni battito (45 s), per grado del nodo e versione. */
+export const wormYield = (tier: number, version: number) => Math.round((3 + tier * 2) * [1, 1.4, 1.7][Math.min(2, version - 1)]!);

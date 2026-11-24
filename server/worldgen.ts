@@ -259,6 +259,173 @@ function strongPassword(r: () => number) {
   return `${part(3)}-${part(4)}-${part(4)}`;
 }
 
+// ------------------------------------------------------------ espansione del mondo
+type Sub = { sub: string; org: (c: string, w: string, s: string) => string; tag: string };
+/** tributes: insegne fisse [nome, che cos'è, sigla], usate una volta sola ciascuna. */
+type ExtraSpec = { count: number; subs: Sub[]; tributes: [string, string, string][] };
+
+const EXTRA: Partial<Record<NodeKind, ExtraSpec>> = {
+  shop: {
+    count: 34,
+    subs: [
+      { sub: "BBS amatoriale", tag: "BBS", org: (c, w) => `${w} BBS` },
+      { sub: "negozio di computer", tag: "COMP", org: (c, w) => `${w} Computer` },
+      { sub: "sala LAN", tag: "LAN", org: (c, w) => `LAN Party ${w}` },
+      { sub: "karaoke", tag: "KARA", org: (c, w) => `Karaoke ${w}` },
+      { sub: "studio di tatuaggi", tag: "INK", org: (c, w) => `${w} Tattoo` },
+      { sub: "clinica di cyberware", tag: "RIPPER", org: (c, s) => `Bisturi ${s}` },
+      { sub: "fumetteria", tag: "COMIX", org: (c, w) => `Fumetteria ${w}` },
+      { sub: "love hotel", tag: "LOVE", org: (c, w) => `Hotel ${w} (a ore)` },
+      { sub: "noodle bar", tag: "NOODLE", org: (c, w) => `Noodle ${w}` },
+    ],
+    tributes: [
+      ["Flynn's Arcade", "sala giochi", "FLYNN"], ["Bar Chatsubo", "bar per espatriati", "CHAT"], ["The Gentleman Loser", "bar di cowboy della console", "LOSER"], ["Cyberdelia", "locale notturno", "CYBER"],
+      ["Cosa Nostra Pizza", "pizzeria a domicilio (30 minuti o è gratis)", "CNP"], ["The Black Sun", "locale virtuale", "BLKSUN"], ["Videodrome Video", "videonoleggio", "VDROME"], ["Taffey Lewis · Quarto Settore", "locale notturno", "TAFFEY"],
+      ["Chinatown Noodle di Howie Lee", "noodle bar", "HOWIE"], ["Babbage's Software", "negozio di computer", "BABB"], ["Hotel Coffin Cheap", "albergo a capsule", "COFFIN"], ["L0pht Heavy Industries", "soffitta piena di hardware", "L0PHT"],
+    ],
+  },
+  corp: {
+    count: 34,
+    subs: [
+      { sub: "zaibatsu", tag: "ZAI", org: (c, w) => `${w} Zaibatsu` },
+      { sub: "cibernetica", tag: "CYB", org: (c, w) => `${w} Cybernetics` },
+      { sub: "sicurezza privata", tag: "SEC", org: (c, w) => `${w} Security` },
+      { sub: "orbitale", tag: "ORB", org: (c, w) => `${w} Orbital` },
+      { sub: "intrattenimento", tag: "FUN", org: (c, w) => `${w} Interactive` },
+      { sub: "arcologia", tag: "ARCO", org: (c, w) => `Arcologia ${w} di ${c}` },
+      { sub: "nanotecnologie", tag: "NANO", org: (c, w) => `${w} Nanotech` },
+    ],
+    tributes: [
+      ["Tyrell Corporation", "replicanti («più umano dell'umano»)", "TYRELL"], ["Weyland-Yutani", "costruiamo mondi migliori", "WEYYUT"], ["Omni Consumer Products", "conglomerato", "OCP"], ["Hosaka", "zaibatsu", "HOSAKA"],
+      ["Maas Biolabs", "biotecnologie", "MAAS"], ["Zorin Industries", "microchip", "ZORIN"], ["Nakatomi Trading", "import-export", "NAKA"], ["Initech", "software gestionale", "INITECH"],
+      ["E Corp", "conglomerato", "ECORP"], ["Yoyodyne Propulsion", "aerospazio", "YOYO"], ["Rekall", "ricordi su misura", "REKALL"], ["InGen", "bioingegneria", "INGEN"],
+      ["Soylent", "alimentare", "SOYL"], ["Zorg Industries", "armamenti", "ZORG"], ["Uplink Corporation", "agenzia di agenti freelance", "UPLINK"], ["Arasaka", "sicurezza e finanza", "SAKA"], ["Militech", "armamenti", "MILI"],
+    ],
+  },
+  gov: {
+    count: 12,
+    subs: [
+      { sub: "archivio di stato", tag: "ARCH", org: (c) => `Archivio di Stato di ${c}` },
+      { sub: "ufficio brevetti", tag: "BREV", org: (c) => `Ufficio Brevetti di ${c}` },
+      { sub: "protezione civile", tag: "PROT", org: (c) => `Protezione Civile di ${c}` },
+      { sub: "consolato", tag: "CONS", org: (c) => `Consolato Generale a ${c}` },
+    ],
+    tributes: [["Ministero dell'Informazione · Recupero Informazioni", "ministero", "BRAZIL"], ["Autorità di Turing", "registro delle intelligenze artificiali", "TURING"], ["Ufficio Colonie Extramondo", "ufficio emigrazione", "OFFW"]],
+  },
+  edu: {
+    count: 12,
+    subs: [
+      { sub: "liceo", tag: "LICEO", org: (c, w) => `Liceo ${w} di ${c}` },
+      { sub: "accademia", tag: "ACC", org: (c, w) => `Accademia ${w}` },
+      { sub: "biblioteca digitale", tag: "LIB", org: (c) => `Biblioteca Digitale di ${c}` },
+    ],
+    tributes: [["Miskatonic University", "ateneo", "MISK"], ["MIT · Tech Model Railroad Club", "circolo studentesco", "TMRC"], ["Liceo Stanton", "liceo", "STANTON"], ["Liceo Seattle Sud (prof. Lightman)", "liceo", "SEAHS"], ["Chaos Computer Club", "associazione", "CCC"]],
+  },
+  med: {
+    count: 12,
+    subs: [
+      { sub: "clinica neurale", tag: "NEURO", org: (c, w) => `Clinica Neurale ${w}` },
+      { sub: "criobanca", tag: "CRYO", org: (c, w) => `Criobanca ${w}` },
+      { sub: "banca degli organi", tag: "ORG", org: (c, w) => `${w} Organi` },
+    ],
+    tributes: [["Clinica Nera di Chiba", "chirurgia non autorizzata", "CHIBA"], ["Ospedale Generale di Raccoon", "ospedale", "RACC"], ["Spider · Clinica dei Lo-Tek", "ambulatorio clandestino", "LOTEK"]],
+  },
+  util: {
+    count: 14,
+    subs: [
+      { sub: "centrale nucleare", tag: "NUKE", org: (c) => `Centrale Nucleare di ${c}` },
+      { sub: "diga", tag: "DIGA", org: (c, w) => `Diga ${w}` },
+      { sub: "controllo del traffico", tag: "TRAF", org: (c) => `Controllo del Traffico di ${c}` },
+      { sub: "metropolitana", tag: "METRO", org: (c) => `Metropolitana di ${c}` },
+      { sub: "controllo del clima", tag: "CLIMA", org: (c, w) => `${w} Weather Control` },
+    ],
+    tributes: [["Centrale Nucleare di Springfield, settore 7G", "centrale nucleare", "7G"], ["Controllo Semafori di Torino", "controllo del traffico", "MINI"], ["Aeroporto Dulles · Torre", "controllo aereo", "DULLES"]],
+  },
+  telco: {
+    count: 12,
+    subs: [
+      { sub: "operatore satellitare", tag: "SAT", org: (c, w) => `${w} Satcom` },
+      { sub: "provider internet", tag: "ISP", org: (c, w) => `${w} Online` },
+      { sub: "centrale di commutazione", tag: "ESS", org: (c) => `Centrale di Commutazione di ${c}` },
+      { sub: "cercapersone", tag: "PAGE", org: (c, w) => `${w} Paging` },
+    ],
+    tributes: [["Ma Bell · Lunga Distanza", "compagnia telefonica", "BELL"], ["Pacific Bell · COSMOS", "compagnia telefonica", "COSMOS"], ["The WELL", "comunità in linea", "WELL"], ["Netcom", "provider internet", "NETCOM"]],
+  },
+  lab: {
+    count: 12,
+    subs: [
+      { sub: "intelligenza artificiale", tag: "AI", org: (c, w) => `${w} Cognition` },
+      { sub: "acceleratore di particelle", tag: "LHC", org: (c, w) => `Anello ${w}` },
+      { sub: "realtà virtuale", tag: "VR", org: (c, w) => `${w} Virtual` },
+    ],
+    tributes: [["Black Mesa", "ricerca sui materiali anomali", "BMESA"], ["Aperture Science", "laboratori di arricchimento", "APERT"], ["Xerox PARC", "ricerca", "PARC"], ["Lawrence Berkeley Lab (errore di 75 centesimi)", "laboratorio nazionale", "LBL"]],
+  },
+  bank: {
+    count: 12,
+    subs: [
+      { sub: "borsa valori", tag: "BORSA", org: (c) => `Borsa Valori di ${c}` },
+      { sub: "casa d'aste", tag: "ASTA", org: (c, s) => `Casa d'Aste ${s}` },
+      { sub: "banca privata", tag: "PRIV", org: (c, s) => `Banca Privata ${s} & Figli` },
+    ],
+    tributes: [["Banca di Berna (conto 21-06-1947)", "banca privata", "BERNA"], ["Citibank · Cash Manager", "banca d'affari", "CITI"], ["Gringott e Associati", "banca privata", "GRING"]],
+  },
+  news: {
+    count: 10,
+    subs: [
+      { sub: "radio pirata", tag: "RADIO", org: (c, w) => `Radio ${w} Libera` },
+      { sub: "rivista underground", tag: "ZINE", org: (c, w) => `${w} Zine` },
+      { sub: "agenzia di stampa", tag: "WIRE", org: (c, w) => `Agenzia ${w}` },
+    ],
+    tributes: [["2600 · Il trimestrale degli hacker", "rivista underground", "2600"], ["Phrack", "rivista underground", "PHRACK"], ["Mondo 2000", "rivista", "MONDO"], ["Hack/Phreak Radio «Hard Harry»", "radio pirata", "HARRY"]],
+  },
+  law: {
+    count: 10,
+    subs: [
+      { sub: "tribunale", tag: "TRIB", org: (c) => `Tribunale di ${c}` },
+      { sub: "agenzia investigativa", tag: "INV", org: (c, s) => `Investigazioni ${s}` },
+      { sub: "polizia postale", tag: "POST", org: (c) => `Polizia Postale di ${c}` },
+    ],
+    tributes: [["Precrimine", "prevenzione", "PRECR"], ["Unità Blade Runner", "polizia", "RUNNER"], ["Servizi Segreti · Operazione Sundevil", "task force", "SUNDVL"], ["Giudici di Mega-City Uno", "tribunale", "DREDD"]],
+  },
+  mil: {
+    count: 8,
+    subs: [
+      { sub: "base radar", tag: "RADAR", org: (c, w) => `Stazione Radar ${w}` },
+      { sub: "silo", tag: "SILO", org: (c, w) => `Silo ${w}` },
+      { sub: "arsenale", tag: "ARSEN", org: (c, w) => `Arsenale ${w}` },
+    ],
+    tributes: [["Dipartimento Difesa · Linea WOPR di riserva", "comando strategico", "WOPR2"], ["Area 51 · Hangar 18", "base aerea", "A51"]],
+  },
+};
+
+/** I siti militari non c'erano nel primo giro: difese alte, password forti. */
+const MIL_SPEC: KindSpec = {
+  count: 0,
+  sec: [2, 3, 2, 3, 4, 5],
+  pw: "strong",
+  subs: [],
+  files: [
+    ["ordini_di_volo.dat", 3, 6, 3, 6, 10, "Rotte, orari e carichi. Alcune righe hanno solo un codice al posto della destinazione."],
+    ["codici_di_lancio.enc", 2, 3, 3, 9, 12, "Otto zeri. Per anni sono stati davvero otto zeri."],
+    ["telemetria_test.bin", 5, 9, 2, 5, 9, "Un collaudo andato storto, e la versione per la stampa."],
+    ["inventario_arsenale.xls", 3, 5, 2, 5, 8, "Tutto quello che c'è, e una colonna «mancante» più lunga del previsto."],
+  ],
+};
+
+/** File che compaiono solo nei nodi dell'espansione: voci di corridoio e strizzate d'occhio. */
+const EGG_FILES: FileT[] = [
+  ["manifesto.txt", 1, 1, 0, 2, 4, "«Questo è il nostro mondo adesso… il mondo dell'elettrone e dello switch. Il mio crimine è la curiosità.» — The Mentor, 8 gennaio 1986."],
+  ["phreak_boxes.txt", 1, 2, 0, 2, 4, "Blue box: 2600 Hz. Red box: i toni delle monete. Black box: chiamate in arrivo gratis. Non provare a casa."],
+  ["jargon.txt", 2, 3, 0, 1, 3, "foo, bar, baz, quux. E «kludge», che si pronuncia come vuoi finché funziona."],
+  ["voci_di_corridoio.txt", 1, 1, 0, 3, 5, "Dicono che su IRC, se chiedi al bot giusto, ti dia un numero che non è su nessun elenco."],
+  ["lista_password_comuni.txt", 1, 1, 0, 3, 5, "amore · sesso · segreto · dio. E il nome del figlio del professore, per chi sa di chi parlo."],
+  ["cassetta_demo.mod", 2, 4, 0, 1, 3, "Quattro canali, 31 campioni, un intro da cracktro. Saluti a tutti i gruppi della scena."],
+  ["ghiaccio_nero.dat", 4, 8, 3, 6, 10, "Contromisure di livello militare. Chi le ha scritte non voleva solo tenerti fuori."],
+  ["progetto_riservato.cad", 4, 8, 2, 5, 9, "Un progetto che non compare a bilancio. Sul frontespizio: «solo per gli occhi del consiglio»."],
+  ["lacrime_nella_pioggia.txt", 1, 1, 0, 3, 5, "«Ho visto cose che voi umani non potreste immaginarvi…» Trascrizione di una deposizione, incompleta."],
+  ["contabilita_parallela.xls", 2, 4, 2, 4, 8, "Due colonne: quella vera e quella per il fisco. Differiscono di parecchio."],
+];
+
 export type GenNode = SeedNode & { gen: true; sub: string; city: string; adminId: string | null; homeOf: string | null };
 
 export type WorldGen = {
@@ -472,6 +639,69 @@ function build(): WorldGen {
       holder: n.org,
       balance: n.kind === "shop" ? int(2000, 30000) : int(30000, 400000),
     }));
+
+  // ---- Espansione: un secondo giro con un seme suo, così il mondo di prima resta identico nodo per nodo.
+  // Tipi nuovi di luogo e, qua e là, un'insegna che chi ha visto i film giusti riconosce.
+  {
+    const r2 = rng(77031);
+    const pk = <T>(a: T[]): T => a[Math.floor(r2() * a.length)]!;
+    const n2 = (a: number, b: number) => a + Math.floor(r2() * (b - a + 1));
+    const ip2 = () => {
+      for (;;) {
+        const v = `${n2(12, 222)}.${n2(0, 254)}.${n2(0, 254)}.${n2(1, 253)}`;
+        if (!ips.has(v)) {
+          ips.add(v);
+          return v;
+        }
+      }
+    };
+    for (const [kind, ex] of Object.entries(EXTRA) as [NodeKind, ExtraSpec][]) {
+      const spec = SPECS[kind] ?? MIL_SPEC;
+      const tributes = [...ex.tributes];
+      for (let i = 0; i < ex.count; i += 1) {
+        const city = pk(WORLD_CITIES);
+        const tribute = i < tributes.length ? tributes[i]! : null;
+        const sub = tribute ? { sub: tribute[1], tag: tribute[2], org: () => tribute[0] } : pk([...ex.subs, ...spec.subs]);
+        let org = "";
+        for (let t = 0; t < 12 && (!org || names.has(org)); t += 1) org = sub.org(city[0], pk(WORDS), pk(SURNAMES));
+        if (names.has(org)) org = `${org} ${nodes.length}`;
+        names.add(org);
+        const word = pk(DICTIONARY);
+        const password = spec.pw === "dict" ? word : spec.pw === "dict2" ? `${word}${n2(10, 99)}` : spec.pw === "pattern" ? `${pk(WORDS).slice(0, 2).toUpperCase()}-${n2(10, 99)}-${word}` : strongPassword(r2);
+        const pool = [...spec.files, ...EGG_FILES];
+        const chosen = pool.sort(() => r2() - 0.5).slice(0, n2(2, 4));
+        const p = project(city[1], city[2]);
+        nodes.push({
+          gen: true,
+          id: `x-${kind}-${i + 1}`,
+          name: `${sub.tag}-${city[0].replace(/[^A-Za-z]/g, "").slice(0, 4).toUpperCase()}${i + 1}X`,
+          org,
+          kind,
+          sub: sub.sub,
+          city: city[0],
+          ip: ip2(),
+          x: Math.max(2, Math.min(317, p.x + n2(-3, 3))),
+          y: Math.max(2, Math.min(177, p.y + n2(-3, 3))),
+          blurb: "",
+          proxy: n2(spec.sec[0], spec.sec[1]),
+          firewall: n2(spec.sec[2], spec.sec[3]),
+          monitor: n2(spec.sec[4], spec.sec[5]),
+          password,
+          files: chosen.map((f, k) => ({ id: `f${k + 1}`, name: f[0], size: n2(f[1], f[2]), encryption: Math.min(f[3], n2(0, f[3])), value: n2(f[4], f[5]), preview: f[6] })),
+          records: [],
+          adminId: null,
+          homeOf: null,
+        });
+      }
+    }
+    const classes2: RelayClass[] = ["public", "public", "carrier", "grey", "grey", "offshore", "sat"];
+    const RELAY_NAMES = ["CHATSUBO", "FREESIDE", "ZIONHUB", "KOWLOON", "TANNHAUSER", "OFFWORLD", "SPRAWL", "NIGHTCITY", "BAMA", "TYCHO", "MIDGAR", "NEOTOKYO"];
+    RELAY_NAMES.forEach((w, i) => {
+      const city = pk(WORLD_CITIES);
+      const p = project(city[1], city[2]);
+      nodes.push({ gen: true, id: `x-relay-${i + 1}`, name: `${w}-${n2(2, 99)}`, org: `Relay ${w.charAt(0)}${w.slice(1).toLowerCase()} di ${city[0]}`, kind: "relay", sub: "relay", city: city[0], cls: pk(classes2), ip: ip2(), x: Math.max(2, Math.min(317, p.x + n2(-3, 3))), y: Math.max(2, Math.min(177, p.y + n2(-3, 3))), blurb: "", proxy: 0, firewall: 0, monitor: 1, password: pk(DICTIONARY), files: [], records: [], adminId: null, homeOf: null });
+    });
+  }
 
   for (const n of nodes) {
     const admin = n.adminId ? PEOPLE.find((p) => p.id === n.adminId) : null;

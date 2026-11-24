@@ -18,8 +18,10 @@ import { Ranks } from "./Ranks.tsx";
 import { Feed } from "./Feed.tsx";
 import { Career } from "./Career.tsx";
 import { AdminView } from "./Admin.tsx";
+import { IrcView, useIrc } from "./Irc.tsx";
+import { SocialView } from "./Social.tsx";
 
-export type ViewId = "map" | "conn" | "board" | "mail" | "shop" | "gateway" | "ranks" | "feed" | "career" | "admin";
+export type ViewId = "map" | "conn" | "board" | "mail" | "shop" | "gateway" | "ranks" | "feed" | "career" | "admin" | "irc" | "crew";
 
 export type DeckCtx = {
   state: GameState;
@@ -98,6 +100,7 @@ export function Deck({ snap }: { snap: Snapshot }) {
     }
   }, [t, trace]);
 
+  const irc = useIrc();
   const ctx: DeckCtx = { state, serverNow, route, setRoute, go: setView, selected, setSelected };
   const unread = state.mail.filter((m) => m.unread).length;
   const mine = state.missions.filter((m) => m.mine).length;
@@ -110,6 +113,8 @@ export function Deck({ snap }: { snap: Snapshot }) {
     { id: "shop", label: "Mercato" },
     { id: "gateway", label: "Gateway" },
     { id: "ranks", label: "Classifiche" },
+    { id: "irc", label: "IRC", badge: irc.unread ? (irc.unread > 99 ? "99+" : irc.unread) : undefined, alert: irc.hl },
+    { id: "crew", label: "Crew", badge: state.duels.length + state.trades.filter((x) => x.incoming).length || undefined, alert: state.duels.some((d) => d.incoming || d.state === "live") },
     { id: "career", label: "Carriera" },
     { id: "feed", label: "Feed", badge: state.intrusions.length ? "!" : undefined, alert: state.intrusions.length > 0 },
     ...(me.admin ? [{ id: "admin" as ViewId, label: "Admin", badge: "★" }] : []),
@@ -126,7 +131,8 @@ export function Deck({ snap }: { snap: Snapshot }) {
         <div className="stat">
           <span title={`Fama: ${me.fameTitle}`}>Rango</span>
           <b>
-            {me.rank}
+            <span className="faint" title="Livello">{me.level}</span> {me.rank}
+            {me.crew ? <span className="t-fac"> [{me.crew}]</span> : null}
             {me.warrant ? <span className={me.warrant >= 2 ? "t-red" : "t-amber"} title={`Fedina: ${["", "attenzionato", "ricercato", "mandato federale"][me.warrant]}`}> {"!".repeat(me.warrant)}</span> : null}
           </b>
         </div>
@@ -181,6 +187,8 @@ export function Deck({ snap }: { snap: Snapshot }) {
         {view === "ranks" && <Ranks ctx={ctx} />}
         {view === "feed" && <Feed ctx={ctx} />}
         {view === "career" && <Career ctx={ctx} />}
+        {view === "irc" && <IrcView />}
+        {view === "crew" && <SocialView ctx={ctx} />}
         {view === "admin" && me.admin && <AdminView ctx={ctx} />}
       </main>
 

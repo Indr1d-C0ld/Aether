@@ -55,7 +55,8 @@ Il server è autorevole: decide tempi, trace ed esiti. Il mondo è persistente e
 
 Intorno ai contratti c'è tutto il resto:
 
-- **23 tipi di contratto** in cinque gradi di difficoltà, con modificatori e ricompense misurate.
+- **27 tipi di contratto** in cinque gradi di difficoltà, fra cui 32 operazioni a tappe ispirate ai classici del cinema hacker.
+- **ReticoloNet**: una rete IRC anni '90 dentro il gioco, con canali, bot, DCC per scambiarsi oggetti, crew e duelli.
 - **Giustizia**: calore, capi d'accusa, mandati, arresto con sequestro e carcere, cauzione, fedina da ripulire nel casellario.
 - **Bottino e rarità**: exploit monouso, chip da montare sul deck e quattro pezzi leggendari nascosti in nodi che non sono su nessuna mappa.
 - **Mercato**: software e hardware su due canali (uno per cellula), mercato nero fra giocatori, ricettatore, taglie con deposito.
@@ -68,7 +69,7 @@ Intorno ai contratti c'è tutto il resto:
 
 ## Il mondo
 
-Il Reticolo ha **320 nodi** su 73 città: banche, negozi, uffici pubblici, ospedali, laboratori, compagnie telefoniche,
+Il Reticolo ha **oltre 520 nodi** su 73 città: banche, negozi, uffici pubblici, ospedali, laboratori, compagnie telefoniche,
 reti elettriche, polizia, redazioni, basi militari, PC di casa. All'inizio ne conosci una trentina: gli altri si trovano
 scandagliando le regioni con il War Dialer, interrogando il Registro, leggendo file e intercettando linee.
 
@@ -138,7 +139,7 @@ node scripts/smoke-gateway.ts 7099  # assalto a un gateway e rivalsa (server con
 node scripts/smoke-market.ts 7099   # mercato nero, ricettatore e taglie (server con AETHER_DEV=1)
 node scripts/smoke-depth.ts 7099    # archivi, banca, oggetti, giustizia, War Dialer (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/smoke-blue.ts 7099     # lato blu completo: 7 tipi di contratto (AETHER_DEV=1 AETHER_FAST=1)
-scripts/test-all.sh                 # tutti i test smoke, ognuno su un mondo pulito
+scripts/test-all.sh                 # tutti i test smoke (9), ognuno su un mondo pulito
 node scripts/smoke-world.ts 7099    # mondo vivo: esplorazione, reazioni dei nodi, comandi di sistema (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/smoke-soc.ts 7099      # sala operativa blu: presidi, sensori come prova, analista (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/economy.ts             # economia: ricompense per grado, CR/ora, ore per salire di livello (senza server)
@@ -171,7 +172,7 @@ node scripts/admin-account.ts --db percorso/aether.db admin
 ## Carriera e traguardi
 
 Ogni giocatore ha la scheda **Carriera**: statistiche personali (operazioni, intrusione, dati, denaro, contratti, esplorazione,
-sistemi, giustizia, difesa, mercato) e **328 traguardi**: 82 serie su ogni aspetto del gioco, ciascuna in quattro gradi
+sistemi, giustizia, difesa, mercato, rete) e **396 traguardi**: 99 serie su ogni aspetto del gioco, ciascuna in quattro gradi
 (bronzo, argento, oro, platino), più le 18 imprese speciali. Il catalogo è in `shared/achievements.ts`.
 
 ## Pubblicazione su un server
