@@ -13,6 +13,9 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
+![Versione 0.3.0](https://img.shields.io/badge/versione-0.3.0-39ff88)
+
+**Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
 ![La schermata d'accesso: scegli un handle e una cellula](docs/img/accesso.jpg)
 
@@ -20,8 +23,14 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 
 - [Come si gioca](#come-si-gioca)
 - [Rossi e blu](#rossi-e-blu)
+- [Operazioni a tappe](#operazioni-a-tappe)
+- [ReticoloNet](#reticolonet)
+- [Crew, duelli e scambi](#crew-duelli-e-scambi)
 - [Il mondo](#il-mondo)
+- [Bottino, gadget e botnet](#bottino-gadget-e-botnet)
+- [Carriera e traguardi](#carriera-e-traguardi)
 - [La regia](#la-regia)
+- [Dev-log](#dev-log)
 - [Avvio rapido](#avvio-rapido)
 - [Struttura](#struttura)
 - [Grafica](#grafica) · [Audio](#audio) · [PWA e Android](#pwa-e-android)
@@ -58,7 +67,7 @@ Intorno ai contratti c'è tutto il resto:
 - **27 tipi di contratto** in cinque gradi di difficoltà, fra cui 32 operazioni a tappe ispirate ai classici del cinema hacker.
 - **ReticoloNet**: una rete IRC anni '90 dentro il gioco, con canali, bot, DCC per scambiarsi oggetti, crew e duelli.
 - **Giustizia**: calore, capi d'accusa, mandati, arresto con sequestro e carcere, cauzione, fedina da ripulire nel casellario.
-- **Bottino e rarità**: exploit monouso, chip da montare sul deck e quattro pezzi leggendari nascosti in nodi che non sono su nessuna mappa.
+- **Bottino e rarità**: exploit monouso, gadget che si ricaricano, chip da montare sul deck e dodici pezzi leggendari nascosti in nodi che non sono su nessuna mappa.
 - **Mercato**: software e hardware su due canali (uno per cellula), mercato nero fra giocatori, ricettatore, taglie con deposito.
 - **Gateway attaccabili**: il terminale di ogni giocatore è un nodo. Si può entrare, prosciugare, sovraccaricare, e subire la rivalsa.
 - **Fama, etica, imprese e classifiche**, più una guerra permanente fra le due cellule.
@@ -66,6 +75,40 @@ Intorno ai contratti c'è tutto il resto:
 <p align="center">
   <img src="docs/img/strumenti-icone.png" alt="Le icone degli strumenti" width="900">
 </p>
+
+## Operazioni a tappe
+
+Oltre ai contratti semplici, la bacheca propone **32 operazioni** costruite sui cliché del cinema hacker e del cyberpunk.
+Ognuna ha una lista di obiettivi che si spuntano mentre giochi:
+
+- *Yippee-ki-yay*: provoca un blackout, poi svuota il caveau mentre le telecamere sono cieche;
+- *Too many secrets*: intercetta una linea, entra in banca, decifra;
+- *Free Kevin*, *Il cinque del nove*, *Semafori verdi*, *Il Burattinaio*, *Segnale pirata*…
+- **raffiche** (cinque sistemi diversi, tre continenti, quattro tipi di nodo) e **colpi a tempo** («hai tre minuti»);
+- per i blu: ispezioni a tappeto, honeynet, reti di sensori, cacce al worm.
+
+![Due operazioni in corso, con gli obiettivi da spuntare](docs/img/operazioni.jpg)
+
+## ReticoloNet
+
+Dentro il deck c'è una rete IRC come quelle del 1996: è lì che i giocatori si parlano, trattano e si sfidano.
+
+- Canali pubblici (`#reticolo`, `#mercato`, `#2600`, `#warez`, `#cyberia`), di cellula (`#rossi`, `#blu`), di crew, e un paio che non compaiono in `/list`.
+- Query private, operatori di canale, topic, `/whois`, `/away`, `/ignore`, CTCP, MOTD in ASCII, netsplit.
+- Bot: l'**Oracolo** distribuisce voci di corridoio (`!voce`), e ogni tanto il numero di un nodo che non è su nessun elenco;
+  **Lumen** rilancia le notizie del mondo; **XDCC-Kestrel** regala un pacchetto al giorno; gli handle NPC chiacchierano.
+- La chat è parte del gioco: `/paga nick importo`, `/dcc send nick n [prezzo]` per passare file, exploit, chip e gadget,
+  `/sfida nick posta`, `/crew …`.
+
+![ReticoloNet: il canale principale, con bot, feed e lista dei nick](docs/img/irc.jpg)
+
+## Crew, duelli e scambi
+
+- **Crew**: fino a 12 handle della stessa cellula, con un canale privato, una cassa comune e un posto in classifica.
+- **Duelli**: stessa posta, un bersaglio a sorte uguale per tutti e due, dieci minuti. Chi buca per primo prende il piatto.
+- **Scambi**: qualunque oggetto passa di mano, a un prezzo o in regalo; i crediti si mandano con una commissione del 5%.
+
+![La scheda Crew e sfide: la crew, un duello in arrivo, gli scambi](docs/img/crew.jpg)
 
 ## Il mondo
 
@@ -81,10 +124,31 @@ Il planisfero si può vedere in cinque stili:
 
 ![I cinque stili della mappa: Reticolo, Uplink, NORAD, Neon, Notte](docs/img/mappe.png)
 
+Molte insegne le riconoscerà chi ha visto i film giusti e letto i romanzi giusti, e **17 nodi segreti** non compaiono su
+nessuna mappa: una villa in orbita, una fabbrica di giocattoli con troppe guardie, un computer che ha imparato una canzone
+a Urbana. Si trovano col War Dialer, o con una soffiata su ReticoloNet.
+
 Nel mondo vivono **100 cittadini** con anagrafe, fedina, titoli di studio, conto in banca, datore di lavoro e PC di casa.
 Sono loro la materia dei contratti sui profili: rintracciare una persona, cambiarle i dati, farla arrestare, svuotarle il conto.
 
 ![Alcuni dei cento cittadini del Reticolo](docs/img/cittadini.png)
+
+## Bottino, gadget e botnet
+
+- **Exploit** monouso (22): 0-day, chiavi scheletro, rompighiaccio, bustarelle, la parola di un fixer.
+- **Gadget** (8): non si consumano, si ricaricano. Blue Box, Walkman, Tastiera Model M, Macchina Esper…
+- **Chip** per il deck, con dieci tipi di effetto e cinque rarità; fino a sei slot.
+- **Leggendari** (12): pezzi unici nascosti nei nodi segreti.
+- **Worm**: uno strumento rosso. Piantato in un sistema rende spiccioli ogni 45 secondi per un'ora, finché un blu
+  con il Patch Kit non lo schiaccia. Più worm, più botnet.
+
+## Carriera e traguardi
+
+Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
+difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
+statistiche personali e **396 traguardi**: 99 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+
+![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
 ## La regia
 
@@ -105,6 +169,21 @@ Lo schedario sfoglia le foto tessera a raffica prima di fermarsi sulla scheda gi
 E quando il trace stringe, lo schermo te lo dice.
 
 ![Trace al 98 per cento: stacca](docs/img/trace.jpg)
+
+## Dev-log
+
+Le novità sono raccontate ai giocatori sulla pagina d'ingresso e nel deck; il testo sta in [`shared/devlog.ts`](shared/devlog.ts)
+e si aggiorna a ogni modifica.
+
+![Il dev-log sulla pagina d'ingresso](docs/img/devlog.jpg)
+
+| Versione | Data | Novità |
+|---|---|---|
+| 0.3.0 | 24 novembre 2026 | ReticoloNet, crew, duelli, operazioni a tappe, gadget, worm, 527 nodi, 20 ranghi |
+| 0.2.0 | 18 novembre 2026 | Carriera, traguardi, sala di controllo dell'amministrazione |
+| 0.1.2 | 18 novembre 2026 | Pubblicazione in rete |
+| 0.1.1 | 18 novembre 2026 | Regia cinematografica, mondo aperto ribilanciato |
+| 0.1.0 | 17 novembre 2026 | Prima versione |
 
 ## Avvio rapido
 
@@ -156,7 +235,7 @@ Per azzerare il mondo: ferma il server e cancella `data/aether.db*`.
 Un account staff (handle in `AETHER_ADMINS`, predefinito `admin`) ha la scheda **Admin**, la sala di controllo:
 
 - **panoramica**: handle, connessi, attivi, iscrizioni, guerra, economia, attività degli ultimi 30 giorni, classifiche, contratti per tipo, azioni più usate, stato del mondo e del server;
-- **regolazioni**: 26 manopole su economia, trace e rischio, giustizia, mondo, iscrizioni e accessi, comunicazione (ricompense, durata del trace, velocità degli strumenti, calore, arresti, NPC, bacheca, blackout, iscrizioni aperte/con approvazione/chiuse, manutenzione, avviso in alto…);
+- **regolazioni**: 27 manopole su economia, trace e rischio, giustizia, mondo, iscrizioni e accessi, comunicazione (ricompense, durata del trace, velocità degli strumenti, calore, arresti, NPC, bacheca, blackout, iscrizioni aperte/con approvazione/chiuse, manutenzione, avviso in alto…);
 - **account**: ricerca, approvazione delle iscrizioni, sospensione a tempo o per sempre, scollegamento, cambio di chiave, rinomina, cambio di cellula, crediti/XP/calore/fama/etica, software e hardware, fedina, custodia, cancellazione; scheda con statistiche e traguardi;
 - **connessioni**: chi è collegato, da dove, cosa sta facendo; indirizzi bloccati;
 - **messaggi**: posta a tutti, a una cellula, ai collegati o a un singolo handle; avvisi istantanei; notizie nel feed;
@@ -168,12 +247,6 @@ L'account non si registra dal gioco: si crea (o se ne cambia la chiave) con
 ```bash
 node scripts/admin-account.ts --db percorso/aether.db admin
 ```
-
-## Carriera e traguardi
-
-Ogni giocatore ha la scheda **Carriera**: statistiche personali (operazioni, intrusione, dati, denaro, contratti, esplorazione,
-sistemi, giustizia, difesa, mercato, rete) e **396 traguardi**: 99 serie su ogni aspetto del gioco, ciascuna in quattro gradi
-(bronzo, argento, oro, platino), più le 18 imprese speciali. Il catalogo è in `shared/achievements.ts`.
 
 ## Pubblicazione su un server
 
@@ -202,7 +275,13 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `shared/rules.ts` | **Tutti i numeri del bilanciamento**: strumenti, hardware, trace, ranghi |
 | `server/game.ts` | Simulazione autoritativa: mondo, operazioni live, trace, log, forensica, contratti, NPC |
 | `server/content.ts` | Nodi, file, password, NPC del mondo iniziale, nodi nascosti |
-| `server/worldgen.ts` | Generatore del mondo: circa 290 nodi di 13 tipi su 73 città, datori di lavoro e PC di casa dei cittadini |
+| `server/scenarios.ts` | I copioni delle operazioni a tappe |
+| `server/social.ts` | Crew, duelli, scambi e crediti fra giocatori |
+| `server/irc.ts`, `server/irc-text.ts` | ReticoloNet: canali, comandi, bot; MOTD, chiacchiere e voci di corridoio |
+| `server/admin.ts` | Il pannello dell'amministratore |
+| `shared/achievements.ts`, `shared/progress.ts` | Traguardi; specializzazioni |
+| `shared/devlog.ts` | Le novità mostrate ai giocatori |
+| `server/worldgen.ts` | Generatore del mondo: circa 490 nodi di 13 tipi su 73 città, datori di lavoro e PC di casa dei cittadini |
 | `server/people.ts` | I 100 cittadini (generati da un seme fisso) che popolano anagrafe, casellario, atenei e banche |
 | `shared/depth.ts` | Rarità, exploit e chip, fama, etica, capi d'accusa e mandati, imprese |
 | `server/db.ts` | Persistenza SQLite (documenti JSON) e account (scrypt + token) |
