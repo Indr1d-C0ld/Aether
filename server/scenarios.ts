@@ -32,7 +32,7 @@ export type Scene = {
   clientNodes?: string[];
 };
 
-export type SNode = { id: string; org: string; name: string; kind: NodeKind; sub?: string; city?: string; tier: number; files: { id: string; name: string }[] };
+export type SNode = { id: string; org: string; name: string; kind: NodeKind; sub?: string; city?: string; tier: number; files: { id: string; name: string }[]; inner?: { id: string; org: string } };
 export type SceneCtx = {
   pick<T>(xs: T[]): T;
   nodes(kind: NodeKind, minTier?: number, sub?: string): SNode[];
@@ -172,6 +172,33 @@ const RED: Maker[] = [
     if (shops.length < 3) return null;
     return { id: "robinhood", faction: "red", type: "spree", nodeId: c.pick(shops).id, title: "Spiccioli", brief: `Frazioni di centesimo, arrotondate per difetto, da tre casse diverse: nessuno se ne accorge mai. «È come in Superman III.»`, objectives: [{ deed: "sys:cash", n: 3, distinct: "node", label: "Svuota la cassa di 3 negozi diversi" }], reward: 1100, xp: 180, minXp: 0, tier: 0 };
   },
+  (c) => {
+    const n = c.pick(c.any(1));
+    return { id: "helpdesk", faction: "red", type: "spree", nodeId: n.id, title: "Sono dell'assistenza", brief: `«Buongiorno, chiamo dai sistemi: mi serve la sua password per un controllo.» Funziona da trent'anni. Entra in due sistemi diversi con le credenziali di un dipendente o dell'operatore: nome e anno di nascita, o quello che trovi nella posta.`, objectives: [{ deed: "staff", n: 2, distinct: "node", label: "Entra in 2 sistemi con credenziali del personale" }], reward: 1500, xp: 240, minXp: 200, tier: 1 };
+  },
+  (c) => {
+    const n = c.pick(c.any());
+    return { id: "gotmail", faction: "red", type: "spree", nodeId: n.id, title: "C'è posta per te", brief: `${c.client} vuole sapere di cosa si parla nei corridoi. Leggi la posta interna di tre organizzazioni diverse: i segreti veri non stanno negli archivi, stanno nelle mail delle sei di sera.`, objectives: [{ deed: "z:posta", n: 3, distinct: "node", label: "Leggi la posta interna di 3 organizzazioni" }], reward: 1600, xp: 240, minXp: 200, tier: 1 };
+  },
+  (c) => {
+    const n = c.pick(c.any(1));
+    return { id: "deepthroat", faction: "red", type: "spree", nodeId: n.id, title: "Gola profonda", brief: `Un giornalista aspetta in un parcheggio sotterraneo. «Segui il denaro», dice sempre. Portagli due allegati compromettenti presi dalla posta di due organizzazioni diverse.`, objectives: [{ deed: "z:dossier", n: 2, distinct: "node", label: "Copia un allegato compromettente da 2 organizzazioni" }], reward: 2400, xp: 300, minXp: 550, tier: 2 };
+  },
+  (c) => {
+    const xs = c.nodes("corp", 2).concat(c.nodes("bank", 2), c.nodes("lab", 2), c.nodes("mil", 2)).filter((n) => n.inner);
+    if (!xs.length) return null;
+    const n = c.pick(xs);
+    return { id: "lookingglass", faction: "red", type: "chain", nodeId: n.id, title: "Dietro lo specchio", brief: `${n.org} ha una macchina che da fuori non risponde: ${n.inner!.org}. Entra da admin, mappa la rete interna, passa dall'altra parte e porta via un file prima che la finestra si chiuda.`, objectives: [{ deed: "z:pivot", n: 1, nodeId: n.id, label: `Mappa la rete interna di ${n.org}` }, { deed: "t:copy", n: 1, nodeId: n.inner!.id, label: `Copia un file da ${n.inner!.org}` }], reward: 4200, xp: 480, minXp: 3500, requires: ["decrypt"] };
+  },
+  (c) => {
+    const bank = one(c, "bank", 1);
+    if (!bank || !bank.files.length) return null;
+    return { id: "eleven", faction: "red", type: "chain", nodeId: bank.id, title: "Undici uomini e un nastro", brief: `Sui monitor della sorveglianza, il caveau di ieri. Nel caveau, voi. Entra in ${bank.org} da operatore, metti le telecamere in loop e copia un file mentre guardano il corridoio vuoto.`, objectives: [{ deed: "z:loop", n: 1, nodeId: bank.id, label: `Metti in loop le telecamere di ${bank.org}` }, { deed: "t:copy", n: 1, nodeId: bank.id, label: "Copia un file" }], reward: 2600, xp: 320, minXp: 1100 };
+  },
+  (c) => {
+    const n = c.pick(c.any(1));
+    return { id: "badges", faction: "red", type: "spree", nodeId: n.id, title: "Non ci servono i distintivi", brief: `Invece sì. Stampati un badge in due organizzazioni diverse: domani entrerai dalla porta principale, salutando la guardia.`, objectives: [{ deed: "z:badge", n: 2, distinct: "node", label: "Stampati un badge in 2 organizzazioni" }], reward: 1900, xp: 280, minXp: 550, tier: 1 };
+  },
 ];
 
 const BLUE: Maker[] = [
@@ -210,6 +237,16 @@ const BLUE: Maker[] = [
     const law = one(c, "law");
     if (!gov || !law) return null;
     return { id: "crosscheck", faction: "blue", type: "audit", nodeId: gov.id, clientNodes: [gov.id, law.id], title: "Verifica incrociata", brief: `Un nome compare in anagrafe e non nel casellario, o viceversa: qualcuno ha ritoccato qualcosa. Consulta gli archivi di ${gov.org} e di ${law.org}, poi passa Forensics su uno dei due.`, objectives: [{ deed: "search", n: 1, nodeId: gov.id, label: `Consulta l'archivio di ${gov.org}` }, { deed: "search", n: 1, nodeId: law.id, label: `Consulta l'archivio di ${law.org}` }, { deed: "t:forensics", n: 1, label: "Lancia un'analisi forense" }], reward: 1400, xp: 240, minXp: 550, tier: 1, requires: ["forensics"] };
+  },
+  (c) => {
+    const ns = some(c, c.nodes("bank").concat(c.nodes("corp"), c.nodes("gov")), 2);
+    if (!ns) return null;
+    return { id: "rewind", faction: "blue", type: "audit", nodeId: ns[0]!.id, clientNodes: ns.map((n) => n.id), title: "Riavvolgi il nastro", brief: `Il log dice che non è entrato nessuno. Le telecamere dicono altro. Rivedi i nastri di ${ns[0]!.org} e di ${ns[1]!.org}.`, objectives: ns.map((n) => ({ deed: "z:nastri", n: 1, nodeId: n.id, label: `Rivedi i nastri di ${n.org}` })), reward: 1300, xp: 220, minXp: 200, tier: 1 };
+  },
+  (c) => {
+    const ns = some(c, c.any(1), 2);
+    if (!ns) return null;
+    return { id: "circular", faction: "blue", type: "audit", nodeId: ns[0]!.id, clientNodes: ns.map((n) => n.id), title: "Circolare numero uno", brief: `«Si ricorda al personale che l'assistenza non chiede mai la password al telefono.» Manda l'avviso a tutto il personale di ${ns[0]!.org} e di ${ns[1]!.org}: per un quarto d'ora staranno all'erta.`, objectives: ns.map((n) => ({ deed: "z:allerta", n: 1, nodeId: n.id, label: `Avvisa il personale di ${n.org}` })), reward: 1000, xp: 200, minXp: 0, tier: 0 };
   },
 ];
 

@@ -7,6 +7,8 @@ import type { DeckCtx } from "./Deck.tsx";
 import { Arsenal, LedgerPanel, RecordsPanel } from "./Archive.tsx";
 import { rarityColor, rarityName } from "../../../shared/depth.ts";
 import { CrackDisplay, Decode, ToolTheater, TypeOut, shoot } from "../cinema.tsx";
+import { ZonesPanel } from "./Zones.tsx";
+import { CLEARANCE } from "../../../shared/zones.ts";
 
 export function Connection({ ctx, elapsed }: { ctx: DeckCtx; elapsed: number }) {
   const { state } = ctx;
@@ -64,8 +66,8 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
           </h2>
         </div>
         <div className="row">
-          <span className={`chip ${op.access === "none" ? "red" : "green"}`}>
-            accesso: {op.access === "none" ? "negato" : op.access === "guest" ? "guest" : op.access === "client" ? "cliente" : "admin"}
+          <span className={`chip ${op.access === "none" && !op.clearance ? "red" : "green"}`}>
+            accesso: {op.access === "none" ? (op.clearance ? CLEARANCE[op.clearance] : "negato") : op.access === "guest" ? "guest" : op.access === "client" ? "cliente" : "admin"}
           </span>
           <button
             className="btn danger"
@@ -232,6 +234,8 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
           </div>
         ) : null}
 
+        <ZonesPanel op={op} />
+
         {op.sys.length ? <SystemPanel op={op} /> : null}
 
         {target.offline && me.faction === "blue" && inside ? (
@@ -342,7 +346,7 @@ function LoginBox(props: {
         </div>
       ) : null}
       <p className="faint" style={{ margin: 0, fontSize: 12 }}>
-        Una password sbagliata accelera il trace e lascia una riga nel log. Banche, polizia e uffici pubblici bloccano il login dopo pochi tentativi.
+        Qui valgono anche le credenziali di un dipendente o dell'operatore: aprono i sottosistemi, non i file. Una password sbagliata accelera il trace e lascia una riga nel log. Banche, polizia e uffici pubblici bloccano il login dopo pochi tentativi.
       </p>
     </div>
   );

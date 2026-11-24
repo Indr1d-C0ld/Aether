@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.3.0](https://img.shields.io/badge/versione-0.3.0-39ff88)
+![Versione 0.4.0](https://img.shields.io/badge/versione-0.4.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -24,6 +24,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 - [Come si gioca](#come-si-gioca)
 - [Rossi e blu](#rossi-e-blu)
 - [Operazioni a tappe](#operazioni-a-tappe)
+- [Dentro i sistemi](#dentro-i-sistemi)
 - [ReticoloNet](#reticolonet)
 - [Crew, duelli e scambi](#crew-duelli-e-scambi)
 - [Il mondo](#il-mondo)
@@ -78,7 +79,7 @@ Intorno ai contratti c'è tutto il resto:
 
 ## Operazioni a tappe
 
-Oltre ai contratti semplici, la bacheca propone **32 operazioni** costruite sui cliché del cinema hacker e del cyberpunk.
+Oltre ai contratti semplici, la bacheca propone **40 operazioni** costruite sui cliché del cinema hacker e del cyberpunk.
 Ognuna ha una lista di obiettivi che si spuntano mentre giochi:
 
 - *Yippee-ki-yay*: provoca un blackout, poi svuota il caveau mentre le telecamere sono cieche;
@@ -88,6 +89,25 @@ Ognuna ha una lista di obiettivi che si spuntano mentre giochi:
 - per i blu: ispezioni a tappeto, honeynet, reti di sensori, cacce al worm.
 
 ![Due operazioni in corso, con gli obiettivi da spuntare](docs/img/operazioni.jpg)
+
+## Dentro i sistemi
+
+Una volta collegato, un'organizzazione non è una schermata sola: ha **stanze**, ognuna con le sue azioni e il suo livello di accesso.
+
+| Stanza | Serve | Cosa ci fai |
+|---|---|---|
+| Posta interna | impiegato | Leggi le caselle del personale: indirizzi, mezze password, allegati compromettenti |
+| Centralino | impiegato | Sfogli la rubrica (nodi nuovi), stacchi la linea della sicurezza |
+| Telecamere | operatore | Guardi la sala server, metti il nastro in loop per fermare il trace |
+| Contabilità | operatore | Storni una fattura, copi il libro mastro |
+| Ufficio del personale | operatore | Leggi l'organico, ti stampi un badge valido 24 ore |
+| Rete interna | admin | Mappi la rete e raggiungi la macchina che da fuori non risponde |
+
+Non serve per forza la password di root: con nome e anno di nascita di un dipendente entri da **impiegato**, e la password
+dell'**operatore** gira nella posta. Dietro i sistemi più protetti ci sono 66 macchine di **rete interna**, con il bottino migliore.
+I blu, dalle stesse stanze, rivedono i nastri, revocano i badge e mettono in allerta il personale.
+
+![I sottosistemi di un'azienda, con la posta interna aperta](docs/img/sottosistemi.jpg)
 
 ## ReticoloNet
 
@@ -112,7 +132,7 @@ Dentro il deck c'è una rete IRC come quelle del 1996: è lì che i giocatori si
 
 ## Il mondo
 
-Il Reticolo ha **oltre 520 nodi** su 73 città: banche, negozi, uffici pubblici, ospedali, laboratori, compagnie telefoniche,
+Il Reticolo ha **oltre 590 nodi** su 73 città: banche, negozi, uffici pubblici, ospedali, laboratori, compagnie telefoniche,
 reti elettriche, polizia, redazioni, basi militari, PC di casa. All'inizio ne conosci una trentina: gli altri si trovano
 scandagliando le regioni con il War Dialer, interrogando il Registro, leggendo file e intercettando linee.
 
@@ -146,7 +166,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **396 traguardi**: 99 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **444 traguardi**: 111 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -179,6 +199,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.4.0 | 24 novembre 2026 | Sottosistemi, tre livelli di accesso, posta interna, reti interne |
 | 0.3.0 | 24 novembre 2026 | ReticoloNet, crew, duelli, operazioni a tappe, gadget, worm, 527 nodi, 20 ranghi |
 | 0.2.0 | 18 novembre 2026 | Carriera, traguardi, sala di controllo dell'amministrazione |
 | 0.1.2 | 18 novembre 2026 | Pubblicazione in rete |
@@ -276,6 +297,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/game.ts` | Simulazione autoritativa: mondo, operazioni live, trace, log, forensica, contratti, NPC |
 | `server/content.ts` | Nodi, file, password, NPC del mondo iniziale, nodi nascosti |
 | `server/scenarios.ts` | I copioni delle operazioni a tappe |
+| `server/zones.ts`, `shared/zones.ts` | Sottosistemi dei nodi, credenziali del personale, posta interna, reti interne |
 | `server/social.ts` | Crew, duelli, scambi e crediti fra giocatori |
 | `server/irc.ts`, `server/irc-text.ts` | ReticoloNet: canali, comandi, bot; MOTD, chiacchiere e voci di corridoio |
 | `server/admin.ts` | Il pannello dell'amministratore |

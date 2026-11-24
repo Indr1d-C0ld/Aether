@@ -426,7 +426,7 @@ const EGG_FILES: FileT[] = [
   ["contabilita_parallela.xls", 2, 4, 2, 4, 8, "Due colonne: quella vera e quella per il fisco. Differiscono di parecchio."],
 ];
 
-export type GenNode = SeedNode & { gen: true; sub: string; city: string; adminId: string | null; homeOf: string | null };
+export type GenNode = SeedNode & { gen: true; sub: string; city: string; adminId: string | null; homeOf: string | null; inner?: string };
 
 export type WorldGen = {
   nodes: GenNode[];
@@ -689,7 +689,7 @@ function build(): WorldGen {
           password,
           files: chosen.map((f, k) => ({ id: `f${k + 1}`, name: f[0], size: n2(f[1], f[2]), encryption: Math.min(f[3], n2(0, f[3])), value: n2(f[4], f[5]), preview: f[6] })),
           records: [],
-          adminId: null,
+          adminId: pk(PEOPLE).id,
           homeOf: null,
         });
       }
@@ -703,6 +703,54 @@ function build(): WorldGen {
     });
   }
 
+  // ---- Reti interne: dietro i sistemi più protetti c'è una macchina che da fuori non risponde.
+  // Si raggiunge solo passando dal nodo «davanti», dopo averne mappato la rete da admin.
+  {
+    const r3 = rng(50817);
+    const k3 = (a: number, b: number) => a + Math.floor(r3() * (b - a + 1));
+    const INNER_NAME: Partial<Record<NodeKind, string[]>> = {
+      corp: ["Caveau dati", "Sala del consiglio", "Archivio riservato", "Laboratorio prototipi"],
+      bank: ["Caveau", "Sala cambi", "Conti cifrati"],
+      lab: ["Camera bianca", "Progetto riservato", "Banca dei campioni"],
+      mil: ["Sala operativa", "Deposito codici", "Rete classificata"],
+    };
+    const INNER_FILES: FileT[] = [
+      ["progetto_nero.cad", 6, 10, 3, 10, 12, "Quello che l'azienda nega di avere mai disegnato."],
+      ["libro_nero.xls", 3, 6, 3, 9, 12, "I pagamenti che non passano dalla contabilità: nomi, date, cifre."],
+      ["chiavi_maestre.key", 2, 3, 3, 10, 12, "Le chiavi con cui si firmano tutte le altre."],
+      ["verbali_secretati.doc", 4, 7, 2, 9, 11, "Le riunioni di cui non esiste convocazione."],
+      ["dossier_personale.db", 5, 8, 3, 9, 12, "Quello che sanno dei propri dipendenti. E dei concorrenti."],
+      ["campioni_fase3.dat", 6, 9, 3, 10, 12, "Risultati che il comitato etico non ha mai visto."],
+    ];
+    for (const parent of [...nodes]) {
+      const names = INNER_NAME[parent.kind];
+      if (!names || parent.proxy + parent.firewall + parent.monitor < 6 || r3() > 0.6) continue;
+      const files = [...INNER_FILES].sort(() => r3() - 0.5).slice(0, 3).map((f, k) => ({ id: `f${k + 1}`, name: f[0], size: k3(f[1], f[2]), encryption: k3(2, f[3]), value: k3(f[4], f[5]), preview: f[6] }));
+      nodes.push({
+        gen: true,
+        id: `i-${parent.id}`,
+        name: `${parent.name}-INT`,
+        org: `${names[Math.floor(r3() * names.length)]!} · ${parent.org}`,
+        kind: parent.kind,
+        sub: "rete interna",
+        city: parent.city,
+        ip: `10.${k3(0, 254)}.${k3(0, 254)}.${k3(1, 253)}`,
+        x: parent.x,
+        y: parent.y,
+        blurb: "",
+        proxy: Math.min(3, parent.proxy + 1),
+        firewall: Math.min(3, parent.firewall + 1),
+        monitor: parent.monitor,
+        password: strongPassword(r3),
+        files,
+        records: [],
+        adminId: parent.adminId,
+        homeOf: null,
+        inner: parent.id,
+      });
+    }
+  }
+
   for (const n of nodes) {
     const admin = n.adminId ? PEOPLE.find((p) => p.id === n.adminId) : null;
     n.blurb =
@@ -710,7 +758,9 @@ function build(): WorldGen {
         ? "Un computer di casa. Nessuno lo sorveglia, e qualcuno ci tiene cose che non dovrebbe."
         : n.kind === "relay"
           ? `Relay a ${n.city}.`
-          : `${n.sub.charAt(0).toUpperCase()}${n.sub.slice(1)} a ${n.city}.${admin ? ` Amministratore di sistema: ${admin.name}.` : ""}`;
+          : n.inner
+            ? "Non risponde alle chiamate dall'esterno: ci si arriva solo dalla rete interna."
+            : `${n.sub.charAt(0).toUpperCase()}${n.sub.slice(1)} a ${n.city}.${admin ? ` Amministratore di sistema: ${admin.name}.` : ""}`;
   }
   return { nodes, employer, home, orgAccounts };
 }

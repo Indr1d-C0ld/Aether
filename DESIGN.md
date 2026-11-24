@@ -332,6 +332,20 @@ Solo scena: non decide nulla, legge lo stato che arriva dal server e non blocca 
 
 **Dev-log** (`shared/devlog.ts`): le novità in cima alla pagina d'ingresso e nella scheda Feed. Ogni modifica visibile ai giocatori aggiunge una voce.
 
+## Sottosistemi, livelli di accesso, posta interna (0.4.0)
+
+Scelta di fondo: **niente riga di comando**. La libertà dentro un nodo si dà con stanze cliccabili e poche azioni ciascuna, non con una shell.
+
+**Livelli** (`op.clearance`, 0-3). Accanto all'accesso admin (3, come le credenziali cliente) ci sono *impiegato* (1) e *operatore* (2), che aprono le stanze ma non i file. Si ottengono dal solito login: la password personale di un dipendente è nome + anno di nascita (come sui PC di casa; il nome dell'amministratore è nella descrizione del nodo, l'anno in anagrafe), quella dell'operatore è diversa per ogni nodo e sta nella posta interna.
+
+**Stanze** (`shared/zones.ts`, logica in `server/zones.ts`): posta interna (1), centralino (1), telecamere (2), contabilità (2), ufficio del personale (2), rete interna (3). Ogni azione lascia una riga nel log e, dove il monitor parte «alla prima mossa», lo fa partire. Tempi di ricarica per nodo e per giocatore: fattura 45 min, libro mastro 2 ore, rubrica 20 min, allegato una volta a settimana.
+
+**Posta** generata da un seme (nodo + settimana): la circolare con la password dell'operatore, a volte metà della password di root, indirizzi di altri nodi e di PC di casa da annotare, un allegato compromettente (file di valore 5-9), raramente la traccia di un nodo segreto, e chiacchiere d'ufficio.
+
+**Reti interne**: terzo giro del generatore, 66 nodi `inner` dietro corp, banche, laboratori e siti militari con difese ≥ 6. `Game.canReach` li rende raggiungibili solo per 15 minuti dopo «mappa la rete interna» sul nodo davanti. File di valore 9-12.
+
+**Blu**: nastri (ricostruisce fino a due righe rimosse, anche pulite, entro 30 min), revoca dei badge (+150 CR l'uno), circolare d'allerta.
+
 ## Bilanciamento iniziale (in `shared/rules.ts`)
 
 - Monitor 1/2/3/4/5: 13 / 9,5 / 7,2 / 5,4 / 4 secondi per hop. Collegarsi diretti dà al monitor un solo hop.

@@ -164,7 +164,8 @@ if (rev) {
 }
 
 console.log("== BLU: bonifica di un relay (credenziali da ospite)");
-const seal = mission("seal");
+// la bacheca è a sorte: se la bonifica non è uscita, la si chiede
+const seal = mission("seal") ?? ((await blue.do("devGrant", { mission: "type:seal" })).data as { id: string; nodeId: string } | undefined);
 check("contratto di bonifica in bacheca", Boolean(seal));
 if (seal) {
   await blue.do("take", { missionId: seal.id });

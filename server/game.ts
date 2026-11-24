@@ -342,6 +342,8 @@ type Op = {
   lockedUntil: number;
   guard: number; // moltiplicatore del trace per i contratti «presidiati»
   grave: boolean; // ha toccato denaro: l'indagine è rapida
+  clearance: number; // 0 nessuno · 1 impiegato · 2 operatore (admin e cliente valgono 3)
+  zoneUsed: string[]; // azioni dei sottosistemi già usate in questa connessione
 };
 
 type Meta = {
@@ -428,7 +430,7 @@ export class Game {
       const live = this.nodes.get(seed.id);
       if (live) {
         // posizione, tipo e testi vengono sempre dal contenuto: i mondi salvati seguono gli aggiornamenti
-        Object.assign(live, { x: seed.x, y: seed.y, cls: seed.cls, hidden: seed.hidden, blurb: seed.blurb, org: seed.org, name: seed.name, sub: seed.sub, city: seed.city, adminId: seed.adminId, homeOf: seed.homeOf, gen: seed.gen });
+        Object.assign(live, { x: seed.x, y: seed.y, cls: seed.cls, hidden: seed.hidden, blurb: seed.blurb, org: seed.org, name: seed.name, sub: seed.sub, city: seed.city, adminId: seed.adminId, homeOf: seed.homeOf, gen: seed.gen, inner: seed.inner });
         this.touch("node", seed.id);
       }
       if (!this.nodes.has(seed.id)) {
@@ -992,7 +994,7 @@ export class Game {
     const buffs = (agent.buffs ??= {});
     let extra = "";
     const revealSome = (n: number) => {
-      const pool = [...this.nodes.values()].filter((x) => x.kind !== "gateway" && !x.hidden && !agent.knownNodes.includes(x.id)).sort(() => Math.random() - 0.5).slice(0, n);
+      const pool = [...this.nodes.values()].filter((x) => x.kind !== "gateway" && !x.hidden && !x.inner && !agent.knownNodes.includes(x.id)).sort(() => Math.random() - 0.5).slice(0, n);
       for (const x of pool) this.reveal(agent, x.id);
       return pool.length;
     };
@@ -1372,7 +1374,7 @@ export class Game {
     this.touch("agent", agent.id);
     this.dirty.add(agent.id);
     const inRegion = (n: WNode) => regionAt(n.x, n.y) === region;
-    const pool = [...this.nodes.values()].filter((n) => n.kind !== "gateway" && !n.hidden && inRegion(n) && !agent.knownNodes.includes(n.id)).sort(() => Math.random() - 0.5);
+    const pool = [...this.nodes.values()].filter((n) => n.kind !== "gateway" && !n.hidden && !n.inner && inRegion(n) && !agent.knownNodes.includes(n.id)).sort(() => Math.random() - 0.5);
     const found = pool.slice(0, scanFinds(v));
     for (const n of found) this.reveal(agent, n.id);
     // ogni tanto risponde qualcosa che non è in nessun elenco
@@ -1426,7 +1428,7 @@ export class Game {
 
   openTargets() {
     const t = now();
-    return [...this.nodes.values()].filter((n) => n.kind !== "relay" && n.kind !== "registry" && n.kind !== "gateway" && n.kind !== "home" && !n.hidden && (n.offlineUntil ?? 0) < t);
+    return [...this.nodes.values()].filter((n) => n.kind !== "relay" && n.kind !== "registry" && n.kind !== "gateway" && n.kind !== "home" && !n.hidden && !n.inner && (n.offlineUntil ?? 0) < t);
   }
 
   plainFiles(n: WNode) {
@@ -2026,7 +2028,7 @@ export class Game {
     const targets = this.openTargets();
     const relays = [...this.nodes.values()].filter((n) => n.kind === "relay");
     const homes = [...this.nodes.values()].filter((n) => n.kind === "home");
-    const snode = (n: WNode): SNode => ({ id: n.id, org: n.org, name: n.name, kind: n.kind, sub: n.sub, city: n.city, tier: this.tierOf(n), files: this.plainFiles(n).map((f) => ({ id: f.id, name: f.name })) });
+    const snode = (n: WNode): SNode => ({ id: n.id, org: n.org, name: n.name, kind: n.kind, sub: n.sub, city: n.city, tier: this.tierOf(n), files: this.plainFiles(n).map((f) => ({ id: f.id, name: f.name })), inner: (() => { const i = [...this.nodes.values()].find((x) => x.inner === n.id); return i ? { id: i.id, org: i.org } : undefined; })() });
     const sc = rollScene(faction, {
       pick,
       client: cap(pick(faction === "red" ? CLIENTS_RED : CLIENTS_BLUE)),
@@ -2866,6 +2868,9 @@ export class Game {
       wardens: op.boostUntil > t && op.boostBy ? [op.boostBy] : (me.tools.monbypass ?? 0) >= 2 ? this.wardensOf(target.id).map((a) => a.handle) : [],
       poisoned: op.poisoned,
       target: this.nodeView(target, me, false),
+      clearance: 0,
+      zones: [],
+      ...(this.opExtra?.(op, me, target) ?? {}),
       looted: op.looted,
     };
   }
@@ -3152,6 +3157,12 @@ export class Game {
   onAdmin: ((agent: Agent, target: { id: string; org: string }) => void) | null = null;
   crewOf: ((agent: Agent) => string | null) | null = null;
 
+  /** Sottosistemi dei nodi (server/zones.ts). */
+  staffLogin: ((op: Op, agent: Agent, target: WNode, password: string) => { ok: boolean; error?: string; note?: string } | null) | null = null;
+  opExtra: ((op: Op, me: Agent, target: WNode) => Record<string, unknown>) | null = null;
+  canReach: ((agent: Agent, target: WNode) => string | null) | null = null;
+  onConnect: ((op: Op, agent: Agent, target: WNode) => void) | null = null;
+
   /** Il pannello dell'amministratore (server/admin.ts lo aggancia qui). */
   adminAct: ((admin: Agent, a: string, p: Record<string, unknown>) => { ok: boolean; error?: string; note?: string; data?: unknown }) | null = null;
 
@@ -3270,7 +3281,19 @@ export class Game {
               sabotage: () => this.rollSabotage(),
               home: () => this.rollHomeJob(),
             };
-            const m = p.mission.startsWith("scene:") ? this.rollSceneMission(agent.faction, p.mission.slice(6)) : roll[p.mission]?.();
+            // «type:<tipo>»: estrae dalla bacheca finché non esce quel tipo
+            const byType = (want: string) => {
+              for (let i = 0; i < 400; i += 1) {
+                const x = this.safeRoll(agent.faction);
+                if (x?.type === want) return x;
+                if (x?.type === "courier") {
+                  const src = this.node(x.nodeId);
+                  if (src) src.files = src.files.filter((f) => f.cargo !== x.id);
+                }
+              }
+              return null;
+            };
+            const m = p.mission.startsWith("scene:") ? this.rollSceneMission(agent.faction, p.mission.slice(6)) : p.mission.startsWith("type:") ? byType(p.mission.slice(5)) : roll[p.mission]?.();
             if (!m) return { ok: false, error: "tipo non disponibile" };
             m.minXp = 0;
             m.status = "taken";
@@ -3339,6 +3362,8 @@ export class Game {
     const contracted = [...this.missions.values()].some((m) => m.takenBy === agent.id && m.status === "taken" && m.clientAccess && (m.nodeId === target.id || m.clientNodes?.includes(target.id)));
     if ((target.offlineUntil ?? 0) > now() && !contracted) return { ok: false, error: "nessuna portante: il sistema è spento" };
     if (target.kind === "registry") return { ok: false, error: "il Registro si interroga dalla mappa, non ci si collega" };
+    const unreachable = this.canReach?.(agent, target);
+    if (unreachable) return { ok: false, error: unreachable };
     const victim = this.gatewayOwner(target);
     if (victim) {
       if (victim.id === agent.id) return { ok: false, error: "quello è il tuo gateway" };
@@ -3411,6 +3436,8 @@ export class Game {
       frozenUntil: 0,
       fails: 0,
       lockedUntil: 0,
+      clearance: 0,
+      zoneUsed: [],
       guard: [...this.missions.values()].some((m) => m.takenBy === agent.id && m.status === "taken" && m.nodeId === target.id && m.mods?.includes("guarded")) ? 1.35 : 1,
       grave: false,
     };
@@ -3424,6 +3451,7 @@ export class Game {
     }
     this.log(target, "CONNECT from {FROM}", { opId, actorId: agent.id, fromIp: prev });
     this.ops.set(agent.id, op);
+    this.onConnect?.(op, agent, target);
     if (poisoned.length && !agent.npc) this.out.toast(agent.id, `Relay avvelenato nel rimbalzo: il trace correrà più veloce.`, "warn");
     if (victim && this.online.has(victim.id)) {
       this.out.toast(victim.id, "INTRUSIONE NEL TUO GATEWAY!", "bad");
@@ -3866,6 +3894,9 @@ export class Game {
     if (op.lockedUntil > now()) return { ok: false, error: `accesso bloccato per ${Math.ceil((op.lockedUntil - now()) / 1000)}s: troppi tentativi` };
     this.noisy(op, agent, target);
     if (password.trim().toUpperCase() !== target.password.toUpperCase()) {
+      // non è la password di root: forse è quella di un dipendente o dell'operatore
+      const staff = this.staffLogin?.(op, agent, target, password);
+      if (staff) return staff;
       op.fails += 1;
       const max = KIND_PROFILE[target.kind].lockout;
       if (max && op.fails >= max) {
@@ -4283,7 +4314,7 @@ export class Game {
   // ------------------------------------------------------------ mercato nero
 
   fileValue(st: StoredFile) {
-    return this.node(st.nodeId)?.files.find((f) => f.id === st.fileId)?.value ?? 1;
+    return st.value ?? this.node(st.nodeId)?.files.find((f) => f.id === st.fileId)?.value ?? 1;
   }
 
   listFile(agent: Agent, key: string, price: number) {
@@ -4768,6 +4799,7 @@ class UserError extends Error {}
 
 export type AgentDoc = Agent;
 export type NodeDoc = WNode;
+export type OpDoc = Op;
 export type MissionDoc = Mission;
 
 function renderLog(l: LogEntry) {

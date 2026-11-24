@@ -9,6 +9,7 @@ import { Game, type AgentDoc } from "./game.ts";
 import { installAdmin } from "./admin.ts";
 import { installSocial } from "./social.ts";
 import { installIrc } from "./irc.ts";
+import { installZones } from "./zones.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -202,6 +203,8 @@ game.socialAct = (agent, a, p) => {
   if (a === "ircSync") return irc.connected(agent), { ok: true };
   return socialAct?.(agent, a, p) ?? null;
 };
+
+installZones(game);
 
 installAdmin(game, {
   dbPath: DB_PATH,

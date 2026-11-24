@@ -28,6 +28,7 @@ export type SeedNode = {
   city?: string;
   adminId?: string | null; // il cittadino che lo amministra
   homeOf?: string | null; // PC di casa di questo cittadino
+  inner?: string; // macchina di rete interna: raggiungibile solo passando dal nodo indicato
 };
 
 export const DICTIONARY = [

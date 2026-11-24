@@ -205,3 +205,23 @@ export const CHATTER: Record<string, string[]> = {
     "il contro-trace è pronto. che ci provino.",
   ],
 };
+
+/** Posta interna dei nodi: il rumore d'ufficio fra un segreto e l'altro. [oggetto, testo] */
+export const MAIL_GOSSIP: [string, string][] = [
+  ["Macchinetta del caffè", "È di nuovo rotta. Terzo giorno. Qualcuno chiami qualcuno."],
+  ["Chi ha preso la mia sedia", "Quella con la rotella che cigola. Lo so che sei stato tu."],
+  ["Cena di Natale", "Karaoke dopo. Il direttore ha già prenotato «My Way». Portate i tappi."],
+  ["Stampante del terzo piano", "PC LOAD LETTER. Cosa diavolo vuol dire?"],
+  ["Nuova policy password", "Otto caratteri, una maiuscola, un numero. Ho messo il nome del cane e l'anno. Come tutti."],
+  ["Parcheggio", "La Delorean in doppia fila è di qualcuno di voi?"],
+  ["Riunione delle 15", "Potevamo fare tutto con una mail. Questa mail."],
+  ["Virus?", "Mi è arrivato un allegato che si chiama ILOVEYOU. Lo apro?"],
+  ["Rapporti TPS", "Da oggi vanno con la copertina nuova. Avete ricevuto il promemoria?"],
+  ["Modem", "Chi è attaccato alla linea 3 da ieri sera? La bolletta la paga l'ufficio, non voi."],
+  ["Sala server", "Qualcuno ha lasciato la porta aperta. E una pizza sopra il rack."],
+  ["Corso di sicurezza", "Obbligatorio. Tema: non scrivere le password sui post-it. Portate i post-it."],
+  ["Ascensore", "Fermo al dodicesimo. Dicono per manutenzione. Io ho sentito dei botti."],
+  ["Il nuovo stagista", "Dice che di notte «gira per le reti». Lo teniamo d'occhio o lo assumiamo?"],
+  ["Millennium bug", "Mi dicono che nel 2000 si ferma tutto. Io nel dubbio ho stampato gli stipendi."],
+  ["Telefonata strana", "Uno ha chiamato dicendo di essere dell'assistenza e voleva la mia password. Gliel'ho data, era gentile."],
+];

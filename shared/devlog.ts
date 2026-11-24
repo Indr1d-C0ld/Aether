@@ -6,6 +6,22 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.4.0",
+    date: "2026-11-24",
+    title: "Dentro i sistemi: sottosistemi, posta interna, reti nascoste",
+    tags: ["sottosistemi", "posta", "missioni", "mondo"],
+    items: [
+      "Ogni organizzazione ora ha delle stanze: posta interna, centralino, telecamere, contabilità, ufficio del personale, rete interna. Ognuna ha le sue azioni e chiede un livello di accesso.",
+      "Tre livelli invece di uno: impiegato, operatore, admin. Non serve più forzare per forza la password di root: con nome e anno di nascita di un dipendente entri da impiegato, e la password dell'operatore gira nella posta.",
+      "Posta interna: le caselle del personale, diverse per ogni sistema e rinnovate ogni settimana. Dentro ci sono indirizzi da annotare, mezze password, allegati compromettenti che il ricettatore paga bene, e parecchie chiacchiere d'ufficio.",
+      "Telecamere da mettere in loop per fermare il trace, fatture da stornare, libri mastri da copiare, rubriche da sfogliare, badge da stamparsi per rientrare il giorno dopo dalla porta principale.",
+      "Reti interne: 66 macchine che da fuori non rispondono, dietro le aziende, le banche e i laboratori più protetti. Ci si arriva solo mappando la rete da admin, e la finestra dura 15 minuti. Il bottino migliore sta lì.",
+      "Per i blu: rivedere i nastri per ricostruire righe sparite dal log, revocare i badge sospetti, mettere in allerta il personale.",
+      "8 operazioni nuove: «Sono dell'assistenza», «C'è posta per te», «Gola profonda», «Dietro lo specchio», «Undici uomini e un nastro»…",
+      "48 traguardi nuovi: 444 in tutto.",
+    ],
+  },
+  {
     v: "0.3.0",
     date: "2026-11-24",
     title: "ReticoloNet, crew, duelli e un mondo molto più grande",
