@@ -6,6 +6,21 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.14.0",
+    date: "2026-11-25",
+    title: "Sandbox, terzo passo: abitanti con ambizioni, amicizie e faide",
+    tags: ["sandbox", "popolazione", "crew", "rapporti"],
+    items: [
+      "Ogni abitante ora vuole qualcosa: diventare élite su un BBS, portare in cima la sua crew, finire sui giornali, mettere da parte abbastanza per ritirarsi, o farla pagare a qualcuno. Ogni impresa lo avvicina; quando ci arriva lo sa tutto il Reticolo, e si dà un'ambizione nuova.",
+      "Rapporti con te: ogni abitante ti guarda con simpatia o con sospetto. Rispondere alle sue discussioni sui BBS, offrirgli qualcosa o girare con la sua crew migliora le cose.",
+      "Chi ti stima ti scrive: un indirizzo che non avevi, mezza password di root, un avvertimento su dove stanotte ci sarà movimento. Sono cose vere, prese dal mondo in quel momento. Un amico ti fa anche da alibi (calore −15) o ti presta 600 crediti.",
+      "Chi ti detesta fa il tuo nome in bacheca, e ai rossi sale il calore.",
+      "Quattro crew di abitanti si contendono la scena: I Corvi, Kollettivo 2600, Legione del Carrier e, dall'altra parte, la Guardia di Notte. Ogni giorno la classifica finisce sui giornali. Puoi affiancarne una della tua cellula.",
+      "Faide: quando un blu disfa per tre volte il lavoro dello stesso rosso, fra i due si apre un conto che il rosso vorrà saldare.",
+      "Tutto questo sta nella voce Persone, sotto la rubrica.",
+    ],
+  },
+  {
     v: "0.13.0",
     date: "2026-11-25",
     title: "Sandbox, secondo passo: le persone",

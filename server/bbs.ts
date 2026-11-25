@@ -510,6 +510,8 @@ export function installBbs(game: Game) {
           if (lv < ar.need) return { ok: false, error: "area riservata" };
           if (t.posts.length >= 80) return { ok: false, error: "discussione chiusa: troppo lunga" };
         }
+        // rispondere a un habitué è il modo più semplice per farselo amico
+        if (cmd === "reply" && t.posts[0]!.npc) game.lifeFavor?.(a, t.posts[0]!.by, 4);
         t.posts.push({ by: a.handle, at: now(), body });
         u.posts += 1;
         u.lastAt = now();

@@ -3255,6 +3255,8 @@ export class Game {
   lifeAdmin: ((a: Agent, n: WNode) => void) | null = null;
   lifeStaffed: ((n: WNode) => string | null) | null = null;
   lifeChat: ((lore: string) => string | null) | null = null;
+  /** Un giocatore fa qualcosa che a un abitante piace (o no): cambia il rapporto. */
+  lifeFavor: ((a: Agent, handle: string, delta: number) => void) | null = null;
   // organizzazioni vive, cronaca, eventi di mondo (server/orgs.ts)
   orgEvent: ((n: WNode, kind: "intrusione" | "furto" | "sabotaggio" | "infezione" | "difesa", who: string | null) => void) | null = null;
   orgStrike: ((n: WNode) => boolean) | null = null;

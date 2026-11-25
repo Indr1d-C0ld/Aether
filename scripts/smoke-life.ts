@@ -111,5 +111,40 @@ check("e in bacheca c'è movimento", rows.some((x) => x.replies > 0) && rows.len
 await act("bbs", { cmd: "bye" });
 await act("devGrant", { clock: "giorno" });
 
+// ---- ambizioni, rapporti, crew (con una pausa: il server chiude chi manda più di 30 messaggi al secondo)
+await sleep(1200);
+type SoulRow = { handle: string; ambition: string; progress: number; favor: number; gang: string | null; can: { act: string; why: string | null }[] };
+const souls = async () => (await act("life", { cmd: "souls" })).data as { rows: SoulRow[]; gangs: { id: string; name: string; mine: boolean; side: string }[] };
+let sl = await souls();
+check("ogni abitante ha un'ambizione, e quattro crew si contendono la scena", sl.rows.every((r) => r.ambition.length > 5) && sl.gangs.length === 4);
+await act("devGrant", { credits: 5000, charge: 0 });
+const g1 = await act("life", { cmd: "gift", handle: "Mantis" });
+check("un regalo migliora i rapporti", g1.ok && (g1.data as { row: SoulRow }).row.favor >= 8);
+check("senza amicizia niente alibi", !(await act("life", { cmd: "alibi", handle: "Mantis" })).ok);
+await act("life", { cmd: "favor", handle: "Mantis", value: 70 });
+const al = await act("life", { cmd: "alibi", handle: "Mantis" });
+check("un amico ti copre: alibi, e il favore si consuma", al.ok && (al.data as { row: SoulRow }).row.favor < 70);
+check("ma non due volte al giorno", !(await act("life", { cmd: "alibi", handle: "Mantis" })).ok);
+await sleep(1200);
+const cr1 = state!.me.credits;
+check("un prestito fra amici", (await act("life", { cmd: "loan", handle: "Mantis" })).ok);
+await sleep(1200);
+check("600 crediti in tasca", state!.me.credits === cr1 + 600);
+const mails = state!.mail.length;
+await act("life", { cmd: "favor", handle: "Corax", value: 50, tips: true });
+for (let i = 0; i < 40 && !state!.mail.some((m) => m.from === "Corax"); i += 1) {
+  await sleep(120);
+  await act("life", { cmd: "favor", handle: "Corax", value: 50, tips: true });
+}
+await sleep(1200);
+check("chi ti è amico ti scrive una soffiata vera", state!.mail.length > mails && state!.mail.some((m) => m.from === "Corax" && m.body.length > 30));
+check("una crew dell'altra cellula non ti prende", !(await act("life", { cmd: "join", gang: "notte" })).ok);
+const jn = await act("life", { cmd: "join", gang: "corvi" });
+sl = await souls();
+check("affiancare una crew: i suoi ti guardano meglio", jn.ok && sl.gangs.find((g) => g.id === "corvi")!.mine && sl.rows.find((r) => r.handle === "Vex")!.favor >= 10);
+const done = (await act("life", { cmd: "favor", handle: "Ohm", value: 0, progress: 99 })).data as { row: SoulRow };
+check("un'ambizione raggiunta ne apre un'altra", done.row.progress < 20);
+
+
 console.log(fails.length ? `\n${fails.length} FALLITI` : "\ntutto ok");
 process.exit(fails.length ? 1 : 0);

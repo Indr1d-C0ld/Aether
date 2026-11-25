@@ -9,7 +9,17 @@ import { clockLabel, dayPart, hoursOf, isWeekend, localHour, opensIn, staffed, t
 import { CHAT_BY_PART, CHAT_VIRUS, CHAT_WEEKEND, MAIL_TIMES, NEWS_BY_PART, NEWS_VIRUS, PERSONAS, REPLIES, THREADS, WALL, type Persona } from "./life-text.ts";
 
 type Status = "sveglio" | "dorme" | "custodia";
-type Soul = { heat: number; credits: number; jailUntil: number; deeds: number; busts: number; lastDeed: string; lastAt: number; said: number };
+type Ambition = "élite" | "vendetta" | "crew" | "ritiro" | "fama";
+type Soul = { heat: number; credits: number; jailUntil: number; deeds: number; busts: number; lastDeed: string; lastAt: number; said: number; ambition?: Ambition; progress?: number; favor?: Record<string, number>; tipAt?: Record<string, number>; feud?: Record<string, number>; awayUntil?: number };
+export type GangView = { id: string; name: string; side: "red" | "blue"; motto: string; members: string[]; score: number; region: string | null; mine: boolean };
+export type SoulRow = WhoRow & { ambition: string; progress: number; favor: number; gang: string | null; can: { act: "gift" | "alibi" | "loan"; label: string; why: string | null }[] };
+const AMBITION_TEXT: Record<Ambition, string> = { "élite": "diventare élite su un BBS", vendetta: "farla pagare a chi l'ha fatto arrestare", crew: "portare la sua crew in cima", ritiro: "mettere da parte abbastanza per smettere", fama: "finire sui giornali" };
+const GANGS: { id: string; name: string; side: "red" | "blue"; motto: string; members: string[] }[] = [
+  { id: "corvi", name: "I Corvi", side: "red", motto: "quello che si dice qui non esce da qui", members: ["Corax", "Vex", "Grendel", "Oxide", "Tarlo"] },
+  { id: "k2600", name: "Kollettivo 2600", side: "red", motto: "il mio crimine è la curiosità", members: ["Mantis", "Nyx_77", "Blackbird", "Zaira", "Brasa", "Tsuki"] },
+  { id: "notte", name: "Guardia di Notte", side: "blue", motto: "qualcuno deve restare sveglio", members: ["Sentinel", "Halberd", "Wren", "Kowalski", "Lince", "Dorian"] },
+  { id: "carrier", name: "Legione del Carrier", side: "red", motto: "NO CARRIER, no party", members: ["Ohm", "Kestrel", "Ratchet", "Ferro", "Quanta", "Baud"] },
+];
 type State = { souls: Record<string, Soul>; day: number };
 type BbsApi = { ids: () => string[]; areasOf: (bbs: string) => string[]; npcCall: (bbs: string, handle: string, from: string) => void; npcLine: (bbs: string, handle: string, text: string) => void; npcPost: (bbs: string, area: string, by: string, title: string, body: string) => boolean; npcReply: (bbs: string, by: string, body: string) => boolean };
 export type WhoRow = { handle: string; city: string; clock: string; status: Status; side: Persona["side"]; about: string; last: string; lastAt: number };
@@ -21,7 +31,18 @@ const hash = (s: string) => [...s].reduce((q, c) => (Math.imul(q, 33) ^ c.charCo
 export function installLife(game: Game, bbs: BbsApi) {
   const state: State = game.store.get<State>("life", "state") ?? { souls: {}, day: 0 };
   let dirty = false;
-  const soul = (p: Persona) => (state.souls[p.handle] ??= { heat: 0, credits: 800 + (hash(p.handle) % 2400), jailUntil: 0, deeds: 0, busts: 0, lastDeed: "", lastAt: 0, said: 0 });
+  const soul = (p: Persona) => {
+    const s = (state.souls[p.handle] ??= { heat: 0, credits: 800 + (hash(p.handle) % 2400), jailUntil: 0, deeds: 0, busts: 0, lastDeed: "", lastAt: 0, said: 0 });
+    s.ambition ??= (["élite", "crew", "ritiro", "fama"] as Ambition[])[hash(p.handle + "a") % 4]!;
+    s.progress ??= hash(p.handle + "p") % 40;
+    s.favor ??= {};
+    s.tipAt ??= {};
+    s.feud ??= {};
+    return s;
+  };
+  const gangOf = (handle: string) => GANGS.find((g) => g.members.includes(handle)) ?? null;
+  const gangScore: Record<string, number> = (state as State & { gangs?: Record<string, number> }).gangs ??= {};
+  const sideOf = (a: { id: string }) => ((game.agents.get(a.id) as unknown as { gang?: string } | undefined)?.gang ?? null);
   /** Le frasi che gli habitué hanno da dire su quello che hanno appena fatto: la chat le pesca per prime. */
   const gossip: { by: string; text: string; at: number }[] = [];
 
@@ -90,6 +111,7 @@ export function installLife(game: Game, bbs: BbsApi) {
   const awake = (p: Persona): Status => {
     const s = soul(p);
     if (s.jailUntil > now()) return "custodia";
+    if ((s.awayUntil ?? 0) > now()) return "dorme";
     const h = forced() ? 22 : localHour(p.x, now());
     const up = p.wake < p.sleep ? h >= p.wake && h < p.sleep : h >= p.wake || h < p.sleep;
     return up ? "sveglio" : "dorme";
@@ -118,7 +140,78 @@ export function installLife(game: Game, bbs: BbsApi) {
     s.lastAt = now();
     s.deeds += 1;
     dirty = true;
+    const g = gangOf(p.handle);
+    if (g && !/BBS|libertà|arrestato/.test(what)) gangScore[g.id] = (gangScore[g.id] ?? 0) + 1;
+    // ogni impresa avvicina all'ambizione; quando ci arriva, il mondo lo viene a sapere
+    s.progress = (s.progress ?? 0) + (s.ambition === "ritiro" ? 2 : 4);
+    if (s.progress >= 100) fulfilled(p);
   };
+
+  function fulfilled(p: Persona) {
+    const s = soul(p);
+    s.progress = 0;
+    const was = s.ambition!;
+    if (was === "ritiro") {
+      s.awayUntil = now() + 2 * DAY;
+      game.feed(`${p.handle} si ritira. «Ho messo da parte abbastanza. Non cercatemi.» Tornerà: tornano tutti.`, "sys");
+      s.ambition = "fama";
+    } else if (was === "élite") {
+      for (const b of p.bbs) bbs.npcLine(b, p.handle, "élite. ce l'ho fatta. offro io (virtualmente)");
+      game.feed(`${p.handle} è stato promosso élite su un BBS. In bacheca non si parla d'altro.`, "sys");
+      s.ambition = "crew";
+    } else if (was === "vendetta") {
+      game.feed(`${p.handle} ha saldato un conto vecchio. Non dice con chi, ma qualcuno stanotte ha perso il sonno.`, "sys");
+      s.ambition = "ritiro";
+    } else if (was === "crew") {
+      const g = gangOf(p.handle);
+      if (g) gangScore[g.id] = (gangScore[g.id] ?? 0) + 15;
+      game.feed(`${p.handle} ha fatto un colpo che vale una stagione${g ? ` per ${g.name}` : ""}.`, "sys");
+      s.ambition = "fama";
+    } else {
+      game.feed(`${p.handle}, da ${p.city}, è su tutti i giornali. La madre: «Stava sempre in camera sua».`, "sys");
+      s.ambition = "élite";
+    }
+    say(p, `fatto. volevo ${AMBITION_TEXT[was]}, e ci sono arrivato. adesso voglio ${AMBITION_TEXT[s.ambition!]}.`);
+  }
+  /** Il rapporto fra un abitante e un giocatore, da -100 a 100. */
+  const favorOf = (p: Persona, id: string) => soul(p).favor![id] ?? 0;
+  function favor(p: Persona, id: string, delta: number) {
+    const s = soul(p);
+    s.favor![id] = Math.max(-100, Math.min(100, (s.favor![id] ?? 0) + delta));
+    dirty = true;
+  }
+  game.lifeFavor = (a, handle, delta) => {
+    const p = PERSONAS.find((x) => x.handle === handle);
+    if (p) favor(p, a.id, delta * ((game.agents.get(a.id) as unknown as { gang?: string }).gang === gangOf(handle)?.id ? 1.5 : 1));
+  };
+  /** Chi ti è amico ogni tanto ti scrive: un indirizzo, mezza password, un avvertimento. Cose vere. */
+  function tips(p: Persona) {
+    const s = soul(p);
+    for (const [id, f] of Object.entries(s.favor!)) {
+      const a = game.agents.get(id);
+      if (!a || a.npc || f < 30 || now() - (s.tipAt![id] ?? 0) < 3 * 3600_000 || !game.online.has(id) || Math.random() > 0.15) continue;
+      s.tipAt![id] = now();
+      const pool = orgs().filter((n) => game.tierOf(n) <= 2);
+      const unknown = pool.filter((n) => !a.knownNodes.includes(n.id) && Math.abs(n.x - p.x) < 60);
+      const n = unknown.length && Math.random() < 0.5 ? pick(unknown) : pick(pool);
+      let body: string;
+      if (!a.knownNodes.includes(n.id) && game.reveal(a, n.id)) body = `Ti passo un numero: ${n.ip}, ${n.org}. L'ho messo sulla tua mappa. Non dire che te l'ho dato io.`;
+      else if (a.faction === "red") body = `Su ${n.org}: la password di root comincia per «${n.password.slice(0, Math.ceil(n.password.length / 2))}». Il resto lo sai fare.`;
+      else body = `Tieni d'occhio ${n.org}: stanotte qualcuno dei nostri amici ci proverà. Io non ti ho detto niente.`;
+      game.mail(a, p.handle, pick(["Per te", "Una cosa", "Fra noi", "Non per iscritto, di solito"]), `${body}\n\n${p.handle}, da ${p.city}`);
+      game.bump(a, "life:tip");
+    }
+    // e chi ti detesta fa il tuo nome
+    for (const [id, f] of Object.entries(s.favor!)) {
+      const a = game.agents.get(id);
+      if (!a || a.npc || f > -40 || now() - (s.tipAt![`x${id}`] ?? 0) < 6 * 3600_000 || Math.random() > 0.1) continue;
+      s.tipAt![`x${id}`] = now();
+      if (a.faction === "red") a.heat = Math.min(100, a.heat + 6);
+      for (const b of p.bbs) if (b !== "falken") bbs.npcLine(b, p.handle, `occhio a ${a.handle}`);
+      if (game.online.has(id)) game.out.toast(id, `${p.handle} ha fatto il tuo nome in bacheca${a.faction === "red" ? ". Calore +6." : "."}`, "warn");
+      game.touch("agent", a.id);
+    }
+  }
 
   /** Un rosso sveglio cerca un sistema dove è notte e ci prova. Lascia righe vere nei log. */
   function redAct(p: Persona) {
@@ -179,6 +272,15 @@ export function installLife(game: Game, bbs: BbsApi) {
       const c = game.mwCure?.();
       if (c) {
         s.credits += 250;
+        const foe = PERSONAS.filter((x) => x.side === "red" && soul(x).lastDeed.includes(c.name))[0];
+        if (foe) {
+          s.feud![foe.handle] = (s.feud![foe.handle] ?? 0) + 1;
+          if (s.feud![foe.handle] === 3) {
+            game.feed(`Faida aperta fra ${p.handle} e ${foe.handle}: è la terza volta che uno disfa il lavoro dell'altro.`, "sys");
+            soul(foe).ambition = "vendetta";
+            say(foe, `${p.handle}, lo so che sei tu. tre volte. non ci sarà una quarta.`);
+          }
+        }
         did(p, `ha tolto «${c.name}» da ${c.org}`);
         say(p, pick([`tolto «${c.name}» da ${c.org}. chi l'ha scritto ha fatto un lavoro pigro.`, `${c.org} è pulita. era «${c.name}». aggiornate le firme.`]));
         if (Math.random() < 0.4) game.feed(`${c.org}: rimosso il virus «${c.name}». I tecnici ringraziano «un consulente esterno».`, "blue");
@@ -228,7 +330,11 @@ export function installLife(game: Game, bbs: BbsApi) {
         const s = soul(p);
         s.credits -= 120 + (hash(p.handle + d) % 200);
         s.heat = Math.max(0, s.heat - 30);
+        for (const k of Object.keys(s.favor ?? {})) s.favor![k] = Math.round(s.favor![k]! * 0.97);
       }
+      const top = GANGS.map((g) => ({ g, v: gangScore[g.id] ?? 0 })).sort((x, y) => y.v - x.v)[0];
+      if (top && top.v > 0) game.feed(`Classifica delle crew: in testa ${top.g.name} (${top.v} imprese). «${top.g.motto}»`, "sys");
+      for (const g of GANGS) gangScore[g.id] = Math.round((gangScore[g.id] ?? 0) * 0.7);
       dirty = true;
     }
     if (!game.on("npcActive")) return;
@@ -241,6 +347,7 @@ export function installLife(game: Game, bbs: BbsApi) {
         game.feed(`${p.handle} è di nuovo a piede libero.`, "sys");
       }
       if (awake(p) !== "sveglio") continue;
+      tips(p);
       // chi è al verde lavora il doppio
       const hunger = s.credits < 300 ? 2 : 1;
       const r = Math.random();
@@ -279,6 +386,74 @@ export function installLife(game: Game, bbs: BbsApi) {
       if (typeof p.heat === "number") soul(who).heat = p.heat;
       (p.what === "red" ? redAct : p.what === "blue" ? blueAct : callBbs)(who);
       return { ok: true, data: { said: gossip.at(-1)?.text ?? null, soul: soul(who), chat: game.lifeChat?.("main") } };
+    }
+    const gangId = (agent as unknown as { gang?: string }).gang ?? null;
+    const sr = (x: Persona): SoulRow => {
+      const s = soul(x);
+      const f = Math.round(favorOf(x, agent.id));
+      const cd = (k: string, h: number) => (now() - (s.tipAt![`${k}${agent.id}`] ?? 0) < h * 3600_000 ? "già chiesto da poco" : null);
+      return { handle: x.handle, city: x.city, clock: clockLabel(x.x, now()), status: awake(x), side: x.side, about: x.about, last: s.lastDeed, lastAt: s.lastAt, ambition: AMBITION_TEXT[s.ambition!], progress: Math.round(s.progress ?? 0), favor: f, gang: gangOf(x.handle)?.name ?? null, can: [
+        { act: "gift", label: "Offrigli qualcosa · 200 CR", why: agent.credits < 200 ? "non hai 200 CR" : null },
+        { act: "alibi", label: "Chiedi un alibi", why: f < 60 ? "non siete abbastanza amici" : cd("al", 24) },
+        { act: "loan", label: "Chiedi un prestito", why: f < 45 ? "non siete abbastanza amici" : s.credits < 800 ? "è al verde anche lui" : cd("lo", 48) },
+      ] };
+    };
+    if (p.cmd === "souls") return { ok: true, data: { rows: PERSONAS.map(sr).sort((x, y) => y.favor - x.favor || Number(y.status === "sveglio") - Number(x.status === "sveglio")), gangs: GANGS.map((g): GangView => ({ ...g, score: gangScore[g.id] ?? 0, region: null, mine: gangId === g.id })).sort((x, y) => y.score - x.score) } };
+    if (p.cmd === "join") {
+      const g = GANGS.find((x) => x.id === p.gang);
+      if (!g) return { ok: false, error: "crew sconosciuta" };
+      if (g.side !== agent.faction) return { ok: false, error: `${g.name} non prende gente dell'altra cellula` };
+      const tag = agent as unknown as { gang?: string; gangAt?: number };
+      if (tag.gang === g.id) return { ok: false, error: "sei già dei loro" };
+      if (now() - (tag.gangAt ?? 0) < DAY && process.env.AETHER_DEV !== "1") return { ok: false, error: "hai cambiato bandiera da meno di un giorno: aspetta" };
+      if (tag.gang) for (const h of GANGS.find((x) => x.id === tag.gang)?.members ?? []) game.lifeFavor?.(agent, h, -10);
+      tag.gang = g.id;
+      tag.gangAt = now();
+      for (const h of g.members) game.lifeFavor?.(agent, h, 10);
+      game.touch("agent", agent.id);
+      game.bump(agent, "life:gang");
+      return { ok: true, note: `ora giri con ${g.name}: «${g.motto}»` };
+    }
+    if (p.cmd === "gift" || p.cmd === "alibi" || p.cmd === "loan") {
+      const who = PERSONAS.find((x) => x.handle === p.handle);
+      if (!who) return { ok: false, error: "chi?" };
+      const opt = sr(who).can.find((c) => c.act === p.cmd)!;
+      if (opt.why) return { ok: false, error: opt.why };
+      const s = soul(who);
+      if (p.cmd === "gift") {
+        agent.credits -= 200;
+        s.credits += 200;
+        game.lifeFavor?.(agent, who.handle, 8);
+        game.bump(agent, "life:gift");
+        game.touch("agent", agent.id);
+        game.dirty.add(agent.id);
+        return { ok: true, note: `${who.handle} apprezza. ${pick(["«Mi ricorderò».", "«Era ora che qualcuno pensasse alla bolletta».", "«Non dovevi. Cioè, dovevi».", "«Grazie. Quando serve, chiedi»."])}`, data: { row: sr(who) } };
+      }
+      if (p.cmd === "alibi") {
+        s.tipAt![`al${agent.id}`] = now();
+        agent.heat = Math.max(0, agent.heat - 15);
+        game.lifeFavor?.(agent, who.handle, -8);
+        game.bump(agent, "life:alibi");
+        game.touch("agent", agent.id);
+        game.dirty.add(agent.id);
+        return { ok: true, note: `${who.handle} giura che ieri sera eri con lui, a ${who.city}. Calore −15.`, data: { row: sr(who) } };
+      }
+      s.tipAt![`lo${agent.id}`] = now();
+      s.credits -= 600;
+      agent.credits += 600;
+      game.lifeFavor?.(agent, who.handle, -12);
+      game.bump(agent, "life:loan");
+      game.touch("agent", agent.id);
+      game.dirty.add(agent.id);
+      return { ok: true, note: `${who.handle} ti presta 600 CR. Non li rivuole. Ma se lo ricorderà.`, data: { row: sr(who) } };
+    }
+    if (p.cmd === "favor" && process.env.AETHER_DEV === "1") {
+      const who = PERSONAS.find((x) => x.handle === p.handle)!;
+      soul(who).favor![agent.id] = Number(p.value);
+      soul(who).tipAt = {};
+      if (p.tips) tips(who);
+      if (typeof p.progress === "number") (soul(who).progress = p.progress), did(who, "ha fatto una cosa per il test");
+      return { ok: true, data: { row: sr(who) } };
     }
     const rows: WhoRow[] = PERSONAS.map((x) => ({ handle: x.handle, city: x.city, clock: clockLabel(x.x, now()), status: awake(x), side: x.side, about: x.about, last: soul(x).lastDeed, lastAt: soul(x).lastAt })).sort((x, y) => Number(y.status === "sveglio") - Number(x.status === "sveglio") || y.lastAt - x.lastAt);
     return { ok: true, data: { rows, awake: rows.filter((r) => r.status === "sveglio").length } };
