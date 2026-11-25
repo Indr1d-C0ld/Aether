@@ -122,6 +122,7 @@ export type AgentView = {
   account: string; // il tuo conto, per i bonifici
   pending: { amount: number; clearAt: number; from: string }[]; // bonifici rubati non ancora accreditati
   scanUntil: number; // War Dialer in corso
+  samples: import("./bio.ts").SampleView[]; // campioni biometrici rubati e ancora buoni
   tone: import("./tones.ts").ToneView | null; // i toni della Blue Box, se la linea è aperta
   hiddenFound: number;
   hiddenTotal: number;
@@ -163,6 +164,7 @@ export type NodeView = {
   blurb: string;
   public: boolean; // relay e registro: accesso guest senza password
   sec: { proxy: number; firewall: number; monitor: number };
+  bio: import("./bio.ts").BioKind | null; // barriera biometrica sull'accesso admin
   patched: boolean;
   backdoors: number | null; // null = non visibile a te
   mineBackdoor: boolean;
@@ -323,6 +325,7 @@ export type OpView = {
   clearance: number; // 0 nessuno · 1 impiegato · 2 operatore · 3 admin o cliente
   zones: import("./zones.ts").ZoneView[]; // i sottosistemi di questo nodo
   grid: import("./grid.ts").GridView | null; // la griglia del firewall, se aperta
+  bio: import("./bio.ts").BioView | null; // la barriera biometrica del bersaglio, se c'è
   rotor: import("./rotors.ts").RotorView | null; // i rotori del Decrypter, se c'è una chiave sul banco
 };
 

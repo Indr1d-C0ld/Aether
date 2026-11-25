@@ -478,6 +478,7 @@ function NodePanel({ ctx, node }: { ctx: DeckCtx; node: NodeView }) {
             <span className={`chip ${node.sec.proxy ? "red" : ""}`}>proxy {node.sec.proxy}</span>
             <span className={`chip ${node.sec.firewall ? "red" : ""}`}>firewall {node.sec.firewall}</span>
             <span className={`chip ${node.sec.monitor > 2 ? "red" : node.sec.monitor ? "amber" : ""}`}>monitor {node.sec.monitor}</span>
+            {node.bio ? <span className="chip amber" title="L'accesso admin vuole anche un campione biometrico dell'amministratore">biometria: {node.bio}</span> : null}
             {node.patched ? <span className="chip fac">rinforzato</span> : null}
             {node.backdoors ? <span className="chip red">backdoor {node.backdoors}</span> : null}
             {node.mineBackdoor ? <span className="chip green">tuo backdoor</span> : null}

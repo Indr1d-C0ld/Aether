@@ -6,6 +6,22 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.8.0",
+    date: "2026-11-25",
+    title: "Barriere biometriche: voce, impronta, retina",
+    tags: ["biometria", "minigiochi", "missioni", "gadget"],
+    items: [
+      "Sulle banche più blindate, sulle basi militari e su metà delle reti interne la password di root non basta più: l'accesso admin vuole anche la voce, l'impronta o la retina dell'amministratore. Sulla mappa lo dice un'etichetta «biometria».",
+      "Il campione si ruba altrove. La voce: entri da impiegato, chiami l'amministratore dal centralino e registri. L'impronta: è sulla scheda del badge, all'ufficio del personale. La retina: sta in una cartella clinica, in qualunque ospedale.",
+      "L'oscilloscopio, il quarto minigioco: davanti al lettore hai la traccia registrata e la tua, e quattro manopole (frequenza, ampiezza, fase, armonica) per sovrapporle. Tre letture: ogni respinta fa avanzare il trace, alla terza il lettore si blocca.",
+      "Una volta admin puoi impiantare i tuoi modelli nel lettore: per 24 ore quella barriera ti apre da sola. I campioni invece durano 7 giorni.",
+      "Per i blu: ri-registrare il personale. Campioni rubati e modelli impiantati smettono di valere, e chi li aveva riceve la notizia per posta.",
+      "3 gadget nuovi: registratore a microcassette, dito di gelatina, lente a specchio. Fabbricano il campione sul posto, davanti alla barriera giusta.",
+      "4 operazioni nuove: «Il mio nome è il mio passaporto», «Occhio per occhio», «La serratura sono io», e per i blu «Tutti in fila per la foto». I contratti sui sistemi con barriera pagano il 25% in più.",
+      "20 traguardi nuovi: 492 in tutto.",
+    ],
+  },
+  {
     v: "0.7.0",
     date: "2026-11-25",
     title: "I toni della Blue Box: il terzo minigioco",

@@ -1035,6 +1035,14 @@ export class Game {
         if (!op!.trace.active) return { ok: false, error: "nessun trace da confondere" };
         op!.trace.progressMs *= def.code === "glove" ? 0.85 : 0.65;
         break;
+      case "microcassette":
+      case "gummy":
+      case "mirrorlens": {
+        const err = this.bioGadget ? this.bioGadget(agent, op!, target!, def.code === "microcassette" ? "voce" : def.code === "gummy" ? "impronta" : "retina") : "non serve a niente qui";
+        if (err) return { ok: false, error: err };
+        extra = " · campione pronto: presentalo al lettore";
+        break;
+      }
       case "deckard": {
         const pw = target!.password.toUpperCase();
         extra = ` · ${[...pw].map((ch, i) => (i % 2 === 0 ? ch : "·")).join("")}`;
@@ -1140,6 +1148,7 @@ export class Game {
       }
       case "skeleton":
         if (op!.access === "admin" || op!.access === "client") return { ok: false, error: "sei già dentro" };
+        if (this.bioBlock?.(op!, agent, target!)) return { ok: false, error: this.bioBlock(op!, agent, target!)! };
         op!.access = "admin";
         op!.bypass.proxy = true;
         this.log(target!, "LOGIN admin from {FROM}", { opId: op!.id, actorId: agent.id, fromIp: from });
@@ -2061,7 +2070,8 @@ export class Game {
       value: null,
       targetAgentId: null,
       incident: null,
-      reward: 450 + sec * 260,
+      // una barriera biometrica è un giro in più: il cliente lo sa
+      reward: Math.round((450 + sec * 260) * (this.bioKind?.(node) ? 1.25 : 1)),
       xp: 60 + sec * 35,
       minXp: sec <= 3 ? 0 : sec <= 5 ? 200 : sec <= 8 ? 550 : 1100,
       requires: [],
@@ -2081,7 +2091,7 @@ export class Game {
     const targets = this.openTargets();
     const relays = [...this.nodes.values()].filter((n) => n.kind === "relay");
     const homes = [...this.nodes.values()].filter((n) => n.kind === "home");
-    const snode = (n: WNode): SNode => ({ id: n.id, org: n.org, name: n.name, kind: n.kind, sub: n.sub, city: n.city, tier: this.tierOf(n), files: this.plainFiles(n).map((f) => ({ id: f.id, name: f.name })), inner: (() => { const i = [...this.nodes.values()].find((x) => x.inner === n.id); return i ? { id: i.id, org: i.org } : undefined; })() });
+    const snode = (n: WNode): SNode => ({ id: n.id, org: n.org, name: n.name, kind: n.kind, sub: n.sub, city: n.city, tier: this.tierOf(n), bio: this.bioKind?.(n) ?? undefined, files: this.plainFiles(n).map((f) => ({ id: f.id, name: f.name })), inner: (() => { const i = [...this.nodes.values()].find((x) => x.inner === n.id); return i ? { id: i.id, org: i.org } : undefined; })() });
     const sc = rollScene(faction, {
       pick,
       client: cap(pick(faction === "red" ? CLIENTS_RED : CLIENTS_BLUE)),
@@ -2783,6 +2793,7 @@ export class Game {
       pending: a.pending.map((p) => ({ amount: p.amount, clearAt: p.clearAt, from: p.from })),
       scanUntil: a.scanUntil,
       tone: this.toneView(a),
+      samples: (this.bioSamples?.(a) ?? []) as import("../shared/bio.ts").SampleView[],
       hiddenFound: a.discovered.length,
       hiddenTotal: [...this.nodes.values()].filter((n) => n.hidden).length,
       maxHops: this.hopsMax(a),
@@ -2806,6 +2817,7 @@ export class Game {
       name: n.name,
       org: n.org,
       kind: n.kind,
+      bio: (this.bioKind?.(n) ?? null) as import("../shared/bio.ts").BioKind | null,
       ip: n.ip,
       x: n.x,
       y: n.y,
@@ -2926,6 +2938,7 @@ export class Game {
       zones: [],
       grid: this.gridView(op),
       rotor: this.rotorView(op, target),
+      bio: null,
       ...(this.opExtra?.(op, me, target) ?? {}),
       looted: op.looted,
     };
@@ -3193,7 +3206,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3219,6 +3232,14 @@ export class Game {
   /** Sottosistemi dei nodi (server/zones.ts). */
   staffLogin: ((op: Op, agent: Agent, target: WNode, password: string) => { ok: boolean; error?: string; note?: string } | null) | null = null;
   opExtra: ((op: Op, me: Agent, target: WNode) => Record<string, unknown>) | null = null;
+  // barriere biometriche (server/bio.ts)
+  bioKind: ((n: WNode) => string | null) | null = null;
+  bioBlock: ((op: Op, agent: Agent, target: WNode) => string | null) | null = null;
+  bioSamples: ((a: Agent) => unknown[]) | null = null;
+  bioGadget: ((agent: Agent, op: Op, target: WNode, kind: "voce" | "impronta" | "retina") => string | null) | null = null;
+  personName(pid: string) {
+    return personById.get(pid)?.name ?? "?";
+  }
   canReach: ((agent: Agent, target: WNode) => string | null) | null = null;
   onConnect: ((op: Op, agent: Agent, target: WNode) => void) | null = null;
 
@@ -3333,6 +3354,7 @@ export class Game {
             if (e) this.giveItem(agent, { kind: "exploit", code: e.code, rarity: e.rarity, name: e.name, desc: e.desc });
           }
           if (typeof p.charge === "number") this.charge(agent, "accusa di prova", p.charge, "test");
+          if (p.bio) (agent as Agent & { bioDev?: boolean }).bioDev = true;
           if (p.cool) {
             agent.heat = 0;
             agent.charges = [];
@@ -3592,6 +3614,7 @@ export class Game {
       case "breaker":
         if (op.access === "admin" || op.access === "client") return { ok: false, error: "sei già dentro" };
         if (!op.bypass.proxy) return { ok: false, error: "il proxy blocca il login: abbattilo prima" };
+        if (this.bioBlock?.(op, agent, target)) return { ok: false, error: this.bioBlock(op, agent, target)! };
         work = toolWork(tool, { chars: target.password.length, level: sec.proxy + sec.firewall, version });
         break;
       case "dict":
@@ -4129,6 +4152,8 @@ export class Game {
       this.log(target, "AUTH fail admin from {FROM}", { opId: op.id, actorId: agent.id, fromIp: this.prevIp(op, agent) });
       return { ok: false, error: "password rifiutata · il trace accelera" };
     }
+    const bio = this.bioBlock?.(op, agent, target);
+    if (bio) return { ok: false, error: `password giusta, ma non basta · ${bio}` };
     op.access = "admin";
     this.log(target, "LOGIN admin from {FROM}", { opId: op.id, actorId: agent.id, fromIp: this.prevIp(op, agent) });
     this.gotAdmin(op, agent, target);

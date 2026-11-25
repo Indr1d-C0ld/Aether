@@ -32,7 +32,7 @@ export type Scene = {
   clientNodes?: string[];
 };
 
-export type SNode = { id: string; org: string; name: string; kind: NodeKind; sub?: string; city?: string; tier: number; files: { id: string; name: string }[]; inner?: { id: string; org: string } };
+export type SNode = { id: string; org: string; name: string; kind: NodeKind; sub?: string; city?: string; tier: number; files: { id: string; name: string }[]; inner?: { id: string; org: string }; bio?: string };
 export type SceneCtx = {
   pick<T>(xs: T[]): T;
   nodes(kind: NodeKind, minTier?: number, sub?: string): SNode[];
@@ -199,6 +199,25 @@ const RED: Maker[] = [
     const n = c.pick(c.any(1));
     return { id: "badges", faction: "red", type: "spree", nodeId: n.id, title: "Non ci servono i distintivi", brief: `Invece sì. Stampati un badge in due organizzazioni diverse: domani entrerai dalla porta principale, salutando la guardia.`, objectives: [{ deed: "z:badge", n: 2, distinct: "node", label: "Stampati un badge in 2 organizzazioni" }], reward: 1900, xp: 280, minXp: 550, tier: 1 };
   },
+  (c) => {
+    const xs = c.any().filter((n) => n.bio === "voce");
+    if (!xs.length) return null;
+    const n = c.pick(xs);
+    return { id: "passport", faction: "red", type: "chain", nodeId: n.id, title: "Il mio nome è il mio passaporto", brief: `«Salve, il mio nome è… verificatemi.» ${n.org} ha un'impronta vocale sull'accesso di root. ${c.client} vuole che tu ci passi: registra la voce dell'amministratore dal centralino, accordala al lettore, e poi entra da admin.`, objectives: [{ deed: "z:voce", n: 1, nodeId: n.id, label: "Registra la voce dell'amministratore" }, { deed: "bio", n: 1, nodeId: n.id, label: "Passa l'impronta vocale" }, { deed: "admin", n: 1, nodeId: n.id, label: `Diventa admin su ${n.org}` }], reward: 2600, xp: 340, minXp: 1500, tier: 3 };
+  },
+  (c) => {
+    const xs = c.any().filter((n) => n.bio === "retina");
+    const med = one(c, "med");
+    if (!xs.length || !med) return null;
+    const n = c.pick(xs);
+    return { id: "eyeforaneye", faction: "red", type: "chain", nodeId: n.id, title: "Occhio per occhio", brief: `Nei film serve una penna e uno stomaco forte. A te basta una cartella clinica. Collegati a ${n.org} per vedere chi apre lo scanner, vai a prenderne la retina in ospedale (${med.org} va benissimo), e torna a mostrarla al lettore.`, objectives: [{ deed: "z:retina", n: 1, kind: "med", label: "Copia la scansione della retina da una clinica" }, { deed: "bio", n: 1, nodeId: n.id, label: `Passa lo scanner di ${n.org}` }], reward: 3000, xp: 380, minXp: 1500, tier: 3 };
+  },
+  (c) => {
+    const xs = c.any().filter((n) => n.bio);
+    if (!xs.length) return null;
+    const n = c.pick(xs);
+    return { id: "iamthelock", faction: "red", type: "stunt", nodeId: n.id, title: "La serratura sono io", brief: `${c.client} non vuole entrare una volta in ${n.org}: vuole le chiavi. Passa la barriera, diventa admin e riscrivi l'archivio del lettore con i tuoi modelli. Da domani, per quel sistema, l'amministratore sei tu.`, objectives: [{ deed: "bio", n: 1, nodeId: n.id, label: "Passa la barriera biometrica" }, { deed: "z:modelli", n: 1, nodeId: n.id, label: "Impianta i tuoi modelli" }], reward: 3400, xp: 400, minXp: 2200, tier: 4 };
+  },
 ];
 
 const BLUE: Maker[] = [
@@ -247,6 +266,12 @@ const BLUE: Maker[] = [
     const ns = some(c, c.any(1), 2);
     if (!ns) return null;
     return { id: "circular", faction: "blue", type: "audit", nodeId: ns[0]!.id, clientNodes: ns.map((n) => n.id), title: "Circolare numero uno", brief: `«Si ricorda al personale che l'assistenza non chiede mai la password al telefono.» Manda l'avviso a tutto il personale di ${ns[0]!.org} e di ${ns[1]!.org}: per un quarto d'ora staranno all'erta.`, objectives: ns.map((n) => ({ deed: "z:allerta", n: 1, nodeId: n.id, label: `Avvisa il personale di ${n.org}` })), reward: 1000, xp: 200, minXp: 0, tier: 0 };
+  },
+  (c) => {
+    const xs = c.any().filter((n) => n.bio);
+    const ns = some(c, xs, 2);
+    if (!ns) return null;
+    return { id: "reenrol", faction: "blue", type: "audit", nodeId: ns[0]!.id, clientNodes: ns.map((n) => n.id), title: "Tutti in fila per la foto", brief: `Qualcuno gira con la voce del direttore su una cassetta. Il cliente vuole letture nuove per tutti: ri-registra il personale di ${ns[0]!.org} e di ${ns[1]!.org}. Se nel lettore c'è roba che non è loro, sparisce.`, objectives: ns.map((n) => ({ deed: "z:riregistra", n: 1, nodeId: n.id, label: `Ri-registra il personale di ${n.org}` })), reward: 1900, xp: 300, minXp: 900, tier: 2 };
   },
 ];
 

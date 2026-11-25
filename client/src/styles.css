@@ -2567,3 +2567,79 @@ table.board tr.you td {
   color: var(--red);
   border-color: var(--red);
 }
+
+/* ---------- barriera biometrica e oscilloscopio ---------- */
+
+.bio-box {
+  border: 1px solid var(--amber);
+  background: var(--void);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bio-box.won {
+  border-color: var(--green);
+}
+.bio-box.lost {
+  border-color: var(--red);
+}
+.scope {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.scope-screen {
+  width: 100%;
+  max-width: 420px;
+  background: #020805;
+  border: 1px solid var(--line-hi);
+  display: block;
+}
+.scope-grid {
+  stroke: rgb(57 255 136 / 0.12);
+  stroke-width: 1;
+}
+.scope-target {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: 2;
+  opacity: 0.85;
+}
+.scope-mine {
+  fill: none;
+  stroke: var(--cyan);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 3px rgb(46 242 255 / 0.7));
+}
+.scope-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+}
+.scope-legend .fw-pips {
+  margin-left: auto;
+}
+.t-cyan {
+  color: var(--cyan);
+}
+.scope-knobs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+}
+.scope-knob {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.scope-val {
+  font-family: var(--pixel);
+  font-size: 24px;
+  line-height: 24px;
+  color: var(--cyan);
+  width: 26px;
+  text-align: center;
+}

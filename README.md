@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.7.0](https://img.shields.io/badge/versione-0.7.0-39ff88)
+![Versione 0.8.0](https://img.shields.io/badge/versione-0.8.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -109,6 +109,14 @@ I blu, dalle stesse stanze, rivedono i nastri, revocano i badge e mettono in all
 
 ![I sottosistemi di un'azienda, con la posta interna aperta](docs/img/sottosistemi.jpg)
 
+## Barriere biometriche
+
+Sui sistemi più blindati (banche, basi militari, metà delle reti interne) la password di root non basta: serve anche **la voce,
+l'impronta o la retina** dell'amministratore. Il campione si ruba altrove: la voce dal centralino, l'impronta dalla scheda del
+badge all'ufficio del personale, la retina da una cartella clinica in ospedale. Davanti al lettore lo si accorda con
+l'**oscilloscopio**: due tracce, quattro manopole, tre letture. Da admin si possono impiantare i propri modelli e rientrare
+per 24 ore senza campione; i blu rispondono ri-registrando il personale.
+
 ## Minigiochi
 
 Dove c'è una barra che avanza può esserci anche una partita, facoltativa. Il primo è la **griglia del firewall**: la tabella
@@ -181,7 +189,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **472 traguardi**: 118 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **492 traguardi**: 123 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -214,6 +222,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.8.0 | 25 novembre 2026 | Barriere biometriche, oscilloscopio, campioni da rubare |
 | 0.7.0 | 25 novembre 2026 | I toni della Blue Box, il terzo minigioco |
 | 0.6.0 | 25 novembre 2026 | I rotori del Decrypter, il secondo minigioco |
 | 0.5.0 | 25 novembre 2026 | La griglia del firewall, il primo minigioco |
@@ -315,6 +324,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/game.ts` | Simulazione autoritativa: mondo, operazioni live, trace, log, forensica, contratti, NPC |
 | `server/content.ts` | Nodi, file, password, NPC del mondo iniziale, nodi nascosti |
 | `server/scenarios.ts` | I copioni delle operazioni a tappe |
+| `server/bio.ts`, `shared/bio.ts`, `client/src/views/Scope.tsx` | Barriere biometriche, campioni, oscilloscopio |
 | `shared/tones.ts`, `client/src/views/Tones.tsx` | I toni della Blue Box |
 | `shared/rotors.ts`, `client/src/views/Rotors.tsx` | I rotori del Decrypter |
 | `shared/grid.ts`, `client/src/views/FirewallGrid.tsx` | La griglia del firewall (la logica sta in `server/game.ts`, il segreto non lascia il server) |

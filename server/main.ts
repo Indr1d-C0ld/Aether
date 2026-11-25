@@ -10,6 +10,7 @@ import { installAdmin } from "./admin.ts";
 import { installSocial } from "./social.ts";
 import { installIrc } from "./irc.ts";
 import { installZones } from "./zones.ts";
+import { installBio } from "./bio.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -204,7 +205,7 @@ game.socialAct = (agent, a, p) => {
   return socialAct?.(agent, a, p) ?? null;
 };
 
-installZones(game);
+installBio(game, installZones(game));
 
 installAdmin(game, {
   dbPath: DB_PATH,

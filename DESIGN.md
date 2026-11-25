@@ -340,6 +340,20 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Barriere biometriche (0.8.0)
+
+**Dove** (`server/bio.ts`, niente da migrare: si calcola dal nodo). Hanno una barriera i nodi di organizzazione con proxy+firewall+monitor ≥ 9 (29, quasi tutte banche e basi militari) e metà delle 66 macchine di rete interna; il tipo (voce, impronta, retina) viene dall'id. Il titolare è l'amministratore dell'organizzazione (per una rete interna, quello della casa madre).
+
+**Cosa blocca.** Solo l'accesso admin: login con la password di root, Password Breaker e chiave universale rispondono che serve il campione. Le credenziali cliente dei blu e i livelli impiegato/operatore non sono toccati: è da lì che si va a prendere il campione.
+
+**Campioni** (`agent.samples`, 7 giorni). Azioni di sottosistema: `centralino/voce` (impiegato), `personale/impronta` (operatore), `cartelle/retina` in qualunque nodo `med` (operatore; dà la retina dei titolari degli scanner che hai incontrato, `agent.bioWanted`). Oppure un gadget davanti alla barriera.
+
+**Oscilloscopio** (`scope {act: open|try, params}`). Il bersaglio sono quattro interi (frequenza 1-6, ampiezza 1-5, fase 0-7, armonica 0-4); al client arrivano i 96 punti della traccia, non i parametri. Passa con somiglianza ≥ 0,985: l'unico errore tollerato è uno scatto di armonica, che a occhio si vede appena. Tre letture; ogni respinta trace +8%, alla terza lettore bloccato per la connessione. Chi fa un fit dei punti lo passa sempre: come per i toni, è un gioco d'occhio e non un segreto.
+
+**Dopo.** `personale/modelli` (admin, rossi): 24 ore di barriera aperta su quel nodo. `personale/riregistra` (admin o cliente, blu): azzera modelli e invalida i campioni presi prima (`node.bioReset`).
+
+Non misurato: quanto la barriera rallenta i contratti sui 29 nodi più ricchi. I contratti lì pagano il 25% in più a compenso, cifra scelta a occhio; da riguardare con i contatori `bio`, `biosample`, `mg:scope`, `mg:scopelost`.
+
 ## Minigiochi: i toni della Blue Box (0.7.0)
 
 **Toni** (`shared/tones.ts`, azione `tone {act: open|dial, keys}`, stato in `Game.tones`, non salvato). Un «Simon» su tastierino a 12 tasti con le coppie DTMF vere, agganciato all'attesa del War Dialer: tre giri da 4, 5 e 6 toni (la sequenza si allunga, non cambia). Finché la partita è aperta la fine della scansione aspetta, al massimo 90 s. Vittoria: scansione chiusa subito, +2 nodi, probabilità del nodo segreto piena invece che al 35%. Errore: 300 CR di interurbana, la scansione prosegue; una linea per scansione.
@@ -379,6 +393,6 @@ Scelta di fondo: **niente riga di comando**. La libertà dentro un nodo si dà c
 3. ~~Gateway attaccabili~~ (fatto). Possibili estensioni: rubare strumenti, trojan che si attivano più tardi, IP rotabili a pagamento.
 4. ~~Mercato fra giocatori~~ (fatto: mercato nero, ricettatore, taglie). Possibile estensione: exploit con usura.
 5. **Stagioni ed eventi globali** («Zero-Day Outbreak», «Corporate War»), alleanze e cellule.
-6. **Mini-giochi opzionali** sopra agli strumenti automatici: fatti la griglia del firewall (0.5.0) , i rotori del Decrypter (0.6.0) e i toni della Blue Box (0.7.0). Prossimo: oscilloscopio per i blu. Uno alla volta.
+6. **Mini-giochi opzionali** sopra agli strumenti automatici: fatti la griglia del firewall (0.5.0) , i rotori del Decrypter (0.6.0) i toni della Blue Box (0.7.0) e l'oscilloscopio delle barriere biometriche (0.8.0). Uno alla volta.
 7. **APK Android**: icona PNG 512, dominio HTTPS, `bubblewrap init --manifest https://…/manifest.webmanifest`.
 8. **Sicurezza di rete**: limiti di frequenza sulle azioni, scadenza dei token, HTTPS/WSS dietro un proxy.

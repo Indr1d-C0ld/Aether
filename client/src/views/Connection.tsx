@@ -10,6 +10,7 @@ import { CrackDisplay, Decode, ToolTheater, TypeOut, shoot } from "../cinema.tsx
 import { ZonesPanel } from "./Zones.tsx";
 import { FirewallGrid } from "./FirewallGrid.tsx";
 import { Rotors } from "./Rotors.tsx";
+import { BioBarrier } from "./Scope.tsx";
 import { CLEARANCE } from "../../../shared/zones.ts";
 
 export function Connection({ ctx, elapsed }: { ctx: DeckCtx; elapsed: number }) {
@@ -153,6 +154,20 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
                 monitor
               />
             </div>
+
+            {op.bio && !inside ? <BioBarrier bio={op.bio} proxyDown={op.bypass.proxy} /> : null}
+            {me.samples.length ? (
+              <details className="faint" style={{ fontSize: 12 }}>
+                <summary style={{ cursor: "pointer" }}>Campioni biometrici in tasca: {me.samples.length}</summary>
+                <ul style={{ margin: "4px 0 0", paddingLeft: 18, lineHeight: 1.6 }}>
+                  {me.samples.map((x) => (
+                    <li key={`${x.who}:${x.kind}`}>
+                      {x.kind} di {x.who} · buono ancora {Math.max(1, Math.ceil((x.expiresAt - ctx.serverNow) / 86400_000))} g
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ) : null}
 
             {op.grid && target.sec.firewall > 0 ? <FirewallGrid grid={op.grid} level={target.sec.firewall} /> : null}
 

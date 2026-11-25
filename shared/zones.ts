@@ -24,9 +24,10 @@ export const ZONES: ZoneDef[] = [
     name: "Centralino",
     blurb: "La rubrica interna e le linee in uscita.",
     need: 1,
-    kinds: ["corp", "gov", "telco", "med", "edu", "news", "law", "bank", "util"],
+    kinds: ["corp", "gov", "telco", "med", "edu", "news", "law", "bank", "util", "mil", "lab"],
     actions: [
       { id: "rubrica", name: "Sfoglia la rubrica", desc: "Clienti, fornitori, sedi: due indirizzi nuovi sulla tua mappa.", need: 1 },
+      { id: "voce", name: "Chiama l'amministratore e registra", desc: "«Pronto? Chi parla?» Ti basta: hai la sua voce, per le impronte vocali.", need: 1, side: "red" },
       { id: "silenzia", name: "Stacca la linea della sicurezza", desc: "Nessuno riesce a dare l'allarme: l'allerta del sistema si spegne.", need: 2, side: "red" },
     ],
   },
@@ -62,8 +63,19 @@ export const ZONES: ZoneDef[] = [
     actions: [
       { id: "organico", name: "Leggi l'organico", desc: "Nomi e mansioni di chi lavora qui.", need: 2 },
       { id: "badge", name: "Stampati un badge", desc: "Per 24 ore entri in questo sistema da operatore, senza password.", need: 2, side: "red" },
+      { id: "impronta", name: "Copia la scheda del badge dell'amministratore", desc: "Sulla scheda c'è l'impronta del pollice: serve per i lettori d'impronte.", need: 2, side: "red" },
+      { id: "modelli", name: "Impianta i tuoi modelli biometrici", desc: "Riscrivi l'archivio del lettore: per 24 ore la barriera biometrica di questo sistema ti apre da sola.", need: 3, side: "red" },
+      { id: "riregistra", name: "Ri-registra il personale", desc: "Nuove letture per tutti: i campioni rubati e i modelli impiantati non valgono più.", need: 3, side: "blue" },
       { id: "revoca", name: "Revoca i badge sospetti", desc: "Annulla tutti i badge che non corrispondono a un dipendente.", need: 3, side: "blue" },
     ],
+  },
+  {
+    id: "cartelle",
+    name: "Cartelle cliniche",
+    blurb: "Il fascicolo sanitario di mezza città. Visite oculistiche comprese.",
+    need: 2,
+    kinds: ["med"],
+    actions: [{ id: "retina", name: "Cerca le scansioni della retina", desc: "Copi la retina degli amministratori dietro gli scanner che hai incontrato.", need: 2, side: "red" }],
   },
   {
     id: "rete",

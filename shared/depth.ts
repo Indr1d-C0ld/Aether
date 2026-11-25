@@ -73,6 +73,9 @@ export const GADGETS: GadgetDef[] = [
   { code: "jammer", name: "Disturbatore a onde corte", rarity: 2, where: "op", cooldownMin: 6, desc: "Trace congelato per 8 secondi." },
   { code: "modelm", name: "Tastiera Model M", rarity: 2, where: "any", cooldownMin: 8, desc: "Il rumore giusto: strumenti una volta e mezza più veloci per 30 secondi." },
   { code: "scanner", name: "Scanner di frequenze", rarity: 2, where: "op", cooldownMin: 5, desc: "Ascolta la sala server: ti dice chi presidia il nodo e quanti sensori ci sono." },
+  { code: "microcassette", name: "Registratore a microcassette", rarity: 2, where: "op", cooldownMin: 90, desc: "«Il mio nome è il mio passaporto.» Davanti a un'impronta vocale, monta la voce che serve da vecchie telefonate." },
+  { code: "gummy", name: "Dito di gelatina", rarity: 2, where: "op", cooldownMin: 90, desc: "Gelatina alimentare e un'impronta lasciata su un bicchiere: davanti a un lettore d'impronte hai il campione." },
+  { code: "mirrorlens", name: "Lente a specchio stampata", rarity: 3, where: "op", cooldownMin: 120, desc: "Una lente a contatto con la retina di qualcun altro: davanti a uno scanner hai il campione." },
   { code: "glove", name: "Power Glove modificato", rarity: 3, where: "op", cooldownMin: 12, desc: "«È così brutto che…» Il trace torna indietro del 15%." },
   { code: "deckard", name: "Macchina Esper", rarity: 3, where: "op", cooldownMin: 15, desc: "Ingrandisci. Fermo. Rivela per intero la password del nodo… o quasi: metà dei caratteri." },
 ];
