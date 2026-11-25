@@ -140,6 +140,12 @@ Quello che fai resta, e il mondo ci ragiona sopra.
 - **Soglie di mondo.** Troppe intrusioni in un giorno e scatta lo stato d'emergenza; troppi sistemi infetti in una regione e gli
   antivirus si irrigidiscono.
 
+![La Cronaca, con la scheda di una banca in difficoltà](docs/img/cronaca.jpg)
+
+![Le crew degli abitanti nella voce Persone](docs/img/persone.jpg)
+
+![Affari: la copertura e il listino di Borsa](docs/img/affari.jpg)
+
 ## BBS
 
 ![Un BBS: insegna, aree, ultimi chiamanti e il muro](docs/img/bbs.jpg)
