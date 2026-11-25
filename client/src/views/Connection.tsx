@@ -8,6 +8,7 @@ import { Arsenal, LedgerPanel, RecordsPanel } from "./Archive.tsx";
 import { rarityColor, rarityName } from "../../../shared/depth.ts";
 import { CrackDisplay, Decode, ToolTheater, TypeOut, shoot } from "../cinema.tsx";
 import { ZonesPanel } from "./Zones.tsx";
+import { FirewallGrid } from "./FirewallGrid.tsx";
 import { CLEARANCE } from "../../../shared/zones.ts";
 
 export function Connection({ ctx, elapsed }: { ctx: DeckCtx; elapsed: number }) {
@@ -138,6 +139,7 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
                 have={tools.firewall ?? 0}
                 busy={running("firewall")}
                 onRun={() => run("firewall")}
+                onGrid={op.grid || (tools.firewall ?? 0) < 1 || target.sec.firewall > (tools.firewall ?? 0) + 1 ? undefined : () => void net.do("grid", { act: "open" })}
               />
               <SecCell
                 name="Monitor"
@@ -150,6 +152,8 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
                 monitor
               />
             </div>
+
+            {op.grid && target.sec.firewall > 0 ? <FirewallGrid grid={op.grid} level={target.sec.firewall} /> : null}
 
             {canClient ? (
               <button className="btn primary" onClick={() => void net.do("clientLogin")}>
@@ -263,8 +267,8 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
   );
 }
 
-function SecCell(props: { name: string; level: number; down: boolean; tool: ToolId; have: number; busy: boolean; onRun: () => void; monitor?: boolean }) {
-  const { name, level, down, have, busy, onRun, monitor } = props;
+function SecCell(props: { name: string; level: number; down: boolean; tool: ToolId; have: number; busy: boolean; onRun: () => void; monitor?: boolean; onGrid?: () => void }) {
+  const { name, level, down, have, busy, onRun, monitor, onGrid } = props;
   const none = level === 0;
   const can = have >= (monitor ? 1 : level);
   return (
@@ -281,6 +285,11 @@ function SecCell(props: { name: string; level: number; down: boolean; tool: Tool
       {!none && !down ? (
         <button className="btn small" style={{ marginTop: 6, width: "100%" }} disabled={!can || busy} onClick={onRun}>
           {busy ? "in corso…" : !have ? `serve ${toolDef(props.tool).name}` : !can ? `serve v${level}` : monitor ? "Bypass" : "Abbatti"}
+        </button>
+      ) : null}
+      {!none && !down && onGrid ? (
+        <button className="btn small" style={{ marginTop: 4, width: "100%" }} onClick={onGrid} title="Cerca a mano le regole lasciate aperte">
+          {can ? "Griglia" : "A mano"}
         </button>
       ) : null}
     </div>

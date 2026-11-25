@@ -332,6 +332,14 @@ Solo scena: non decide nulla, legge lo stato che arriva dal server e non blocca 
 
 **Dev-log** (`shared/devlog.ts`): le novità in cima alla pagina d'ingresso e nella scheda Feed. Ogni modifica visibile ai giocatori aggiunge una voce.
 
+## Minigiochi: la griglia del firewall (0.5.0)
+
+Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non vuole giocarlo non perde niente; chi lo gioca bene guadagna tempo, pulizia o un livello di strumento. Il segreto resta sul server (`op.grid.hidden`): al client arrivano solo le caselle già sondate.
+
+**Griglia** (`shared/grid.ts`, azione `grid {act: open|probe, cell}`). Lato 5/6/7, falle 2/3/4, sonde 7/9/11 per firewall L1/L2/L3. Una sonda a vuoto mostra la distanza di Manhattan dalla falla nascosta più vicina (si aggiorna quando ne trovi una). Tutte trovate → `bypass.firewall`, la barra in corso si chiude. Con ≥ 2 sonde avanzate niente riga `WARN firewall fault` nel log. **A mano**: se il Firewall Bypass è un livello sotto il firewall, la griglia si apre lo stesso con una sonda in meno; sonde finite → regole ricaricate (una sola griglia per connessione) e trace +12% del percorso.
+
+Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
+
 ## Sottosistemi, livelli di accesso, posta interna (0.4.0)
 
 Scelta di fondo: **niente riga di comando**. La libertà dentro un nodo si dà con stanze cliccabili e poche azioni ciascuna, non con una shell.
@@ -359,6 +367,6 @@ Scelta di fondo: **niente riga di comando**. La libertà dentro un nodo si dà c
 3. ~~Gateway attaccabili~~ (fatto). Possibili estensioni: rubare strumenti, trojan che si attivano più tardi, IP rotabili a pagamento.
 4. ~~Mercato fra giocatori~~ (fatto: mercato nero, ricettatore, taglie). Possibile estensione: exploit con usura.
 5. **Stagioni ed eventi globali** («Zero-Day Outbreak», «Corporate War»), alleanze e cellule.
-6. **Mini-giochi opzionali** sopra agli strumenti automatici (crack manuale più rapido ma rischioso), fatti in modo che il server non riveli la soluzione.
+6. **Mini-giochi opzionali** sopra agli strumenti automatici: fatta la griglia del firewall (0.5.0). Prossimi: rotori del Decrypter, toni della Blue Box, oscilloscopio per i blu. Uno alla volta.
 7. **APK Android**: icona PNG 512, dominio HTTPS, `bubblewrap init --manifest https://…/manifest.webmanifest`.
 8. **Sicurezza di rete**: limiti di frequenza sulle azioni, scadenza dei token, HTTPS/WSS dietro un proxy.

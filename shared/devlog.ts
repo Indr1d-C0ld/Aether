@@ -6,6 +6,19 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.5.0",
+    date: "2026-11-25",
+    title: "La griglia del firewall: il primo minigioco",
+    tags: ["minigiochi", "firewall", "traguardi"],
+    items: [
+      "Accanto ad «Abbatti» ora c'è «Griglia»: la tabella delle regole del firewall, con qualche regola lasciata aperta da trovare. Ogni sonda a vuoto dice a quante caselle sta la falla più vicina.",
+      "Trovate tutte le falle, il firewall cade subito, senza aspettare la barra. Se ti avanzano almeno 2 sonde la breccia è pulita: nel log non resta nemmeno una riga da cancellare.",
+      "«A mano»: con la griglia puoi aprire un firewall di un livello sopra il tuo Firewall Bypass. Hai una sonda in meno, e se le finisci il firewall ricarica le regole e il trace fa un balzo in avanti.",
+      "È facoltativa: la barra funziona come prima, e puoi lanciarla e giocare la griglia mentre corre.",
+      "12 traguardi nuovi per chi apre i firewall a mano: 456 in tutto.",
+    ],
+  },
+  {
     v: "0.4.0",
     date: "2026-11-24",
     title: "Dentro i sistemi: sottosistemi, posta interna, reti nascoste",

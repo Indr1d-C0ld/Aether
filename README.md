@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.4.0](https://img.shields.io/badge/versione-0.4.0-39ff88)
+![Versione 0.5.0](https://img.shields.io/badge/versione-0.5.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -109,6 +109,13 @@ I blu, dalle stesse stanze, rivedono i nastri, revocano i badge e mettono in all
 
 ![I sottosistemi di un'azienda, con la posta interna aperta](docs/img/sottosistemi.jpg)
 
+## Minigiochi
+
+Dove c'è una barra che avanza può esserci anche una partita, facoltativa. Il primo è la **griglia del firewall**: la tabella
+delle regole, con qualche regola lasciata aperta. Ogni sonda a vuoto dice a quante caselle sta la falla più vicina; trovate
+tutte, il firewall cade subito. Con almeno 2 sonde avanzate la breccia è pulita e nel log non resta una riga. Si può anche
+aprire **a mano** un firewall di un livello sopra il proprio Firewall Bypass: una sonda in meno, e se finiscono il trace fa un balzo.
+
 ## ReticoloNet
 
 Dentro il deck c'è una rete IRC come quelle del 1996: è lì che i giocatori si parlano, trattano e si sfidano.
@@ -166,7 +173,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **444 traguardi**: 111 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **456 traguardi**: 114 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -199,6 +206,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.5.0 | 25 novembre 2026 | La griglia del firewall, il primo minigioco |
 | 0.4.0 | 24 novembre 2026 | Sottosistemi, tre livelli di accesso, posta interna, reti interne |
 | 0.3.0 | 24 novembre 2026 | ReticoloNet, crew, duelli, operazioni a tappe, gadget, worm, 527 nodi, 20 ranghi |
 | 0.2.0 | 18 novembre 2026 | Carriera, traguardi, sala di controllo dell'amministrazione |
@@ -297,6 +305,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/game.ts` | Simulazione autoritativa: mondo, operazioni live, trace, log, forensica, contratti, NPC |
 | `server/content.ts` | Nodi, file, password, NPC del mondo iniziale, nodi nascosti |
 | `server/scenarios.ts` | I copioni delle operazioni a tappe |
+| `shared/grid.ts`, `client/src/views/FirewallGrid.tsx` | La griglia del firewall (la logica sta in `server/game.ts`, il segreto non lascia il server) |
 | `server/zones.ts`, `shared/zones.ts` | Sottosistemi dei nodi, credenziali del personale, posta interna, reti interne |
 | `server/social.ts` | Crew, duelli, scambi e crediti fra giocatori |
 | `server/irc.ts`, `server/irc-text.ts` | ReticoloNet: canali, comandi, bot; MOTD, chiacchiere e voci di corridoio |

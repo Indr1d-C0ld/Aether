@@ -321,6 +321,7 @@ export type OpView = {
   looted: boolean; // conti già prosciugati in questa sessione
   clearance: number; // 0 nessuno · 1 impiegato · 2 operatore · 3 admin o cliente
   zones: import("./zones.ts").ZoneView[]; // i sottosistemi di questo nodo
+  grid: import("./grid.ts").GridView | null; // la griglia del firewall, se aperta
 };
 
 export type SysCommand = { id: string; name: string; desc: string; needs: "none" | "handle" | "handleTone"; blocked: string | null };

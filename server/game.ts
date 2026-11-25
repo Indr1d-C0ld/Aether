@@ -6,6 +6,7 @@ import { randomBytes } from "node:crypto";
 import { TIER_FAME as ACH_FAME, TIER_NAME as ACH_TIER, achId, trackValue, tracksFor } from "../shared/achievements.ts";
 import { DEFAULT_SETTINGS, type AuditRow, type IpBan, type Settings } from "../shared/admin.ts";
 import type { Store } from "./db.ts";
+import { GRID_CLEAN, GRID_FAIL_TRACE, gridClue, gridSpec, type GridView } from "../shared/grid.ts";
 import { rollScene, type Objective, type SNode } from "./scenarios.ts";
 import { specLevel, type SpecId } from "../shared/progress.ts";
 import { WORLD, WORLD_CITIES } from "./worldgen.ts";
@@ -343,6 +344,7 @@ type Op = {
   guard: number; // moltiplicatore del trace per i contratti «presidiati»
   grave: boolean; // ha toccato denaro: l'indagine è rapida
   clearance: number; // 0 nessuno · 1 impiegato · 2 operatore (admin e cliente valgono 3)
+  grid?: { side: number; hidden: number[]; found: number[]; probed: number[]; probes: number; state: "open" | "won" | "lost"; manual: boolean };
   zoneUsed: string[]; // azioni dei sottosistemi già usate in questa connessione
 };
 
@@ -2870,6 +2872,7 @@ export class Game {
       target: this.nodeView(target, me, false),
       clearance: 0,
       zones: [],
+      grid: this.gridView(op),
       ...(this.opExtra?.(op, me, target) ?? {}),
       looted: op.looted,
     };
@@ -3134,7 +3137,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3222,6 +3225,8 @@ export class Game {
           return this.overload(agent);
         case "disconnect":
           return this.disconnect(agent);
+        case "grid":
+          return this.grid(agent, String(p.act ?? "open"), Number(p.cell));
         case "run":
           return this.run(agent, String(p.tool) as ToolId, p);
         case "login":
@@ -3609,6 +3614,84 @@ export class Game {
       this.log(target, `WARN ${tool === "breaker" ? "auth flood" : `${tool} fault`} src={FROM}`, { opId: op.id, actorId: agent.id, fromIp: this.prevIp(op, agent) });
     }
     return { ok: true, note: `${label} avviato` };
+  }
+
+  // ------------------------------------------------------------ la griglia del firewall (minigioco)
+
+  gridView(op: Op): GridView | null {
+    const g = op.grid;
+    if (!g) return null;
+    const clues: Record<number, number> = {};
+    for (const c of g.probed) if (!g.found.includes(c)) clues[c] = g.hidden.length ? gridClue(g.side, c, g.hidden) : 0;
+    // a partita chiusa si scopre dove stavano le falle mancate
+    return { side: g.side, holes: g.found.length + g.hidden.length, found: g.found, clues, probes: g.probes, state: g.state, manual: g.manual, missed: g.state === "lost" ? g.hidden : [] };
+  }
+
+  grid(agent: Agent, act: string, cell: number) {
+    const { op, target } = this.requireOpSafe(agent);
+    if (!op || !target) return { ok: false, error: "non sei collegato" };
+    const version = agent.tools.firewall ?? 0;
+    const level = this.effSec(target).firewall;
+    if (act === "open") {
+      if (op.bypass.firewall) return { ok: false, error: "il firewall è già aperto" };
+      if (!version) return { ok: false, error: `non possiedi ${toolDef("firewall").name}` };
+      if (level > version + 1) return { ok: false, error: `troppo fitto per farlo a mano: serve almeno la v${level - 1}` };
+      if (op.grid) return op.grid.state === "lost" ? { ok: false, error: "le regole sono state rigenerate: da qui non si passa più a mano" } : { ok: true };
+      const manual = version < level;
+      const spec = gridSpec(level, manual);
+      const hidden = new Set<number>();
+      while (hidden.size < spec.holes) hidden.add(Math.floor(Math.random() * spec.side * spec.side));
+      op.grid = { side: spec.side, hidden: [...hidden], found: [], probed: [], probes: spec.probes, state: "open", manual };
+      this.noisy(op, agent, target);
+      return { ok: true, note: "tabella delle regole aperta" };
+    }
+    const g = op.grid;
+    if (act !== "probe" || !g || g.state !== "open") return { ok: false, error: "nessuna griglia aperta" };
+    if (!Number.isInteger(cell) || cell < 0 || cell >= g.side * g.side || g.probed.includes(cell)) return { ok: false, error: "casella non valida" };
+    const from = this.prevIp(op, agent);
+    g.probed.push(cell);
+    g.probes -= 1;
+    const hit = g.hidden.indexOf(cell);
+    if (hit >= 0) {
+      g.hidden.splice(hit, 1);
+      g.found.push(cell);
+    }
+    if (op.bypass.firewall) {
+      // la barra ha finito prima: la griglia resta un passatempo
+      g.state = "won";
+      return { ok: true, data: { hit: hit >= 0 } };
+    }
+    if (!g.hidden.length) {
+      g.state = "won";
+      op.bypass.firewall = true;
+      for (const k of op.tasks) {
+        if (k.tool === "firewall" && k.state === "run") {
+          k.done = k.work;
+          k.state = "done";
+          k.note = "aperto a mano";
+          k.finishedAt = now();
+        }
+      }
+      const clean = g.probes >= GRID_CLEAN;
+      if (!clean) this.log(target, "WARN firewall fault src={FROM}", { opId: op.id, actorId: agent.id, fromIp: from });
+      this.bump(agent, "t:firewall");
+      this.deed(agent, "t:firewall", target);
+      this.bump(agent, "mg:grid");
+      if (clean) this.bump(agent, "mg:gridclean");
+      if (g.manual) this.bump(agent, "mg:gridmanual");
+      this.out.toast(agent.id, clean ? "Falle trovate: il firewall cade senza lasciare una riga nel log." : "Falle trovate: il firewall è aperto.", "ok");
+      return { ok: true, data: { hit: true, won: true, clean } };
+    }
+    if (g.probes <= 0) {
+      g.state = "lost";
+      this.log(target, "WARN firewall ruleset reloaded src={FROM}", { opId: op.id, actorId: agent.id, fromIp: from });
+      const total = op.trace.hopTimes.reduce((q, v) => q + v, 0);
+      if (op.trace.active && total > 0) op.trace.progressMs = Math.min(total * 0.97, op.trace.progressMs + total * GRID_FAIL_TRACE);
+      this.bump(agent, "mg:gridlost");
+      this.out.toast(agent.id, g.manual ? "Sonde finite: il firewall ha ricaricato le regole e il monitor ti ha sentito." : "Sonde finite: regole ricaricate. Resta il Firewall Bypass.", "warn");
+      return { ok: true, data: { hit: hit >= 0, lost: true } };
+    }
+    return { ok: true, data: { hit: hit >= 0 } };
   }
 
   completeTask(op: Op, agent: Agent, task: Task) {
