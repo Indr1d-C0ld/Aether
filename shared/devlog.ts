@@ -6,6 +6,22 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.9.0",
+    date: "2026-11-25",
+    title: "I BBS: bacheche, livelli, area file, porte",
+    tags: ["BBS", "sociale", "tributi", "minigiochi"],
+    items: [
+      "Nuova voce nel deck: BBS. Una rubrica di sistemi da chiamare col modem, uno alla volta e a tempo: il Sottosuolo per tutti, il Nido del Corvo per i rossi, la Torre di Guardia per i blu.",
+      "Bacheche di messaggi che restano: presentazioni, chiacchiere, tecnica, phreaking, compro/vendo. Scrivi oggi, ti rispondono domani, anche gli habitué del posto.",
+      "Livelli d'utente per ogni BBS: nuovo utente, validato, fidato, élite. Si guadagnano chiamando in giorni diversi, scrivendo e caricando file; aprono aree riservate, più minuti al giorno e pacchetti migliori.",
+      "Area file con il rapporto: i file rubati che carichi dal tuo archivio valgono credito in KB, e col credito scarichi un pacchetto al giorno (exploit che cambiano ogni giorno). Più i testi da leggere: il manifesto, il galateo, le guide.",
+      "Ultimi chiamanti, il muro delle frasi, la lista utenti, i bollettini con le novità, e un sysop che non è quasi mai alla tastiera. Tutto a menu, con i tasti rapidi.",
+      "Porta «Mercante di Chip»: dodici mosse al giorno fra sei città, compra dove costa poco e vendi dove manca. Classifica pubblica e un piccolo premio in crediti veri.",
+      "Un numero che non è su nessun elenco risponde solo a chi ha usato il War Dialer, e al LOGON vuole un nome. Dentro c'è un sistema che vuole fare una partita: a tris non perde mai, e l'ultimo gioco della lista non è un gioco.",
+      "28 traguardi nuovi: 520 in tutto.",
+    ],
+  },
+  {
     v: "0.8.0",
     date: "2026-11-25",
     title: "Barriere biometriche: voce, impronta, retina",

@@ -11,6 +11,7 @@ import { installSocial } from "./social.ts";
 import { installIrc } from "./irc.ts";
 import { installZones } from "./zones.ts";
 import { installBio } from "./bio.ts";
+import { installBbs } from "./bbs.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -206,6 +207,7 @@ game.socialAct = (agent, a, p) => {
 };
 
 installBio(game, installZones(game));
+const bbs = installBbs(game);
 
 installAdmin(game, {
   dbPath: DB_PATH,
@@ -362,7 +364,7 @@ wss.on("connection", (ws, req) => {
     if (!set?.size) {
       sockets.delete(agentId);
       game.online.delete(agentId);
-      if (me) irc.disconnected(me);
+      if (me) irc.disconnected(me), bbs.hangup(me);
     }
   });
 });
@@ -400,17 +402,20 @@ setInterval(() => {
   }
   if (tickN % FLUSH_TICKS === 0) {
     irc.save();
+  bbs.save();
     game.flush();
   }
 }, 250);
 
 process.on("SIGINT", () => {
   irc.save();
+  bbs.save();
   game.flush();
   process.exit(0);
 });
 process.on("SIGTERM", () => {
   irc.save();
+  bbs.save();
   game.flush();
   process.exit(0);
 });

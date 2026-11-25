@@ -340,6 +340,22 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## BBS (0.9.0)
+
+**Perché accanto all'IRC.** L'IRC è presenza; il BBS è permanenza. Niente messaggi spinti dal server: tutto passa dall'azione `bbs {cmd,…}` e torna come dato, quindi il client è una macchina a schermate. Stato in un solo documento (`docs` → `bbs/state`), salvato con il resto.
+
+**Chiamata e tempo.** Un BBS alla volta, mai col modem occupato da una connessione. Minuti al giorno per livello (20/35/50/75); la sessione vive in memoria e il tempo si scala al riattacco. Cambiare vista riattacca.
+
+**Livelli** (per BBS, calcolati dai contatori dell'utente): validato = 2 giorni di chiamata e 1 messaggio; fidato = 5 giorni, 5 messaggi, 2 file; élite = 12, 15, 8. Lo staff è co-sysop e può rimuovere messaggi.
+
+**Bacheche.** Le discussioni di partenza stanno in `server/bbs-text.ts` e nascono datate nei giorni scorsi; a una discussione nuova un habitué risponde dopo qualche minuto (risposta pescata da una lista). Tetti: 60 discussioni per area (cade la più vecchia non in evidenza), 80 messaggi per discussione, 1200 caratteri, un messaggio ogni 20 secondi.
+
+**Area file.** Caricare un file dell'archivio (non oggetti, non carichi) lo toglie dall'archivio e dà 20 + valore × 12 KB di credito: è la rinuncia al ricettatore in cambio di exploit. Tre pacchetti al giorno per BBS, scelti dal giorno; 80 o 160 KB; uno al giorno per BBS.
+
+**Porte.** Mercante di Chip: prezzi derivati da agente, giorno, mossa e città (niente stato da salvare a parte la classifica), premio vero = (contanti − 1000) / 25, al massimo 300 CR al giorno. Tris: il sistema gioca con minimax, quindi pareggia o vince. Guerra Termonucleare Globale: copione fisso.
+
+Non misurato: quanto credito in KB produce un giocatore medio, e quindi se un exploit al giorno per BBS è troppo o poco; il premio del Mercante (al massimo 300 CR al giorno) è scelto a occhio.
+
 ## Barriere biometriche (0.8.0)
 
 **Dove** (`server/bio.ts`, niente da migrare: si calcola dal nodo). Hanno una barriera i nodi di organizzazione con proxy+firewall+monitor ≥ 9 (29, quasi tutte banche e basi militari) e metà delle 66 macchine di rete interna; il tipo (voce, impronta, retina) viene dall'id. Il titolare è l'amministratore dell'organizzazione (per una rete interna, quello della casa madre).

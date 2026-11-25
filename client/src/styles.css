@@ -2643,3 +2643,261 @@ table.board tr.you td {
   width: 26px;
   text-align: center;
 }
+
+/* ---------- BBS ---------- */
+
+.bbs-term {
+  background: #020403;
+  border: 1px solid var(--line-hi);
+  padding: 14px 16px;
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.5;
+  color: #c8d6c8;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 900px;
+}
+.bbs-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  background: #0a3a8a;
+  color: #fff;
+  padding: 2px 8px;
+  font-family: var(--pixel);
+  font-size: 19px;
+  line-height: 1.2;
+}
+.bbs-status span:first-child {
+  margin-right: auto;
+}
+.bbs-msg {
+  background: #3a2a00;
+  color: var(--amber);
+  padding: 2px 8px;
+}
+.bbs-pre {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.bbs-art {
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--cyan);
+  font-family: ui-monospace, "DejaVu Sans Mono", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.05;
+}
+.bbs-term[data-bbs="corvo"] .bbs-art {
+  color: var(--red);
+}
+.bbs-term[data-bbs="torre"] .bbs-art {
+  color: var(--blue);
+}
+.bbs-term[data-bbs="falken"] .bbs-art,
+.bbs-green {
+  color: var(--green);
+}
+.bbs-amber {
+  color: var(--amber);
+}
+.bbs-red {
+  color: var(--red);
+}
+.bbs-big {
+  font-family: var(--pixel);
+  font-size: 22px;
+  line-height: 1.15;
+}
+.bbs-blink {
+  color: var(--green);
+  animation: bbs-blink 1s steps(2) infinite;
+}
+@keyframes bbs-blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+.bbs-h {
+  color: #ffe066;
+  border-bottom: 1px dashed #3a4a3a;
+  margin-top: 6px;
+  padding-bottom: 2px;
+}
+.bbs-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 6px 22px;
+}
+.bbs-row,
+.bbs-line {
+  display: flex;
+  justify-content: flex-start;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  padding: 1px 4px;
+}
+.bbs-row {
+  cursor: pointer;
+}
+.bbs-row b,
+.bbs-key b {
+  color: var(--cyan);
+  font-weight: normal;
+}
+.bbs-row em {
+  color: var(--magenta);
+  font-style: normal;
+}
+.bbs-row span,
+.bbs-line span {
+  margin-left: auto;
+  color: #6f8a6f;
+  text-align: right;
+  flex-shrink: 0;
+}
+.bbs-row:not(:disabled):hover,
+.bbs-row:not(:disabled):focus-visible {
+  background: #0a3a8a;
+  color: #fff;
+  outline: none;
+}
+.bbs-row:disabled {
+  color: #4a5a4a;
+  cursor: default;
+}
+.bbs-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.bbs-key {
+  background: #0b140b;
+  border: 1px solid #2a4a2a;
+  color: #c8d6c8;
+  font: inherit;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+.bbs-key:not(:disabled):hover,
+.bbs-key:not(:disabled):focus-visible,
+.bbs-key.sel {
+  border-color: var(--cyan);
+  color: #fff;
+  outline: none;
+}
+.bbs-key.sel {
+  background: #5a0a0a;
+  border-color: var(--red);
+}
+.bbs-key:disabled {
+  color: #4a5a4a;
+  cursor: default;
+}
+.bbs-input {
+  background: #000;
+  border: 1px solid #2a4a2a;
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: 4px 8px;
+  width: 100%;
+  min-width: 0;
+}
+.bbs-post {
+  border-left: 2px solid #2a4a2a;
+  padding-left: 10px;
+  margin-top: 6px;
+}
+.bbs-post-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--cyan);
+}
+.bbs-post-head span {
+  color: #6f8a6f;
+}
+.bbs-sig {
+  color: #6f8a6f;
+  font-size: 12px;
+}
+.bbs-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+}
+.tris {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  gap: 4px;
+  margin: 6px 0;
+}
+.tris-cell {
+  height: 64px;
+  background: #000;
+  border: 1px solid #2a4a2a;
+  color: var(--green);
+  font-family: var(--pixel);
+  font-size: 44px;
+  line-height: 1;
+  cursor: pointer;
+}
+.tris-cell.O {
+  color: var(--red);
+}
+.tris-cell:disabled {
+  cursor: default;
+}
+.tris-cell:not(:disabled):hover {
+  border-color: var(--green);
+}
+.defcon {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-family: var(--pixel);
+  font-size: 20px;
+}
+.defcon span {
+  border: 1px solid #2a4a2a;
+  padding: 0 8px;
+  color: #4a5a4a;
+}
+.defcon span.on {
+  color: #000;
+  background: var(--green);
+  border-color: var(--green);
+}
+.defcon.d1 span.on {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+  animation: bbs-blink 0.6s steps(2) infinite;
+}
+.defcon.d4 span.on {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bbs-blink,
+  .defcon.d1 span.on {
+    animation: none;
+  }
+}
