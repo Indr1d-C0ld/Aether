@@ -22,6 +22,8 @@ import { installStartups } from "./startups.ts";
 import { installFronts } from "./fronts.ts";
 import { installIntel } from "./intel.ts";
 import { installLaw } from "./law.ts";
+import { installBlackMarket } from "./blackmarket.ts";
+import { installScars } from "./scars.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -229,6 +231,8 @@ const startups = installStartups(game, orgs, citizens);
 installFronts(game, orgs);
 const intel = installIntel(game, orgs, citizens);
 const law = installLaw(game, orgs);
+const black = installBlackMarket(game, orgs);
+const scars = installScars(game, orgs);
 
 const bbsAdminAct = bbs.adminAct;
 installAdmin(game, {
@@ -443,6 +447,8 @@ setInterval(() => {
   fence.save();
   intel.save();
   law.save();
+  black.save();
+  scars.save();
   startups.save();
     game.flush();
   }
@@ -459,6 +465,8 @@ process.on("SIGINT", () => {
   fence.save();
   intel.save();
   law.save();
+  black.save();
+  scars.save();
   startups.save();
   game.flush();
   process.exit(0);
@@ -474,6 +482,8 @@ process.on("SIGTERM", () => {
   fence.save();
   intel.save();
   law.save();
+  black.save();
+  scars.save();
   startups.save();
   game.flush();
   process.exit(0);

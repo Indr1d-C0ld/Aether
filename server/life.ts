@@ -290,6 +290,7 @@ export function installLife(game: Game, bbs: BbsApi) {
       s.credits = Math.max(0, s.credits - 600);
       did(p, "è stato arrestato");
       game.lawTrust?.(TRUST_DELTA.bust, null);
+      game.lifeBust?.();
       game.feed(`La Guardia del Reticolo ha fermato ${p.handle}, a ${p.city}. «Risaliamo sempre all'origine.»`, "blue");
       for (const b of p.bbs) if (b !== "falken") bbs.npcLine(b, pick(PERSONAS.filter((q) => q !== p && q.bbs.includes(b)) ?? [p]).handle, `free ${p.handle}`);
     }

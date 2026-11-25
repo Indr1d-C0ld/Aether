@@ -192,6 +192,21 @@ await js(`(() => { const st = document.createElement("style"); st.textContent = 
 
 await click("Mappa");
 await shot("notte");
+log("cicatrici: una città al buio, sabotaggi, un trasloco");
+const scarIds = ["g-util-1", "g-corp-2", "g-corp-9", "g-corp-11", "x-bank-6", "g-bank-8", "g-corp-1", "x-util-5", "g-bank-11", "g-bank-12"];
+await slow("scars", { dev: true, reveal: scarIds });
+for (const id of ["g-util-1", "g-corp-11", "x-bank-6", "g-bank-8"]) await slow("world", { cmd: "dev", id, event: "sabotaggio" });
+await slow("scars", { dev: true, move: "g-corp-1", to: "Lisbona" });
+await slow("black", { dev: true, uses: { zproxy: 30, zfire: 14, skeleton: 3, icebreaker: 1, scrub: 9, freeze: 5, zmon: 20, decoder: 6 }, raid: "dopo una serie di arresti", age: 20 });
+await click("Mappa");
+await sleep(800);
+await click("Europa");
+await sleep(600);
+const utilName = WORLD.nodes.find((n) => n.id === "g-util-1")!.name;
+await js(`[...document.querySelectorAll("button.map-node")].find((b) => (b.getAttribute("aria-label") ?? "").startsWith(${JSON.stringify(utilName + ",")}))?.click(); true`);
+await sleep(900);
+await shot("cicatrici");
+await click("Mondo");
 await slow("law", { dev: true, trust: 33, hist: [61, 60, 58, 59, 55, 52, 53, 49, 47, 48, 44, 41, 42, 39, 37, 38, 36, 34], war: { red: 190, blue: 70 } });
 await click("Cronaca");
 await sleep(1200);

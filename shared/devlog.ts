@@ -6,6 +6,21 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.21.0",
+    date: "2026-11-25",
+    title: "Cicatrici, mercato nero e una mappa più comoda",
+    tags: ["mappa", "mercato", "sandbox"],
+    items: [
+      "Gli 0-day invecchiano. Ogni exploit tecnico usato, da te o dagli abitanti, insegna qualcosa alle aziende: più è noto, più è facile che sui sistemi grossi la falla sia già chiusa. In quel caso l'exploit si brucia e lascia una riga nel log. Il ricettatore lo paga di conseguenza, e se nessuno lo usa per qualche giorno torna buono. Nel Mercato nero c'è lo stato di ognuno, e nell'archivio quanto è fresco il tuo.",
+      "Retate. Dopo una serie di arresti, o quando scatta lo stato d'emergenza, la Guardia svuota il mercato nero per tre giorni. I moduli del Laboratorio costano fino al triplo, il ricettatore paga di più exploit, chip e gadget, e i rossi del Reticolo si fanno vedere meno. L'effetto cala da solo.",
+      "Cicatrici sulla mappa. Un sistema sabotato resta segnato per tre giorni ed è in allerta per un giorno intero. Un sabotaggio a una rete elettrica, idrica o del traffico lascia al buio la sua città per sei ore, e lì il trace è più lento del 30%.",
+      "Traslochi. Un'organizzazione colpita troppe volte in una settimana cambia città: indirizzo nuovo e password nuove. Sulla mappa resta per tre giorni la traccia da dove stava a dove sta adesso.",
+      "Mappa: quando ingrandisci un continente lo puoi trascinare col mouse, o col dito, per spostarti. Un nuovo clic sul continente torna all'inquadratura di partenza, e un nodo cercato fuori inquadratura viene centrato.",
+      "Mappa: sotto il planisfero ci sono i filtri per tipo. Ogni tipo della legenda è un pulsante che lo accende e lo spegne, con il numero di nodi che conosci. In più ci sono quattro filtri rapidi con il loro tasto: 1 tutti, 2 solo relay, 3 bersagli (tutto tranne relay e PC privati), 4 senza PC privati. Rimbalzo, nodo selezionato e nodi dei tuoi contratti restano sempre visibili, e il filtro resta memorizzato.",
+      "5 serie di traguardi nuove: 712 traguardi in tutto.",
+    ],
+  },
+  {
     v: "0.20.0",
     date: "2026-11-25",
     title: "Leggi e contrappesi",

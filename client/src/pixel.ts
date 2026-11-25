@@ -278,6 +278,35 @@ export function drawMap(g: CanvasRenderingContext2D, base: HTMLCanvasElement, s:
   const zoom = MAP_W / v.w;
   const byId = new Map(s.nodes.map((n) => [n.id, n]));
   const inView = (p: { x: number; y: number }) => p.x >= v.x - 2 && p.x <= v.x + v.w + 2 && p.y >= v.y - 2 && p.y <= v.y + v.h + 2;
+  // città al buio dopo un sabotaggio a una rete: un alone velato con un anello che pulsa piano, e la scritta
+  const darkCities = new Map<string, { x: number; y: number }>();
+  for (const n of s.nodes) if (n.dark && n.city && !darkCities.has(n.city)) darkCities.set(n.city, { x: n.x, y: n.y });
+  const pulse = 0.55 + 0.3 * Math.sin(s.t / 600);
+  for (const [, p] of darkCities) {
+    if (!inView(p)) continue;
+    const c = T(p);
+    const r = Math.max(6, Math.round(5 * zoom));
+    for (let yy = -r; yy <= r; yy += 1)
+      for (let xx = -r; xx <= r; xx += 1) {
+        const d2 = xx * xx + yy * yy;
+        if (d2 > r * r) continue;
+        g.fillStyle = d2 > (r - 1) * (r - 1) ? `rgba(255, 176, 0, ${pulse.toFixed(2)})` : "rgba(40, 24, 0, 0.45)";
+        g.fillRect(c.x + xx, c.y + yy, 1, 1);
+      }
+    g.fillStyle = "rgba(255, 176, 0, 0.9)";
+    g.font = "7px monospace";
+    g.fillText("al buio", c.x - 12, c.y - r - 2);
+  }
+  // traslochi: dalla vecchia sede alla nuova, una traccia tratteggiata e una croce dove non c'è più niente
+  for (const n of s.nodes) {
+    if (!n.moved) continue;
+    const a = T(n.moved);
+    const b = T(n);
+    if (!inView(n.moved) && !inView(n)) continue;
+    line(g, a.x, a.y, b.x, b.y, "rgba(200, 212, 240, 0.85)", 3);
+    g.fillStyle = "rgba(200, 212, 240, 0.95)";
+    for (const [dx, dy] of [[-1, -1], [1, 1], [-1, 1], [1, -1], [0, 0]] as const) g.fillRect(a.x + dx, a.y + dy, 1, 1);
+  }
   // attività: aloni che pulsano sui nodi trafficati
   for (const n of s.nodes) {
     if (n.activity < 0.05 || !inView(n)) continue;
@@ -319,6 +348,12 @@ export function drawMap(g: CanvasRenderingContext2D, base: HTMLCanvasElement, s:
       g.fillStyle = KIND_COLOR[n.kind];
       g.fillRect(c.x, c.y, n.kind === "home" ? 1 : 2, n.kind === "home" ? 1 : 2);
     } else glyph(g, n, c.x, c.y);
+    // la cicatrice di un sabotaggio: quattro bruciature agli angoli, che sbiadiscono in tre giorni
+    if (n.scar) {
+      g.fillStyle = `rgba(255, 90, 40, ${(0.25 + n.scar * 0.6).toFixed(2)})`;
+      for (const [dx, dy] of [[-3, -3], [3, -3], [-3, 3], [3, 3]] as const) g.fillRect(c.x + dx, c.y + dy, 1, 1);
+      if (n.scar > 0.5) for (const [dx, dy] of [[-2, -3], [3, -2], [-3, 2], [2, 3]] as const) g.fillRect(c.x + dx, c.y + dy, 1, 1);
+    }
     if (n.alert && Math.floor(s.t / 500) % 2 === 0) {
       g.fillStyle = "#ff3355";
       g.fillRect(c.x + 3, c.y - 4, 1, 2);

@@ -1001,6 +1001,17 @@ export class Game {
     if (gadget && (cds[gadget.code] ?? 0) > now()) return { ok: false, error: `si sta ricaricando: ${Math.ceil(((cds[gadget.code] ?? 0) - now()) / 60_000)} min` };
     const buffs = (agent.buffs ??= {});
     let extra = "";
+    if (st.item?.kind === "exploit" && op && target) {
+      const burnt = this.exploitTry?.(agent, def.code, target);
+      if (burnt) {
+        agent.storage = agent.storage.filter((x) => x !== st);
+        this.log(target, "WARN exploit attempt blocked: known signature src={FROM}", { opId: op.id, actorId: agent.id, fromIp: from });
+        this.touch("agent", agent.id);
+        this.touch("node", target.id);
+        this.dirty.add(agent.id);
+        return { ok: false, error: burnt };
+      }
+    }
     const revealSome = (n: number) => {
       const pool = [...this.nodes.values()].filter((x) => x.kind !== "gateway" && !x.hidden && !x.inner && !agent.knownNodes.includes(x.id)).sort(() => Math.random() - 0.5).slice(0, n);
       for (const x of pool) this.reveal(agent, x.id);
@@ -1167,7 +1178,10 @@ export class Game {
       cds[gadget.code] = now() + gadget.cooldownMin * 60_000;
       this.bump(agent, "gadget");
     }
-    else agent.storage = agent.storage.filter((x) => x !== st);
+    else {
+      agent.storage = agent.storage.filter((x) => x !== st);
+      this.exploitUsed?.(agent, def.code);
+    }
     this.touch("agent", agent.id);
     this.dirty.add(agent.id);
     return { ok: true, note: `${def.name}: ${gadget ? "attivato" : "usato"}${extra}` };
@@ -2817,6 +2831,7 @@ export class Game {
       storage: a.storage.map((st) => ({
         ...st,
         fence: Math.round(this.priceOf(st) * (this.fenceDemand?.(st) ?? 1) * (!st.item && now() - (a.fenced[`${st.nodeId}:${st.fileId}`] ?? 0) < FENCE_MEMORY ? FENCE_REPEAT : 1)),
+        fresh: st.item?.kind === "exploit" ? this.exploitFresh?.(st.item.code) : undefined,
       })),
       storageCap: this.storageMax(a),
       presiding: a.presiding.filter((x) => x.until > now()),
@@ -2911,6 +2926,7 @@ export class Game {
       alert: (n.alertUntil ?? 0) > now(),
       offline: (n.offlineUntil ?? 0) > now(),
       landmark: !n.gen,
+      ...(this.nodeMarks?.(n) ?? {}),
     };
   }
 
@@ -3272,7 +3288,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket", "intel", "law"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket", "intel", "law", "black", "scars"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3322,6 +3338,18 @@ export class Game {
   lawView: (() => import("../shared/law.ts").LawView) | null = null;
   /** Gli abitanti della parte che riceve aiuto da fuori si danno da fare di più. */
   lifeRally: ((side: string) => number) | null = null;
+  // il mercato nero ha una memoria (server/blackmarket.ts) e il mondo le sue cicatrici (server/scars.ts)
+  /** Prima di un exploit tecnico: se la falla è già chiusa torna il motivo, e l'exploit è bruciato. */
+  exploitTry: ((agent: Agent, code: string, target: WNode) => string | null) | null = null;
+  exploitUsed: ((agent: Agent, code: string) => void) | null = null;
+  exploitFresh: ((code: string) => number) | null = null;
+  /** Moltiplicatore dei prezzi dei moduli del Laboratorio (le retate li fanno salire). */
+  blackMult: (() => number) | null = null;
+  /** Un abitante finito in custodia (server/life.ts). */
+  lifeBust: (() => void) | null = null;
+  /** È appena scattato lo stato d'emergenza (server/orgs.ts). */
+  onEmergency: (() => void) | null = null;
+  nodeMarks: ((n: WNode) => import("../shared/scars.ts").NodeMarks) | null = null;
   /** Datore di lavoro attuale di un cittadino (server/citizens.ts): tiene conto di licenziamenti e assunzioni. */
   employerOf: ((pid: string) => string | null) | null = null;
   // il mercato del ricettatore (server/fence.ts)

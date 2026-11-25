@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { NodeView } from "../../../shared/types.ts";
+import type { NodeKind, NodeView } from "../../../shared/types.ts";
 import { KIND_LABEL, KIND_PROFILE, MISSION_LABEL, SCAN_COST, SENSOR_COST, scanFinds, socPresidia, socSensors, REGION_NAME, RELAY_CLASS, WARDIAL_COST, fmtCr, heatTraceFactor, regionAt, routeTrace, type HopInput } from "../../../shared/rules.ts";
 import { DialLog } from "../cinema.tsx";
 import { PART_NAME, clockLabel, dayPart, statusLine } from "../../../shared/clock.ts";
 import { Tones } from "./Tones.tsx";
 import { net } from "../net.ts";
-import { MAP_H, MAP_STYLES, MAP_VIEWS, MAP_W, RELAY_COLOR, drawMap, loadBaseMap, KIND_COLOR } from "../pixel.ts";
+import { MAP_H, MAP_STYLES, MAP_VIEWS, MAP_W, RELAY_COLOR, drawMap, loadBaseMap, KIND_COLOR, type MapRect } from "../pixel.ts";
 import { sfx } from "../audio.ts";
 import { Art, art } from "../art.tsx";
 import type { DeckCtx } from "./Deck.tsx";
@@ -37,11 +37,64 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
   }, [style]);
   const gw = useMemo(() => ({ x: me.home.x, y: me.home.y }), [me.home.x, me.home.y]);
   const [viewId, setViewId] = useState("world");
-  const view = (MAP_VIEWS.find((v) => v.id === viewId) ?? MAP_VIEWS[0]!).rect;
+  // l'inquadratura: parte da quella del continente scelto e si sposta trascinando la mappa
+  const [view, setView] = useState<MapRect>(MAP_VIEWS[0]!.rect);
+  const pickView = (id: string) => {
+    setViewId(id);
+    setView({ ...(MAP_VIEWS.find((v) => v.id === id) ?? MAP_VIEWS[0]!).rect });
+  };
+  const zoomed = view.w < 320;
+  const clampView = (r: MapRect): MapRect => ({ ...r, x: Math.max(0, Math.min(320 - r.w, r.x)), y: Math.max(0, Math.min(180 - r.h, r.y)) });
+  const wrap = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ x: number; y: number; rect: MapRect; moved: boolean } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  // dopo un trascinamento il clic che segue non seleziona niente
+  const justDragged = useRef(false);
+  const endDrag = () => {
+    if (drag.current?.moved) {
+      justDragged.current = true;
+      window.setTimeout(() => (justDragged.current = false), 0);
+    }
+    drag.current = null;
+    setDragging(false);
+  };
+  const centerOn = (n: { x: number; y: number }) => {
+    if (!zoomed || (n.x >= view.x && n.x <= view.x + view.w && n.y >= view.y && n.y <= view.y + view.h)) return;
+    setView(clampView({ ...view, x: n.x - view.w / 2, y: n.y - view.h / 2 }));
+  };
   const [find, setFind] = useState("");
   const missionNodes = useMemo(() => new Set(state.missions.filter((m) => m.mine).flatMap((m) => [m.nodeId, ...m.clientNodes])), [state.missions]);
   const activeRoute = op ? op.chain : route;
-  const drawNodes = op && op.target.kind === "gateway" ? [...state.nodes, op.target] : state.nodes;
+  // filtro per tipo: rimbalzo, selezione e nodi dei contratti restano sempre visibili
+  const [hide, setHide] = useState<string[]>(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem("aether.mapHide") ?? "[]") as unknown;
+      return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("aether.mapHide", JSON.stringify(hide));
+    } catch {
+      /* ignora */
+    }
+  }, [hide]);
+  const always = new Set([...activeRoute, ...(selected ? [selected] : []), ...missionNodes]);
+  const shown = (n: NodeView) => always.has(n.id) || !hide.includes(filterKey(n.kind));
+  const visible = state.nodes.filter(shown);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (e.ctrlKey || e.metaKey || e.altKey || (el && ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName))) return;
+      const p = MAP_PRESETS.find((x) => x.key === e.key);
+      if (p) setHide(p.hide);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  const drawNodes = op && op.target.kind === "gateway" ? [...visible, op.target] : visible;
   const sceneRef = useRef({ nodes: drawNodes, route: activeRoute, live: Boolean(op), trace, selected, presiding: me.presiding.map((x) => x.nodeId), view, now: ctx.serverNow });
   sceneRef.current = { nodes: drawNodes, route: activeRoute, live: Boolean(op), trace, selected, presiding: me.presiding.map((x) => x.nodeId), view, now: ctx.serverNow };
 
@@ -72,9 +125,37 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 340px)", gap: 14 }} className="map-layout">
         <div>
-          <div className="map-wrap">
+          <div
+            ref={wrap}
+            className={`map-wrap ${zoomed ? "pan" : ""} ${dragging ? "dragging" : ""}`}
+            onPointerDown={(e) => {
+              if (!zoomed || e.button !== 0) return;
+              drag.current = { x: e.clientX, y: e.clientY, rect: view, moved: false };
+            }}
+            onPointerMove={(e) => {
+              const d = drag.current;
+              if (!d || !wrap.current) return;
+              const dx = e.clientX - d.x;
+              const dy = e.clientY - d.y;
+              // sotto i quattro pixel è un clic, non un trascinamento
+              if (!d.moved && Math.hypot(dx, dy) < 4) return;
+              if (!d.moved) {
+                d.moved = true;
+                setDragging(true);
+                try {
+                  wrap.current.setPointerCapture(e.pointerId);
+                } catch {
+                  /* puntatore già rilasciato: si trascina lo stesso */
+                }
+              }
+              const box = wrap.current.getBoundingClientRect();
+              setView(clampView({ ...d.rect, x: d.rect.x - (dx * d.rect.w) / box.width, y: d.rect.y - (dy * d.rect.h) / box.height }));
+            }}
+            onPointerUp={endDrag}
+            onPointerCancel={endDrag}
+          >
           <canvas ref={canvas} width={MAP_W} height={MAP_H} />
-          {state.nodes.map((n) => {
+          {visible.map((n) => {
             // fuori dall'inquadratura non c'è niente da cliccare
             if (n.x < view.x || n.x > view.x + view.w || n.y < view.y || n.y > view.y + view.h) return null;
             const hop = route.indexOf(n.id);
@@ -91,6 +172,7 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
                   title={`${n.name} · ${n.org}`}
                   aria-label={`${n.name}, ${n.org}`}
                   onClick={() => {
+                    if (justDragged.current) return;
                     sfx.click();
                     setSelected(n.id);
                   }}
@@ -112,13 +194,13 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
           <div className="spread" style={{ marginTop: 6 }}>
             <div className="tabs">
               {MAP_VIEWS.map((v) => (
-                <button key={v.id} className={viewId === v.id ? "on" : ""} onClick={() => setViewId(v.id)} style={{ fontSize: 15, padding: "2px 8px" }}>
+                <button key={v.id} className={viewId === v.id ? "on" : ""} onClick={() => pickView(v.id)} title={v.id === "world" ? undefined : "Di nuovo per tornare all'inquadratura di partenza"} style={{ fontSize: 15, padding: "2px 8px" }}>
                   {v.name}
                 </button>
               ))}
             </div>
             <span className="faint" style={{ fontSize: 12 }}>
-              Conosci {me.knownNodes} nodi su {me.worldNodes}
+              {zoomed ? "trascina la mappa per spostarti · " : ""}Conosci {me.knownNodes} nodi su {me.worldNodes}
             </span>
           </div>
           <div className="row" style={{ marginTop: 6 }}>
@@ -130,7 +212,15 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
                 .filter((n) => `${n.name} ${n.org} ${n.city} ${n.sub} ${n.ip} ${KIND_LABEL[n.kind]}`.toLowerCase().includes(find.trim().toLowerCase()))
                 .slice(0, 30)
                 .map((n) => (
-                  <div key={n.id} className={`logrow ${selected === n.id ? "sel" : ""}`} role="button" onClick={() => setSelected(n.id)}>
+                  <div
+                    key={n.id}
+                    className={`logrow ${selected === n.id ? "sel" : ""}`}
+                    role="button"
+                    onClick={() => {
+                      setSelected(n.id);
+                      centerOn(n);
+                    }}
+                  >
                     <span style={{ color: KIND_COLOR[n.kind] }}>■</span>
                     <span>
                       {n.org} <span className="faint">· {n.sub} · {n.city} · {n.ip}</span>
@@ -151,18 +241,31 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
               Chiami da <span className="t-fac">{me.home.city}</span> · {REGION_NAME[me.home.region]}
             </span>
           </div>
+          <div className="map-filter">
+            <span className="faint">Mostra</span>
+            {MAP_PRESETS.map((p) => (
+              <button key={p.key} className={`btn small ${sameSet(hide, p.hide) ? "primary" : ""}`} onClick={() => setHide(p.hide)} title={`${p.hint} · tasto ${p.key}`}>
+                {p.label} <kbd>{p.key}</kbd>
+              </button>
+            ))}
+          </div>
           <div className="map-legend">
             {(Object.keys(RELAY_CLASS) as (keyof typeof RELAY_CLASS)[]).map((k) => (
               <span key={k} style={{ marginRight: 10 }} title={RELAY_CLASS[k].blurb}>
                 <span style={{ color: RELAY_COLOR[k] }}>✚</span> {RELAY_CLASS[k].name}
               </span>
             ))}
-            <br />
-            {(["bank", "corp", "shop", "gov", "law", "edu", "lab", "med", "news", "util", "telco", "home", "mil"] as const).map((k) => (
-              <span key={k} style={{ marginRight: 10 }}>
-                <span style={{ color: KIND_COLOR[k] }}>■</span> {KIND_LABEL[k]}
-              </span>
-            ))}
+            <div className="map-kinds">
+              {FILTER_KINDS.map((k) => {
+                const off = hide.includes(k);
+                const n = state.nodes.filter((x) => filterKey(x.kind) === k).length;
+                return (
+                  <button key={k} className={`map-kind ${off ? "off" : ""}`} aria-pressed={!off} onClick={() => setHide(off ? hide.filter((x) => x !== k) : [...hide, k])} title={off ? "Mostra" : "Nascondi"}>
+                    <span style={{ color: k === "other" ? KIND_COLOR.registry : KIND_COLOR[k as NodeKind] }}>{k === "relay" ? "✚" : "■"}</span> {k === "other" ? "Altro" : k === "relay" ? "Relay" : KIND_LABEL[k as NodeKind]} <span className="faint">{n}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
         <div className="list" style={{ gap: 14, alignContent: "start" }}>
@@ -471,6 +574,9 @@ function NodePanel({ ctx, node }: { ctx: DeckCtx; node: NodeView }) {
               {node.blackout ? <span className="chip fac">blackout: trace più lento del 50%</span> : null}
               {node.alert ? <span className="chip red">in allerta: trace più rapido del 25%</span> : null}
               {node.offline ? <span className="chip red">spento</span> : null}
+              {node.scar ? <span className="chip red">sabotato {Math.max(1, Math.round((ctx.serverNow - (node.scarAt ?? 0)) / 3600_000))} h fa</span> : null}
+              {node.dark ? <span className="chip amber">{node.city} al buio: trace più lento del 30%</span> : null}
+              {node.moved ? <span className="chip">trasferito da {node.moved.city}</span> : null}
             </div>
           </div>
         )}
@@ -563,3 +669,16 @@ function NodePanel({ ctx, node }: { ctx: DeckCtx; node: NodeView }) {
     </div>
   );
 }
+
+/** I tipi che si possono nascondere sulla mappa; registro, mercato e trasporti stanno sotto «altro». */
+const FILTER_KINDS = ["relay", "bank", "corp", "shop", "gov", "law", "edu", "lab", "med", "news", "util", "telco", "home", "mil", "other"] as const;
+const filterKey = (k: NodeKind): string => ((FILTER_KINDS as readonly string[]).includes(k) ? k : "other");
+const ALL_BUT = (...keep: string[]) => FILTER_KINDS.filter((k) => !keep.includes(k));
+/** Filtri rapidi, con il loro tasto. */
+const MAP_PRESETS: { key: string; label: string; hint: string; hide: string[] }[] = [
+  { key: "1", label: "Tutti", hint: "ogni nodo che conosci", hide: [] },
+  { key: "2", label: "Solo relay", hint: "per costruire il rimbalzo", hide: ALL_BUT("relay") },
+  { key: "3", label: "Bersagli", hint: "tutto tranne relay e PC privati", hide: ["relay", "home"] },
+  { key: "4", label: "Senza PC privati", hint: "le case dei cittadini sono tante", hide: ["home"] },
+];
+const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));

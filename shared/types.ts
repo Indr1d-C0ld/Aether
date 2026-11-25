@@ -151,6 +151,7 @@ export type StoredFile = {
   expiresAt?: number; // carico che si corrompe
   cargo?: string; // contratto di trasporto a cui appartiene
   value?: number; // valore proprio (allegati e libri mastri: non esistono come file del nodo)
+  fresh?: number; // exploit tecnici: quanto sono ancora freschi (1 = nessuno li conosce)
 };
 
 export type NodeView = {
@@ -188,7 +189,7 @@ export type NodeView = {
   landmark: boolean; // nodo noto a tutti fin dall'inizio
   watch: number; // moltiplicatore del tempo di risalita in questo momento (notte, blackout, allerta)
   blackout: boolean;
-};
+} & import("./scars.ts").NodeMarks;
 
 export type MissionView = {
   id: string;

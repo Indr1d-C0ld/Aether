@@ -159,8 +159,8 @@ export function LabPanel({ ctx }: { ctx: DeckCtx }) {
                             <span className="faint">{free ? "sempre" : n ? `×${n}` : d.rarity ? rarityName(d.rarity) : "—"}</span>
                           </button>
                           {d.price ? (
-                            <button className="btn small" disabled={me.credits < d.price} onClick={() => void run("buyMod", { code: d.code })} title="Compra un pezzo">
-                              +{fmtCr(d.price)}
+                            <button className="btn small" disabled={me.credits < Math.round(d.price * (lab.priceMult ?? 1))} onClick={() => void run("buyMod", { code: d.code })} title={(lab.priceMult ?? 1) > 1 ? "Compra un pezzo: c'è una retata, i prezzi sono saliti" : "Compra un pezzo"}>
+                              +{fmtCr(Math.round(d.price * (lab.priceMult ?? 1)))}
                             </button>
                           ) : null}
                         </div>

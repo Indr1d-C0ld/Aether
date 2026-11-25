@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.20.0](https://img.shields.io/badge/versione-0.20.0-39ff88)
+![Versione 0.21.0](https://img.shields.io/badge/versione-0.21.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -155,6 +155,11 @@ Quello che fai resta, e il mondo ci ragiona sopra.
   sotto 25 scoppia lo scandalo e per dodici ore perde i poteri speciali. E se una parte perde nettamente la guerra delle ultime
   24 ore, riceve aiuto da fuori: contratti pagati di più, abitanti più attivi, e per i blu indagini più rapide, per i rossi un
   calore che scende prima.
+- **Il mercato nero ha una memoria.** Gli 0-day invecchiano: più sono usati, da chiunque, più è facile trovare la falla già
+  chiusa sui sistemi grossi, e allora l'exploit si brucia. Dopo una serie di arresti, o con lo stato d'emergenza, una retata
+  svuota il mercato per tre giorni: moduli fino al triplo, exploit e chip pagati di più dal ricettatore.
+- **Cicatrici sulla mappa.** I sistemi sabotati restano segnati e in allerta; un sabotaggio a una rete lascia al buio la sua
+  città per ore; un'organizzazione colpita troppe volte trasloca in un'altra città, con indirizzo e password nuovi.
 
 ![La Cronaca: la fiducia nella Guardia, la guerra delle ultime 24 ore e le notizie vere](docs/img/cronaca.jpg)
 
@@ -167,6 +172,8 @@ Quello che fai resta, e il mondo ci ragiona sopra.
 ![Il mercato del ricettatore: chi paga bene, chi ne ha troppi, e la richiesta del giorno](docs/img/ricettatore.jpg)
 
 ![Informazioni: quello che sai, il Mediatore e la bancarella](docs/img/informazioni.jpg)
+
+![Cicatrici sull'Europa: Amsterdam al buio, sistemi sabotati, una sede che ha traslocato da Vienna a Lisbona](docs/img/cicatrici.jpg)
 
 ## BBS
 
@@ -254,7 +261,8 @@ Ogni nodo reagisce secondo quello che è. Un negozio non guarda chi entra finch�
 il login dopo pochi tentativi e ferma i bonifici oltre il tetto dell'antifrode. Di notte la guardia è più lenta, in
 allerta più rapida, e un blackout acceca un'intera regione.
 
-Il planisfero si può vedere in cinque stili:
+Il planisfero si ingrandisce per continente e si trascina col mouse o col dito; sotto ci sono i filtri per tipo di nodo,
+con quattro filtri rapidi sui tasti da 1 a 4 (tutti, solo relay, bersagli, senza PC privati). Si può vedere in cinque stili:
 
 ![I cinque stili della mappa: Reticolo, Uplink, NORAD, Neon, Notte](docs/img/mappe.png)
 
@@ -280,7 +288,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **692 traguardi**: 173 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **712 traguardi**: 178 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -313,6 +321,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.21.0 | 25 novembre 2026 | Cicatrici sulla mappa, traslochi, 0-day che invecchiano, retate; mappa trascinabile e filtri per tipo |
 | 0.20.0 | 25 novembre 2026 | Leggi e contrappesi: fiducia nella Guardia, scandali, aiuto da fuori a chi perde |
 | 0.19.0 | 25 novembre 2026 | Le informazioni come merce: Mediatore, bancarella, segnalazioni, soffiate alla Guardia |
 | 0.18.1 | 25 novembre 2026 | Contratti ripagati quando il bersaglio si rafforza; tutte le immagini rifatte |
@@ -431,6 +440,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/orgs.ts`, `server/citizens.ts`, `server/stocks.ts`, `server/fronts.ts` | Sandbox: organizzazioni e cronaca, persone, Borsa, coperture |
 | `server/intel.ts`, `shared/intel.ts`, `client/src/views/Intel.tsx` | Informazioni come merce: Mediatore, bancarella, segnalazioni |
 | `server/law.ts`, `shared/law.ts` | Leggi e contrappesi: fiducia nella Guardia, scandalo, aiuto da fuori |
+| `server/blackmarket.ts`, `server/scars.ts`, `shared/blackmarket.ts`, `shared/scars.ts` | 0-day che invecchiano e retate; cicatrici, città al buio, traslochi |
 | `server/life.ts`, `server/life-text.ts`, `shared/clock.ts` | Orologio del mondo, regole di giorno e di notte, popolazione autonoma e i suoi testi |
 | `server/malware.ts`, `shared/malware.ts`, `client/src/views/Lab.tsx` | Warez, infezioni del deck, laboratorio, antivirus e firme |
 | `server/bbs.ts`, `server/bbs-text.ts`, `shared/bbs.ts`, `client/src/views/Bbs.tsx` | I BBS: stato, testi, tipi, interfaccia |

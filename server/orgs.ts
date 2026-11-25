@@ -267,6 +267,7 @@ export function installOrgs(game: Game) {
     state.intrusions = state.intrusions.filter((x) => t - x < 24 * H);
     if (state.emergencyUntil < t && state.intrusions.length >= EMERGENCY_AT && !game.lawScandal?.()) {
       state.emergencyUntil = t + 12 * H;
+      game.onEmergency?.();
       state.intrusions = [];
       news("legge", `Stato d'emergenza: dopo ${EMERGENCY_AT} intrusioni in un giorno la Guardia del Reticolo ottiene poteri speciali per dodici ore. Indagini più rapide, custodie più lunghe.`, null);
     }

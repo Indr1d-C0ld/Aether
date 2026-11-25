@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FenceMarket } from "../../../shared/fence.ts";
+import type { BlackView } from "../../../shared/blackmarket.ts";
+import { freshLabel } from "../../../shared/blackmarket.ts";
 import { JOB_CONDS, JOB_GOALS, jobMin } from "../../../shared/jobs.ts";
 import type { MissionType } from "../../../shared/types.ts";
 import { BOUNTY_FEE, BOUNTY_MAX, BOUNTY_MIN, MARKET_FEE, MISSION_LABEL, clockShort, fmtCr } from "../../../shared/rules.ts";
@@ -17,6 +19,10 @@ export function BlackMarket({ ctx }: { ctx: DeckCtx }) {
   const stored = me.storage.length;
   useEffect(() => {
     void net.do("fenceMarket", {}, true).then((r) => r.ok && setFm(r.data as FenceMarket));
+  }, [stored]);
+  const [bv, setBv] = useState<BlackView | null>(null);
+  useEffect(() => {
+    void net.do("black", {}, true).then((r) => r.ok && setBv(r.data as BlackView));
   }, [stored]);
   const wanted = fm.find((x) => x.wanted);
   return (
@@ -89,6 +95,7 @@ export function BlackMarket({ ctx }: { ctx: DeckCtx }) {
           </div>
         </div>
       ) : null}
+      {bv ? <ZeroDays bv={bv} now={ctx.serverNow} /> : null}
       <div className="panel">
         <div className="panel-head">
           <span className="label">Il tuo archivio</span>
@@ -108,6 +115,7 @@ export function BlackMarket({ ctx }: { ctx: DeckCtx }) {
                     <span className="faint">
                       {f.item ? `${f.item.kind === "chip" ? "chip" : "exploit"} · ${rarityName(f.item.rarity)}` : `${f.size} GQ · da ${ctx.state.nodes.find((n) => n.id === f.nodeId)?.org ?? "?"}`}
                     </span>
+                    {f.fresh !== undefined ? <span className={f.fresh >= 0.55 ? "t-green" : f.fresh >= 0.3 ? "t-amber" : "t-red"}> · {freshLabel(f.fresh)}</span> : null}
                   </div>
                   <div className="row" style={{ justifyContent: "flex-end" }}>
                     <input
@@ -398,5 +406,38 @@ function Commission({ ctx }: { ctx: DeckCtx }) {
         </button>
       </div>
     </form>
+  );
+}
+
+/** Il mercato nero ha una memoria: retate in corso e quanto sono ancora freschi gli 0-day. */
+function ZeroDays({ bv, now }: { bv: BlackView; now: number }) {
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <span className="label">Il giro degli 0-day</span>
+        {bv.raid ? <span className="chip red">retata · ancora {Math.max(1, Math.ceil((bv.raid.until - now) / 3600_000))} h</span> : <span className="faint">arresti nelle ultime 24 ore: {bv.arrests24}</span>}
+      </div>
+      <div className="panel-body list" style={{ gap: 8 }}>
+        {bv.raid ? (
+          <p className="t-amber" style={{ margin: 0 }}>
+            Retata {bv.raid.why}: moduli del Laboratorio ×{bv.modMult.toFixed(2)}, il ricettatore paga exploit, chip e gadget ×{bv.fenceMult.toFixed(2)}. Cala da sola fino a sparire.
+          </p>
+        ) : null}
+        <div className="fence-grid">
+          {bv.zerodays.map((z) => (
+            <div key={z.code} className="spread" style={{ fontSize: 13 }}>
+              <span>{z.name}</span>
+              <span className={z.fresh >= 0.55 ? "t-green" : z.fresh >= 0.3 ? "t-amber" : "t-red"}>
+                {freshLabel(z.fresh)} · {Math.round(z.fresh * 100)}%
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="faint" style={{ margin: 0, fontSize: 12 }}>
+          Ogni 0-day usato, da te o da chiunque, insegna qualcosa alle aziende: più è noto, più è facile che sui sistemi grossi la falla sia già chiusa, e allora l'exploit si brucia. Il ricettatore lo paga di
+          conseguenza. Se nessuno lo usa per qualche giorno torna buono.
+        </p>
+      </div>
+    </div>
   );
 }

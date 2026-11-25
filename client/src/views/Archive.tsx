@@ -1,5 +1,6 @@
 // Console: archivi delle persone (anagrafe, casellario, atenei), conti bancari e bonifici, arsenale di exploit.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { freshLabel } from "../../../shared/blackmarket.ts";
 import type { OpView, RecordView } from "../../../shared/types.ts";
 import { clockShort, fmtCr } from "../../../shared/rules.ts";
 import { WARRANT, rarityColor, rarityName } from "../../../shared/depth.ts";
@@ -268,6 +269,7 @@ export function Arsenal({ op, ctx }: { op: OpView; ctx: DeckCtx }) {
           <div key={s.key} className="spread">
             <span style={{ minWidth: 0 }}>
               <span style={{ color: rarityColor(s.item!.rarity) }}>{s.item!.name}</span> <span className="faint" style={{ fontSize: 11 }}>{rarityName(s.item!.rarity)}</span>
+              {s.fresh !== undefined ? <span className={s.fresh >= 0.55 ? "t-green" : s.fresh >= 0.3 ? "t-amber" : "t-red"} style={{ fontSize: 11 }}> · {freshLabel(s.fresh)}</span> : null}
               <div className="faint" style={{ fontSize: 12 }}>
                 {s.item!.desc}
               </div>

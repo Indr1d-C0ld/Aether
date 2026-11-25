@@ -340,6 +340,16 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Cicatrici e mercato nero (0.21.0)
+
+**0-day che invecchiano** (`server/blackmarket.ts`, regole in `shared/blackmarket.ts`). Otto exploit tecnici (0-day Proxy, Firewall e Monitor, Loop di telecamera, Scrubber, Chiave scheletro, Rompighiaccio, Scatola nera) hanno una notorietà: +1 a ogni uso riuscito e a ogni tentativo fallito, mezza vita 72 ore. Freschezza = 1 / (1 + usi/6). Prima dell'uso, su un sistema di grado *g*, la falla è già chiusa con probabilità (1 − freschezza) × (0,4 + 0,15 *g*), al più 85%: l'exploit si consuma senza effetto e lascia nel log una riga «exploit attempt blocked» con l'origine (`Game.exploitTry`). Il ricettatore paga un exploit × (0,4 + 0,6 × freschezza). Gli abitanti ne usano uno a caso con probabilità 0,3% a battito (circa uno al giorno ciascuno, a regime freschezza intorno a 0,65).
+
+**Retate.** Punti arresto in 24 ore: 2 per un handle (`Game.arrest`), 1 per un abitante (`Game.lifeBust`); a 4 scatta una retata, e scatta comunque con lo stato d'emergenza (`Game.onEmergency`). Dura 72 ore con un peso *k* che scende da 1 a 0: moduli base del Laboratorio × (1 + 2*k*), exploit, chip e gadget dal ricettatore × (1 + 0,6*k*), attività degli abitanti rossi × (1 − 0,4*k*), e gli 0-day degli abitanti calano allo stesso modo. Notizia in Cronaca e lettera ai rossi; una sola retata alla volta.
+
+**Cicatrici** (`server/scars.ts`, regole in `shared/scars.ts`). Ogni sabotaggio (`Game.orgEvent`) segna il nodo per 72 ore (quattro bruciature sulla mappa, che sbiadiscono) e lo mette in allerta per 24 ore. Un sabotaggio a un nodo `util` lascia al buio la sua città per 6 ore: alone scuro sulla mappa e trace × 1,3 su tutti i sistemi della città (`Game.orgWatch`).
+
+**Traslochi.** Per aziende, banche, laboratori, telefoni, giornali, cliniche e negozi generati: colpi in 7 giorni, sabotaggio 3 e furto 1; a 9 l'organizzazione cambia città (una qualunque di `WORLD_CITIES`), indirizzo IP e password (`Game.react`), al più una volta ogni 14 giorni. La traccia dalla vecchia sede resta sulla mappa 72 ore. Il caricamento del mondo riprende posizione e città dal contenuto, quindi il modulo riapplica i traslochi all'avvio (verificato con un riavvio). I contratti già in bacheca restano sullo stesso nodo; le password in vendita come informazione bruciano.
+
 ## Leggi e contrappesi (0.20.0)
 
 **Fiducia nella Guardia** (`server/law.ts`, regole in `shared/law.ts`). Un numero da 0 a 100, 60 all'inizio, che torna verso 60 di 1,5 punti l'ora. Si muove con fatti veri; i sistemi governativi (`gov`) contano la metà di quelli della Guardia (`law`):

@@ -1,5 +1,6 @@
 // Scheda del giocatore: inventario (dati, exploit, chip), fedina e indagini, fama e imprese.
 import { CHIP_LABEL, FEATS, WARRANT, describeEffects, rarityColor, rarityName } from "../../../shared/depth.ts";
+import { freshLabel } from "../../../shared/blackmarket.ts";
 import { ANALYST_COST, ANALYST_MINUTES, clockShort, fmtCr, socBoost, socCooldown, socPresidia, socSensors } from "../../../shared/rules.ts";
 import { net } from "../net.ts";
 import type { DeckCtx } from "./Deck.tsx";
@@ -67,7 +68,7 @@ export function InventoryPanel({ ctx }: { ctx: DeckCtx }) {
                 <span style={{ minWidth: 0 }}>
                   <span style={{ color: r ? rarityColor(r) : undefined }}>{f.name}</span>{" "}
                   <span className="faint" style={{ fontSize: 11 }}>
-                    {f.item ? f.item.kind : "dati"} · {rarityName(r)} · {f.size} GQ
+                    {f.item ? f.item.kind : "dati"} · {rarityName(r)} · {f.size} GQ{f.fresh !== undefined ? ` · ${freshLabel(f.fresh)}` : ""}
                   </span>
                   <div className="faint" style={{ fontSize: 12 }}>
                     {f.item ? (f.item.kind === "chip" ? <span className="t-green">{describeEffects(f.item.effects)}</span> : f.item.desc) : `da ${n?.org ?? "un nodo fuori mappa"}`}
