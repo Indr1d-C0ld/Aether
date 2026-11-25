@@ -3272,7 +3272,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket", "intel"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3311,6 +3311,10 @@ export class Game {
   lifeChat: ((lore: string) => string | null) | null = null;
   /** Un giocatore fa qualcosa che a un abitante piace (o no): cambia il rapporto. */
   lifeFavor: ((a: Agent, handle: string, delta: number) => void) | null = null;
+  /** Gli abitanti svegli, per chi vuole vendergli o comprargli qualcosa (server/intel.ts). */
+  lifeBuyers: (() => { handle: string; side: "red" | "blue" | "any"; city: string; credits: number }[]) | null = null;
+  /** Un abitante paga; se compra una password di root, la usa subito su quel nodo. */
+  lifeBuy: ((handle: string, price: number, nodeId: string | null) => boolean) | null = null;
   /** Datore di lavoro attuale di un cittadino (server/citizens.ts): tiene conto di licenziamenti e assunzioni. */
   employerOf: ((pid: string) => string | null) | null = null;
   // il mercato del ricettatore (server/fence.ts)

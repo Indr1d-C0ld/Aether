@@ -242,6 +242,22 @@ export function installCitizens(game: Game, zones: Zones, orgs: Orgs) {
       c.debt += 1500;
       dirty = true;
     },
+    /** Quello che c'è nel fascicolo di una persona (server/intel.ts lo mette in vendita). */
+    facts(pid: string) {
+      const p = PEOPLE.find((x) => x.id === pid);
+      if (!p) return null;
+      const c = cit(p);
+      const e = employerOf(p);
+      return { debt: Math.round(c.debt), affair: affairOf(p)?.name ?? null, fired: c.fired ? (game.nodes.get(c.fired)?.org ?? null) : null, admin: Boolean(e && e.adminId === p.id), employer: e?.org ?? null };
+    },
+    /** Un fascicolo comprato: la persona entra fra i contatti, già indagata. */
+    learn(a: AgentDoc, pid: string) {
+      const p = PEOPLE.find((x) => x.id === pid);
+      if (!p) return;
+      meet(a, [p]);
+      if (!dossiers(a).includes(pid)) dossiers(a).push(pid);
+      game.touch("agent", a.id);
+    },
     employerId: (pid: string) => {
       const p = PEOPLE.find((x) => x.id === pid);
       return p ? (employerOf(p)?.id ?? null) : null;

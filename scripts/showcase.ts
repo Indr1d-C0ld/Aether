@@ -309,6 +309,23 @@ await click("Crew");
 await sleep(1200);
 await shot("crew");
 
+log("informazioni: quello che sai, il Mediatore, la bancarella");
+await palAct("intel", { cmd: "dev", heat: 62 });
+await slow("intel", { cmd: "dev", risk: 0, learnAddr: "Nyxie", inner: WORLD.nodes.find((n) => n.inner)!.id });
+const sold = WORLD.nodes.filter((n) => n.gen && !n.inner && !n.hidden && ["corp", "bank", "lab", "telco"].includes(n.kind)).slice(2, 6);
+for (const n of sold) await slow("intel", { cmd: "dev", cred: n.id });
+await slow("intel", { cmd: "list", key: `cred:${sold[0]!.id}`, price: 1600 });
+await slow("intel", { cmd: "broker", key: `cred:${sold[1]!.id}` });
+await slow("intel", { cmd: "dev", npcList: true });
+await palAct("intel", { cmd: "dev", cred: sold[3]!.id });
+await palAct("intel", { cmd: "list", key: `cred:${sold[3]!.id}`, price: 900 });
+await slow("intel", { cmd: "dev", npcBuy: true });
+await click("Mercato");
+await sleep(500);
+await click("Informazioni");
+await sleep(1200);
+await shot("informazioni");
+
 log("operazioni accettate");
 await slow("devGrant", { mission: "scene:zerocool" });
 await slow("devGrant", { mission: "scene:timeo" });

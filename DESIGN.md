@@ -340,6 +340,30 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Informazioni come merce (0.19.0)
+
+**Che cosa si vende** (`server/intel.ts`, regole in `shared/intel.ts`). Cinque tipi, tutti verificati dal server, che conosce il contenuto vero: nessuna truffa possibile, ma informazioni che scadono.
+
+| Tipo | Da dove viene | Quando brucia | Valore base |
+|---|---|---|---|
+| Password di root | un accesso admin (`Game.deed` «admin», escluso un gateway): il modulo salva la password com'era | quando l'azienda la cambia (`Game.react`, dopo un'intrusione con danni, o una segnalazione) | 200 + 300 × grado |
+| Indirizzo di un gateway | la rubrica (`known` con un handle) | quando l'handle cambia indirizzo | 300 + 2 × fama (max 1.500) + 300 × mandato |
+| Numero nascosto | `discovered` (War Dialer) | mai; vale meno per ogni giocatore che lo conosce | 250 + 200 × grado |
+| Mappa di rete interna | la mappatura dal nodo davanti («z:pivot») | dopo 24 ore | 500 + 300 × grado |
+| Fascicolo | un'indagine sulla persona | mai | 150, più 250 per debiti oltre 3.000, 200 per una relazione, 150 per un licenziamento, 200 se amministra un sistema |
+
+Ogni copia venduta (al Mediatore, in bancarella, a un abitante) moltiplica il valore per 0,8.
+
+**Canali.**
+- *Mediatore*: paga il 60% del valore, subito; solo informazioni scoperte da sé (non comprate), una volta a settimana per ciascuna, al più 8 al giorno. Al 10% è sorvegliato: calore +12.
+- *Bancarella*: prezzo libero fra 50 e 20.000 CR, 24 ore, al più 6 annunci, commissione 10%. Più compratori per annuncio, uno per handle. L'acquisto è verificato al momento: un annuncio bruciato sparisce. Chi compra una password o un numero la può rivendere (non al Mediatore); una mappa comprata dà 6 ore di accesso diretto alla macchina interna (`Game.canReach`) e non si rivende.
+- *Segnalazione all'azienda*: solo password di organizzazioni generate (quelle che cambiano password). Paga il 50% del valore base (65% ai blu), etica +4, una volta al giorno per azienda; la password cambia per tutti e gli annunci bruciano. In Cronaca.
+- *Soffiata alla Guardia*: indirizzo di un giocatore con mandato o calore ≥ 30, una volta al giorno per bersaglio. Paga 200 + 400 × mandato + 4 × calore; etica −8 ai rossi. Tutti i blu imparano l'indirizzo; il bersaglio riceve un avvertimento, con il nome del venditore al 20%. In Cronaca.
+
+**Abitanti.** Ogni 3 ore riempiono la bancarella fino a 4 annunci veri (password di organizzazioni di grado 1-3, mappe, numeri nascosti, fascicoli succosi) a 1,15-1,5 volte il valore. Comprano dai giocatori password, numeri e fascicoli se il prezzo non supera 1,3 volte il valore corrente: 4% a battito per annuncio, al più 3 abitanti per annuncio e 5 acquisti al giorno per venditore. Chi compra una password la usa subito (`Game.lifeBuy`): righe vere nei log, intrusione per l'organizzazione, notizia in Cronaca, lettera al venditore.
+
+**Reddito.** Al più 8 vendite al Mediatore (password di grado 3: ~660 CR l'una) e 5 agli abitanti (~1.290 nette) al giorno: circa 12.000 CR al giorno nel caso migliore, meno di mezz'ora di contratti. Il valore vero è altrove: vendere ad altri giocatori e usare quello che si compra. Rivendere roba comprata dagli abitanti è sempre in perdita (si compra a 1,15 volte il valore, si rivende al più a 1,3 × 0,8 meno la commissione).
+
 ## Il BBS del giocatore (0.18.0)
 
 **Dove.** Nello stesso motore dei BBS di serie (`server/bbs.ts`): la scheda del giocatore (`state.owned`, id `u-<agente>`) diventa una definizione come le altre al momento della lettura, quindi chiamata a tempo, livelli, bacheche, porte e area file non hanno codice a parte. Uno per giocatore, 4.000 CR.

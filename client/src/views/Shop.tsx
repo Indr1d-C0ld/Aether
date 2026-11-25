@@ -4,8 +4,9 @@ import { Art, art } from "../art.tsx";
 import type { DeckCtx } from "./Deck.tsx";
 import { useState } from "react";
 import { BlackMarket, Bounties } from "./Market.tsx";
+import { IntelMarket } from "./Intel.tsx";
 
-type Tab = "gear" | "black" | "bounty";
+type Tab = "gear" | "black" | "intel" | "bounty";
 
 export function Shop({ ctx }: { ctx: DeckCtx }) {
   const [tab, setTab] = useState<Tab>("gear");
@@ -24,11 +25,14 @@ export function Shop({ ctx }: { ctx: DeckCtx }) {
         <button className={tab === "black" ? "on" : ""} onClick={() => setTab("black")}>
           Mercato nero {ctx.state.market.length ? `· ${ctx.state.market.length}` : ""}
         </button>
+        <button className={tab === "intel" ? "on" : ""} onClick={() => setTab("intel")}>
+          Informazioni
+        </button>
         <button className={tab === "bounty" ? "on" : ""} onClick={() => setTab("bounty")}>
           Taglie
         </button>
       </div>
-      {tab === "gear" ? <Gear ctx={ctx} /> : tab === "black" ? <BlackMarket ctx={ctx} /> : <Bounties ctx={ctx} />}
+      {tab === "gear" ? <Gear ctx={ctx} /> : tab === "black" ? <BlackMarket ctx={ctx} /> : tab === "intel" ? <IntelMarket ctx={ctx} /> : <Bounties ctx={ctx} />}
     </div>
   );
 }

@@ -20,6 +20,7 @@ import { installStocks } from "./stocks.ts";
 import { installFence } from "./fence.ts";
 import { installStartups } from "./startups.ts";
 import { installFronts } from "./fronts.ts";
+import { installIntel } from "./intel.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -225,6 +226,7 @@ const stocks = installStocks(game, orgs);
 const fence = installFence(game);
 const startups = installStartups(game, orgs, citizens);
 installFronts(game, orgs);
+const intel = installIntel(game, orgs, citizens);
 
 const bbsAdminAct = bbs.adminAct;
 installAdmin(game, {
@@ -437,6 +439,7 @@ setInterval(() => {
   citizens.save();
   stocks.save();
   fence.save();
+  intel.save();
   startups.save();
     game.flush();
   }
@@ -451,6 +454,7 @@ process.on("SIGINT", () => {
   citizens.save();
   stocks.save();
   fence.save();
+  intel.save();
   startups.save();
   game.flush();
   process.exit(0);
@@ -464,6 +468,7 @@ process.on("SIGTERM", () => {
   citizens.save();
   stocks.save();
   fence.save();
+  intel.save();
   startups.save();
   game.flush();
   process.exit(0);

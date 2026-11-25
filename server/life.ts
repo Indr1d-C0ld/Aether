@@ -254,6 +254,30 @@ export function installLife(game: Game, bbs: BbsApi) {
     }
     busted(p);
   }
+  /** Il mercato delle informazioni (server/intel.ts): chi è sveglio vende e compra. */
+  game.lifeBuyers = () => PERSONAS.filter((p) => awake(p) === "sveglio").map((p) => ({ handle: p.handle, side: p.side, city: p.city, credits: soul(p).credits }));
+  game.lifeBuy = (handle, price, nodeId) => {
+    const p = PERSONAS.find((x) => x.handle === handle);
+    if (!p || awake(p) !== "sveglio") return false;
+    const s = soul(p);
+    if (s.credits < price) return false;
+    s.credits -= price;
+    dirty = true;
+    const n = nodeId ? game.nodes.get(nodeId) : null;
+    if (!n) return true;
+    // una password comprata: entra dritto, senza forzare niente. Lascia comunque righe vere nei log.
+    const ip = `${10 + (hash(p.handle) % 200)}.${hash(p.handle + "b") % 255}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+    game.log(n, "CONNECT from {FROM}", { fromIp: ip });
+    game.log(n, "LOGIN admin from {FROM}", { fromIp: ip });
+    n.activity = Math.min(1, (n.activity ?? 0) + 0.25);
+    s.credits += 150 + game.tierOf(n) * 220;
+    s.heat += 6 + game.tierOf(n) * 4;
+    game.orgEvent?.(n, "intrusione", p.handle);
+    did(p, `è entrato in ${n.org} con una password comprata`);
+    say(p, pick([`comprata una password per ${n.org} alla bancarella. funziona. soldi ben spesi.`, `${n.org}: non ho dovuto forzare niente, la chiave l'avevo in tasca`, `la bancarella delle info è la cosa migliore successa al Reticolo. chiedete a ${n.org}`]));
+    busted(p);
+    return true;
+  };
   /** Chi tira troppo la corda finisce dentro per qualche ora, e gli altri lo scrivono sul muro. */
   function busted(p: Persona) {
     const s = soul(p);

@@ -6,6 +6,23 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.19.0",
+    date: "2026-11-25",
+    title: "Le informazioni si vendono",
+    tags: ["mercato", "sandbox", "sociale"],
+    items: [
+      "Nel Mercato c'è una scheda nuova, «Informazioni»: elenca quello che sai e che vale qualcosa. Sono password di root prese da admin, indirizzi di gateway che hai in rubrica, numeri nascosti trovati col War Dialer, mappe delle reti interne e fascicoli sulle persone.",
+      "Il Mediatore compra subito, ma solo quello che hai scoperto tu, e al massimo otto cose al giorno. Ogni tanto lo tengono d'occhio, e chi gli vende prende calore.",
+      "In bancarella fai tu il prezzo, e l'annuncio resta un giorno. Comprano gli altri giocatori e anche gli abitanti, che una password comprata la usano davvero: lo leggi in Cronaca, e chi te l'ha comprata ti scrive.",
+      "Un'informazione si vende più volte, ma ogni copia in giro toglie valore alle altre. Una password cambiata o un gateway spostato non valgono più niente, e l'annuncio sparisce da solo. Attento: dopo un'intrusione con danni l'azienda cambia subito la password.",
+      "Una mappa di rete interna comprata ti fa arrivare alla macchina interna per sei ore, senza passare dal nodo davanti.",
+      "Avvisare l'azienda: chi sa una password di root può venderla all'azienda stessa. L'azienda paga, ai blu un po' di più, e cambia la password, che così non vale più niente per nessuno.",
+      "Vendere alla Guardia: l'indirizzo di un handle ricercato, o con molto calore addosso, la Guardia lo paga. Lo vengono a sapere tutti i blu, e a lui arriva un avvertimento, che a volte fa il tuo nome.",
+      "Anche gli abitanti mettono in bancarella quello che sanno: password, numeri, mappe, fascicoli. È tutta roba vera.",
+      "5 serie di traguardi nuove: 684 traguardi in tutto.",
+    ],
+  },
+  {
     v: "0.18.1",
     date: "2026-11-25",
     title: "Contratti che seguono le difese",

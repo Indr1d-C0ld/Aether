@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.18.1](https://img.shields.io/badge/versione-0.18.1-39ff88)
+![Versione 0.19.0](https://img.shields.io/badge/versione-0.19.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -141,6 +141,11 @@ Quello che fai resta, e il mondo ci ragiona sopra.
   tracce, solo di notte o solo in orario d'ufficio (ora loro), entro mezz'ora, solo per gente esperta.
 - **Il ricettatore ha un mercato.** Quello che tutti gli portano lo paga meno, quello che scarseggia lo paga di più, e ogni
   giorno cerca una merce in particolare. Contano anche i colpi degli abitanti.
+- **Le informazioni si vendono.** Una password di root presa da admin, l'indirizzo di un gateway, un numero nascosto, la
+  mappa di una rete interna, il fascicolo di una persona: il Mediatore le compra subito, in bancarella le comprano giocatori e
+  abitanti (che una password comprata la usano davvero). Ogni copia in giro toglie valore alle altre, e una password cambiata
+  non vale più niente. Si può anche avvisare l'azienda, che paga e cambia le password, o vendere alla Guardia l'indirizzo di
+  un handle ricercato.
 - **Aziende che nascono.** Chi resta senza lavoro prima o poi apre qualcosa, con difese da principianti; quando
   un'organizzazione viene comprata, metà del personale resta a casa.
 - **Soglie di mondo.** Troppe intrusioni in un giorno e scatta lo stato d'emergenza; troppi sistemi infetti in una regione e gli
@@ -155,6 +160,8 @@ Quello che fai resta, e il mondo ci ragiona sopra.
 ![Una commissione con due condizioni: senza tracce e solo di notte](docs/img/commissioni.jpg)
 
 ![Il mercato del ricettatore: chi paga bene, chi ne ha troppi, e la richiesta del giorno](docs/img/ricettatore.jpg)
+
+![Informazioni: quello che sai, il Mediatore e la bancarella](docs/img/informazioni.jpg)
 
 ## BBS
 
@@ -268,7 +275,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **664 traguardi**: 166 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **684 traguardi**: 171 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -301,6 +308,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.19.0 | 25 novembre 2026 | Le informazioni come merce: Mediatore, bancarella, segnalazioni, soffiate alla Guardia |
 | 0.18.1 | 25 novembre 2026 | Contratti ripagati quando il bersaglio si rafforza; tutte le immagini rifatte |
 | 0.18.0 | 25 novembre 2026 | Il BBS del giocatore: insegna, aree, area file, fama, sequestri e sfregi |
 | 0.17.0 | 25 novembre 2026 | Commissioni con condizioni, mercato del ricettatore, aziende che nascono |
@@ -415,6 +423,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/content.ts` | Nodi, file, password, NPC del mondo iniziale, nodi nascosti |
 | `server/scenarios.ts` | I copioni delle operazioni a tappe |
 | `server/orgs.ts`, `server/citizens.ts`, `server/stocks.ts`, `server/fronts.ts` | Sandbox: organizzazioni e cronaca, persone, Borsa, coperture |
+| `server/intel.ts`, `shared/intel.ts`, `client/src/views/Intel.tsx` | Informazioni come merce: Mediatore, bancarella, segnalazioni |
 | `server/life.ts`, `server/life-text.ts`, `shared/clock.ts` | Orologio del mondo, regole di giorno e di notte, popolazione autonoma e i suoi testi |
 | `server/malware.ts`, `shared/malware.ts`, `client/src/views/Lab.tsx` | Warez, infezioni del deck, laboratorio, antivirus e firme |
 | `server/bbs.ts`, `server/bbs-text.ts`, `shared/bbs.ts`, `client/src/views/Bbs.tsx` | I BBS: stato, testi, tipi, interfaccia |
