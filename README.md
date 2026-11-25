@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.9.0](https://img.shields.io/badge/versione-0.9.0-39ff88)
+![Versione 0.10.0](https://img.shields.io/badge/versione-0.10.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -117,6 +117,15 @@ scrivendo e caricando file, un'**area file** con il rapporto fra caricato e scar
 un sysop che non è quasi mai alla tastiera. Dietro le **porte** ci sono i giochi: il Mercante di Chip, a mosse giornaliere con
 classifica, e, su un numero che trova solo il War Dialer, un sistema che a tris non perde mai.
 
+## Warez, virus e antivirus
+
+Nell'area file dei BBS girano i **warez**: programmi pirata che potenziano il deck per qualche ora, e che ogni tanto sono
+infetti. Il deck si ammala (virus, dialer, RAT, bombe logiche) e si cura con un **antivirus** a tre livelli, le cui firme
+invecchiano ogni giorno. Nel **Laboratorio** i rossi assemblano le proprie creature da quattro moduli (vettore, carico,
+involucro, innesco), danno loro un nome e le impiantano nei sistemi o le travestono da warez; i blu scansionano, mettono in
+quarantena, analizzano i campioni e **pubblicano le firme**, costringendo gli autori a reimpacchettare. È tutta finzione di
+gioco: nessun codice vero, solo regole.
+
 ## Barriere biometriche
 
 Sui sistemi più blindati (banche, basi militari, metà delle reti interne) la password di root non basta: serve anche **la voce,
@@ -197,7 +206,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **520 traguardi**: 130 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **568 traguardi**: 142 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -230,6 +239,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.10.0 | 25 novembre 2026 | Warez, laboratorio di malware, antivirus e firme |
 | 0.9.0 | 25 novembre 2026 | BBS: bacheche, livelli, area file, porte, e un sistema che vuole giocare |
 | 0.8.0 | 25 novembre 2026 | Barriere biometriche, oscilloscopio, campioni da rubare |
 | 0.7.0 | 25 novembre 2026 | I toni della Blue Box, il terzo minigioco |
@@ -333,6 +343,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/game.ts` | Simulazione autoritativa: mondo, operazioni live, trace, log, forensica, contratti, NPC |
 | `server/content.ts` | Nodi, file, password, NPC del mondo iniziale, nodi nascosti |
 | `server/scenarios.ts` | I copioni delle operazioni a tappe |
+| `server/malware.ts`, `shared/malware.ts`, `client/src/views/Lab.tsx` | Warez, infezioni del deck, laboratorio, antivirus e firme |
 | `server/bbs.ts`, `server/bbs-text.ts`, `shared/bbs.ts`, `client/src/views/Bbs.tsx` | I BBS: stato, testi, tipi, interfaccia |
 | `server/bio.ts`, `shared/bio.ts`, `client/src/views/Scope.tsx` | Barriere biometriche, campioni, oscilloscopio |
 | `shared/tones.ts`, `client/src/views/Tones.tsx` | I toni della Blue Box |

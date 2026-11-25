@@ -6,13 +6,16 @@ import { fmtCr } from "../../../shared/rules.ts";
 import { net } from "../net.ts";
 import { sfx } from "../audio.ts";
 import type { DeckCtx } from "./Deck.tsx";
+import type { WarezRow } from "../../../shared/malware.ts";
+
+type WarezData = { rows: WarezRow[]; kb: number; builds?: { id: string; name: string; up: boolean }[] };
 
 type Screen =
   | { k: "home" }
   | { k: "area"; area: string; name: string; desc: string; rows: BbsThreadRow[] }
   | { k: "thread"; t: BbsThread; back: string }
   | { k: "compose"; area: string; name: string }
-  | { k: "files"; f: BbsFiles }
+  | { k: "files"; f: BbsFiles; w: WarezData | null }
   | { k: "read"; name: string; body: string }
   | { k: "users"; rows: BbsUserRow[] }
   | { k: "bulletin"; n: number }
@@ -100,7 +103,9 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
   };
   const openFiles = async () => {
     const f = (await cmd("files")) as BbsFiles | null;
-    if (f) setScreen({ k: "files", f });
+    if (!f) return;
+    const w = await net.do("mw", { cmd: "warez" }, true);
+    setScreen({ k: "files", f, w: w.ok ? (w.data as WarezData) : null });
   };
   const openDoor = async (door: string) => {
     const s = await cmd("door", { door });
@@ -371,14 +376,38 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
           ))}
           <div className="bbs-h">Pacchetti di oggi (uno al giorno)</div>
           {screen.f.packs.map((p) => (
-            <button key={p.n} className="bbs-row" disabled={!p.open || p.taken || screen.f.kb < p.cost} onClick={() => void cmd("download", { n: p.n }).then((d) => d && setScreen({ k: "files", f: d as BbsFiles }))} title={p.desc}>
+            <button key={p.n} className="bbs-row" disabled={!p.open || p.taken || screen.f.kb < p.cost} onClick={() => void cmd("download", { n: p.n }).then((d) => d && void openFiles())} title={p.desc}>
               <b>#{p.n}</b> {p.name}
               <span>{!p.open ? `solo «${BBS_LEVEL[p.need]}»` : p.taken ? "già scaricato oggi" : `${p.cost} KB`}</span>
             </button>
           ))}
+          {screen.w ? (
+            <>
+              <div className="bbs-h">Warez · programmi pirata, a tuo rischio</div>
+              {screen.w.rows.map((r) => (
+                <button
+                  key={r.id}
+                  className="bbs-row"
+                  disabled={r.taken || r.mine || screen.f.kb < r.cost}
+                  title={r.desc}
+                  onClick={() => void net.do("mw", { cmd: "get", id: r.id }).then((x) => (x.ok ? void openFiles() : setMsg(x.error ?? "")))}
+                >
+                  <b>{r.name}</b>-{r.group} · {r.size} · da {r.by} · <i>«{r.votes}»</i>
+                  <span>{r.mine ? "tuo" : r.taken ? "già preso" : `${r.cost} KB`}</span>
+                </button>
+              ))}
+              <div className="bbs-line">Quello che scarichi lo installi dal Laboratorio. Un antivirus aggiornato costa meno di un deck infetto.</div>
+              {(screen.w.builds ?? []).map((b) => (
+                <button key={b.id} className="bbs-row" disabled={b.up} onClick={() => void net.do("mw", { cmd: "seed", build: b.id }).then((x) => (x.ok ? void openFiles() : setMsg(x.error ?? "")))}>
+                  <b>↑</b> Carica «{b.name}» travestito da programma pirata
+                  <span>{b.up ? "già in area" : "cavallo di Troia"}</span>
+                </button>
+              ))}
+            </>
+          ) : null}
           <div className="bbs-h">Carica dal tuo archivio</div>
           {screen.f.mine.map((m) => (
-            <button key={m.key} className="bbs-row" onClick={() => void cmd("upload", { key: m.key }).then((d) => d && setScreen({ k: "files", f: d as BbsFiles }))}>
+            <button key={m.key} className="bbs-row" onClick={() => void cmd("upload", { key: m.key }).then((d) => d && void openFiles())}>
               <b>↑</b> {m.name}
               <span>+{m.gain} KB</span>
             </button>

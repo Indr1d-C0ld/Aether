@@ -340,6 +340,24 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Warez, malware e antivirus (0.10.0)
+
+Tre sistemi che si tengono (`server/malware.ts`, regole in `shared/malware.ts`, azione `mw {cmd,…}`).
+
+**Warez.** Quattro pacchetti al giorno per BBS, derivati dal giorno; 40 KB di credito, una volta al giorno ciascuno, da «validato». Probabilità d'infezione fra 10% e 45% per pacchetto, suggerita (non dichiarata) dal commento. Si installano dal Laboratorio; l'effetto usa i bonus che esistevano già (CPU, modem) più due nuovi (credito KB, esperienza).
+
+**Infezioni del deck.** Quattro: lento (strumenti ×0,7), dialer (6 CR a battito, al massimo 500), spione (trace ×1,2, mai visibile senza scansione), bomba (cancella un file dopo 90 minuti). Furtività 2-5. L'antivirus vede fino a 3/5/7 con le firme di oggi, un punto in meno per ogni giorno di ritardo. Quello che non vede lo toglie un tecnico a 400 CR, o il dischetto di avvio.
+
+**Creature.** Quattro moduli; i base si comprano, i rari vengono dal bottino (40% dei bottini dei rossi) o smontando un exploit. Furtività = 1 + somma, vita = 2 h + somma, replica in % a battito (45 s). Al massimo 15 infezioni vive per autore e 3 generazioni. Ogni nodo ha un antivirus residente che vede 1/2/3/4/6 per grado (+2 se rinforzato, +1 in allerta): sotto quella soglia la creatura attecchisce ma a ogni battito ha il 25% di essere trovata. Rese: il ladro rende quanto un worm v1 per unità di resa; il cifratore paga una volta sola (600 + 500 × grado) e brucia l'infezione.
+
+**Firme.** Quarantena → campione → analisi (serve il livello 2) → firma pubblica per quell'identificativo di creatura. Con la firma: le copie nei nodi spariscono al battito dopo, l'impianto viene bloccato (trace +10%), i trojan escono dalle aree file. Reimpacchettare (300 CR × generazione) cambia identificativo. Il polimorfico è immune dalla prima replica in poi.
+
+**PvP.** Un trojan caricato su un BBS infetta chi lo installa senza vederlo: il danno è limitato per costruzione (500 CR al massimo per dialer, un file per bomba) e sempre curabile.
+
+**Ceppi selvatici.** Con `npcActive`, a ogni battito c'è il 20% che un handle NPC impianti uno dei sei ceppi di serie in un nodo di grado basso (al massimo 10 vivi): materia per le missioni dei blu.
+
+Non misurato: la resa oraria di 15 infezioni vive con carichi rari. Sulla carta un ladro di resa 2 su 15 nodi di grado 2 dà circa 16.800 CR l'ora (14 CR a battito per nodo, 80 battiti l'ora), più del tetto dei worm: da riguardare con il contatore `mw:cr` prima di toccare altro.
+
 ## BBS (0.9.0)
 
 **Perché accanto all'IRC.** L'IRC è presenza; il BBS è permanenza. Niente messaggi spinti dal server: tutto passa dall'azione `bbs {cmd,…}` e torna come dato, quindi il client è una macchina a schermate. Stato in un solo documento (`docs` → `bbs/state`), salvato con il resto.

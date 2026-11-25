@@ -218,6 +218,18 @@ const RED: Maker[] = [
     const n = c.pick(xs);
     return { id: "iamthelock", faction: "red", type: "stunt", nodeId: n.id, title: "La serratura sono io", brief: `${c.client} non vuole entrare una volta in ${n.org}: vuole le chiavi. Passa la barriera, diventa admin e riscrivi l'archivio del lettore con i tuoi modelli. Da domani, per quel sistema, l'amministratore sei tu.`, objectives: [{ deed: "bio", n: 1, nodeId: n.id, label: "Passa la barriera biometrica" }, { deed: "z:modelli", n: 1, nodeId: n.id, label: "Impianta i tuoi modelli" }], reward: 3400, xp: 400, minXp: 2200, tier: 4 };
   },
+  (c) => {
+    const n = one(c, "corp") ?? c.pick(c.any());
+    return { id: "friday13", faction: "red", type: "stunt", nodeId: n.id, title: "Venerdì 13", brief: `${c.client} vuole ${n.org} spenta, ma non stanotte: fra un'ora, quando tu sarai già a letto e con un alibi. Assembla nel Laboratorio una creatura con il carico «Sabotatore», impiantala lì da admin, e aspetta che scatti.`, objectives: [{ deed: "mw:plant", n: 1, nodeId: n.id, label: `Impianta una creatura in ${n.org}` }, { deed: "mw:sabot", n: 1, nodeId: n.id, label: "Aspetta che il sabotatore scatti" }], reward: 2200, xp: 300, minXp: 900, tier: 2 };
+  },
+  (c) => {
+    const n = c.pick(c.any());
+    return { id: "patientzero", faction: "red", type: "spree", nodeId: n.id, title: "Paziente zero", brief: `«Non ho scritto un virus. Ho scritto un esperimento che mi è scappato di mano.» ${c.client} vuole un'epidemia: una creatura tua che si replichi su tre sistemi senza che tu ci metta piede. Scegli tu il vettore, e un involucro che regga.`, objectives: [{ deed: "mw:plant", n: 1, label: "Impianta una creatura che si replica" }, { deed: "mw:spread", n: 3, distinct: "node", label: "Falla arrivare da sola su 3 sistemi" }], reward: 3000, xp: 380, minXp: 1500, tier: 3 };
+  },
+  (c) => {
+    const n = c.pick(c.any());
+    return { id: "timeo", faction: "red", type: "stunt", nodeId: n.id, title: "Temo i Greci", brief: `Anche quando portano doni. ${c.client} vuole un cavallo di Troia in circolazione: assemblane uno, chiama un BBS e caricalo in area file travestito da programma pirata. Poi, per non dare nell'occhio, impiantane una copia anche in un sistema qualunque.`, objectives: [{ deed: "mw:seed", n: 1, label: "Carica un trojan nell'area file di un BBS" }, { deed: "mw:plant", n: 1, label: "Impianta una creatura in un sistema" }], reward: 1600, xp: 260, minXp: 550, tier: 1 };
+  },
 ];
 
 const BLUE: Maker[] = [
@@ -272,6 +284,14 @@ const BLUE: Maker[] = [
     const ns = some(c, xs, 2);
     if (!ns) return null;
     return { id: "reenrol", faction: "blue", type: "audit", nodeId: ns[0]!.id, clientNodes: ns.map((n) => n.id), title: "Tutti in fila per la foto", brief: `Qualcuno gira con la voce del direttore su una cassetta. Il cliente vuole letture nuove per tutti: ri-registra il personale di ${ns[0]!.org} e di ${ns[1]!.org}. Se nel lettore c'è roba che non è loro, sparisce.`, objectives: ns.map((n) => ({ deed: "z:riregistra", n: 1, nodeId: n.id, label: `Ri-registra il personale di ${n.org}` })), reward: 1900, xp: 300, minXp: 900, tier: 2 };
+  },
+  (c) => {
+    const n = c.pick(c.any());
+    return { id: "quarantine", faction: "blue", type: "audit", nodeId: n.id, title: "Quarantena", brief: `In giro c'è qualcosa che si replica: nel Laboratorio trovi le segnalazioni. Procurati un antivirus, entra nei sistemi colpiti, scansiona e metti in quarantena due infezioni. Il Patch Kit le schiaccia, ma solo la quarantena ti lascia il campione.`, objectives: [{ deed: "av:clean", n: 2, label: "Metti in quarantena 2 infezioni" }], reward: 1500, xp: 240, minXp: 200, tier: 1 };
+  },
+  (c) => {
+    const n = c.pick(c.any());
+    return { id: "signature", faction: "blue", type: "audit", nodeId: n.id, title: "La firma del giorno", brief: `Togliere un virus da un sistema è lavoro. Toglierlo da tutti è una firma. Metti in quarantena un ceppo che non ha ancora un nome, analizzalo nel Laboratorio (serve lo Scudo euristico) e pubblica la firma: da quel momento ogni antivirus lo riconosce.`, objectives: [{ deed: "av:clean", n: 1, label: "Metti in quarantena un'infezione" }, { deed: "av:sig", n: 1, label: "Pubblica la firma di un ceppo" }], reward: 2100, xp: 320, minXp: 900, tier: 2 };
   },
 ];
 

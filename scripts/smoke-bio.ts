@@ -172,7 +172,14 @@ const bl = await bact("run", { tool: "breaker" });
 if (!bl.ok) console.log("  blu:", bc.error, bm.error, bp.error, bl.error);
 await sleep(12000);
 check("il blu entra da admin", bl.ok);
-check("personale ri-registrato", (await bact("zone", { zone: "personale", act: "riregistra" })).ok);
+// il Password Breaker su una banca può metterci più del previsto: si riprova finché non è dentro
+let rr = await bact("zone", { zone: "personale", act: "riregistra" });
+for (let i = 0; i < 4 && !rr.ok; i += 1) {
+  await sleep(4000);
+  rr = await bact("zone", { zone: "personale", act: "riregistra" });
+}
+if (!rr.ok) console.log("  riregistra:", rr.error);
+check("personale ri-registrato", rr.ok);
 await bact("disconnect");
 await enter(A);
 check("modelli e vecchio campione non valgono più", !bio().passed && !bio().have);

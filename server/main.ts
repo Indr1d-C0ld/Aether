@@ -12,6 +12,7 @@ import { installIrc } from "./irc.ts";
 import { installZones } from "./zones.ts";
 import { installBio } from "./bio.ts";
 import { installBbs } from "./bbs.ts";
+import { installMalware } from "./malware.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -208,6 +209,7 @@ game.socialAct = (agent, a, p) => {
 
 installBio(game, installZones(game));
 const bbs = installBbs(game);
+const malware = installMalware(game, bbs);
 
 installAdmin(game, {
   dbPath: DB_PATH,
@@ -403,6 +405,7 @@ setInterval(() => {
   if (tickN % FLUSH_TICKS === 0) {
     irc.save();
   bbs.save();
+  malware.save();
     game.flush();
   }
 }, 250);
@@ -410,12 +413,14 @@ setInterval(() => {
 process.on("SIGINT", () => {
   irc.save();
   bbs.save();
+  malware.save();
   game.flush();
   process.exit(0);
 });
 process.on("SIGTERM", () => {
   irc.save();
   bbs.save();
+  malware.save();
   game.flush();
   process.exit(0);
 });

@@ -1035,6 +1035,12 @@ export class Game {
         if (!op!.trace.active) return { ok: false, error: "nessun trace da confondere" };
         op!.trace.progressMs *= def.code === "glove" ? 0.85 : 0.65;
         break;
+      case "bootdisk":
+      case "sandbox": {
+        const err = this.mwGadget ? this.mwGadget(agent, def.code) : "non serve a niente";
+        if (err) return { ok: false, error: err };
+        break;
+      }
       case "microcassette":
       case "gummy":
       case "mirrorlens": {
@@ -2939,6 +2945,7 @@ export class Game {
       grid: this.gridView(op),
       rotor: this.rotorView(op, target),
       bio: null,
+      infections: [],
       ...(this.opExtra?.(op, me, target) ?? {}),
       looted: op.looted,
     };
@@ -2953,7 +2960,7 @@ export class Game {
     rate *= WARRANT_TRACE[warrantLevel(agent.charges)]! * op.guard * (1 + this.chip(agent, "trace") / 100);
     // la fama ha un prezzo: i monitor conoscono la firma dei nomi noti
     if (agent.faction === "red") rate *= 1 + fameTier(agent.fame).index * 0.02;
-    return (rate * (1 - this.spec(agent, "furtivita") * 0.01)) / this.num("traceMult");
+    return (rate * (1 - this.spec(agent, "furtivita") * 0.01) * (this.mwTrace?.(agent) ?? 1)) / this.num("traceMult");
   }
 
   taskRate(op: Op, agent: Agent, task: Task) {
@@ -2961,7 +2968,7 @@ export class Game {
     const t = now();
     if (task.usesModem) return modemSpeed(agent.hw.modem) * (1 + this.chip(agent, "modem") / 100) * this.num("toolSpeed") * ((agent.buffs?.modem ?? 0) > t ? 3 : 1) * (1 + this.spec(agent, "dati") * 0.02);
     const cpuTasks = op.tasks.filter((k) => k.state === "run" && !k.usesModem).length || 1;
-    return ((cpuPower(agent.hw.cpu) * (1 + this.chip(agent, "cpu") / 100) * (agent.overloadUntil > t ? 0.5 : 1) * ((agent.buffs?.cpu ?? 0) > t ? 1.5 : 1) * (1 + this.spec(agent, "intrusione") * 0.01)) / cpuTasks) * this.num("toolSpeed");
+    return ((cpuPower(agent.hw.cpu) * (1 + this.chip(agent, "cpu") / 100) * (agent.overloadUntil > t ? 0.5 : 1) * ((agent.buffs?.cpu ?? 0) > t ? 1.5 : 1) * (1 + this.spec(agent, "intrusione") * 0.01)) / cpuTasks) * this.num("toolSpeed") * (this.mwSpeed?.(agent) ?? 1);
   }
 
   tick(dtMs: number) {
@@ -3101,6 +3108,7 @@ export class Game {
     if (t - this.meta.lastPulse > 45_000) {
       this.meta.lastPulse = t;
       this.wormTick();
+      for (const f of this.onPulse) f();
       this.pulse();
       this.dropLoot();
       this.fillBoard();
@@ -3206,7 +3214,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3232,6 +3240,16 @@ export class Game {
   /** Sottosistemi dei nodi (server/zones.ts). */
   staffLogin: ((op: Op, agent: Agent, target: WNode, password: string) => { ok: boolean; error?: string; note?: string } | null) | null = null;
   opExtra: ((op: Op, me: Agent, target: WNode) => Record<string, unknown>) | null = null;
+  // warez, malware e antivirus (server/malware.ts)
+  mwSpeed: ((a: Agent) => number) | null = null;
+  mwTrace: ((a: Agent) => number) | null = null;
+  mwLoot: ((a: Agent, tier: number) => void) | null = null;
+  mwHarden: ((n: WNode, by: Agent) => number) | null = null;
+  mwGadget: ((a: Agent, code: string) => string | null) | null = null;
+  mwLab: ((a: Agent) => unknown) | null = null;
+  mwKb: ((a: Agent) => number) | null = null;
+  mwXp: ((a: Agent) => number) | null = null;
+  onPulse: (() => void)[] = [];
   // barriere biometriche (server/bio.ts)
   bioKind: ((n: WNode) => string | null) | null = null;
   bioBlock: ((op: Op, agent: Agent, target: WNode) => string | null) | null = null;
@@ -3966,6 +3984,8 @@ export class Game {
         } else {
           target.patch = { until: now() + 30 * 60_000, level: version >= 3 ? 2 : 1, by: agent.id };
           task.note = "nodo rinforzato per 30 minuti";
+          const cured = this.mwHarden?.(target, agent) ?? 0;
+          if (cured) task.note = `nodo rinforzato · ${cured} infezion${cured === 1 ? "e" : "i"} rimoss${cured === 1 ? "a" : "e"}`;
           const dead = (target.worms ?? []).filter((w) => w.ownerId !== agent.id);
           if (dead.length) {
             target.worms = [];
@@ -4541,12 +4561,13 @@ export class Game {
     if (sure) agent.buffs!.dice = 0;
     if (!m.ownerId && (sure || Math.random() < (TIER_LOOT[tier]! + this.chip(agent, "luck") / 100 + this.spec(agent, "esplorazione") * 0.005) * this.num("lootMult"))) {
       const item = this.rollItem([[70, 25, 5, 0], [50, 35, 13, 2], [30, 40, 24, 6], [15, 35, 35, 15], [0, 25, 45, 30]][tier]!);
+      this.mwLoot?.(agent, tier);
       this.giveItem(agent, item);
       notes.push(`bottino: ${item.name}`);
     }
     if (agent.faction === "blue") agent.ethics = clamp(agent.ethics + 1, -100, 100);
     agent.credits += m.reward;
-    agent.xp += Math.round(m.xp * (1 + this.chip(agent, "xp") / 100 + this.spec(agent, "difesa") * 0.01));
+    agent.xp += Math.round(m.xp * (1 + this.chip(agent, "xp") / 100 + this.spec(agent, "difesa") * 0.01) * (this.mwXp?.(agent) ?? 1));
     this.meta.war[agent.faction] += 1 + Math.round(m.reward / 1000);
     this.touch("mission", m.id);
     this.touch("agent", agent.id);

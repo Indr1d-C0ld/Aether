@@ -20,9 +20,10 @@ import { Career } from "./Career.tsx";
 import { AdminView } from "./Admin.tsx";
 import { IrcView, useIrc } from "./Irc.tsx";
 import { BbsView } from "./Bbs.tsx";
+import { LabPanel } from "./Lab.tsx";
 import { SocialView } from "./Social.tsx";
 
-export type ViewId = "map" | "conn" | "board" | "mail" | "shop" | "gateway" | "ranks" | "feed" | "career" | "admin" | "irc" | "crew" | "bbs";
+export type ViewId = "map" | "conn" | "board" | "mail" | "shop" | "gateway" | "ranks" | "feed" | "career" | "admin" | "irc" | "crew" | "bbs" | "lab";
 
 export type DeckCtx = {
   state: GameState;
@@ -116,6 +117,7 @@ export function Deck({ snap }: { snap: Snapshot }) {
     { id: "ranks", label: "Classifiche" },
     { id: "irc", label: "IRC", badge: irc.unread ? (irc.unread > 99 ? "99+" : irc.unread) : undefined, alert: irc.hl },
     { id: "bbs", label: "BBS" },
+    { id: "lab", label: "Laboratorio" },
     { id: "crew", label: "Crew", badge: state.duels.length + state.trades.filter((x) => x.incoming).length || undefined, alert: state.duels.some((d) => d.incoming || d.state === "live") },
     { id: "career", label: "Carriera" },
     { id: "feed", label: "Feed", badge: state.intrusions.length ? "!" : undefined, alert: state.intrusions.length > 0 },
@@ -191,6 +193,7 @@ export function Deck({ snap }: { snap: Snapshot }) {
         {view === "career" && <Career ctx={ctx} />}
         {view === "irc" && <IrcView />}
         {view === "bbs" && <BbsView ctx={ctx} />}
+        {view === "lab" && <LabPanel ctx={ctx} />}
         {view === "crew" && <SocialView ctx={ctx} />}
         {view === "admin" && me.admin && <AdminView ctx={ctx} />}
       </main>

@@ -11,6 +11,7 @@ import { ZonesPanel } from "./Zones.tsx";
 import { FirewallGrid } from "./FirewallGrid.tsx";
 import { Rotors } from "./Rotors.tsx";
 import { BioBarrier } from "./Scope.tsx";
+import { NodeMalware } from "./Lab.tsx";
 import { CLEARANCE } from "../../../shared/zones.ts";
 
 export function Connection({ ctx, elapsed }: { ctx: DeckCtx; elapsed: number }) {
@@ -123,6 +124,7 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
       ) : null}
 
       <ToolTheater op={op} elapsed={elapsed} />
+      <NodeMalware op={op} faction={me.faction} inside={inside} />
 
       <div className="grid2">
         {/* sicurezza e accesso */}

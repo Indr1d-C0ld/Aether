@@ -209,7 +209,7 @@ export function installBbs(game: Game) {
   const uploadable = (a: AgentDoc) => a.storage.filter((s) => !s.item && !s.cargo && (!s.expiresAt || s.expiresAt > now()));
   const gainOf = (a: AgentDoc, key: string) => {
     const s = a.storage.find((x) => x.key === key);
-    return s ? 20 + game.fileValue(s) * 12 : 0;
+    return s ? Math.round((20 + game.fileValue(s) * 12) * (game.mwKb?.(a) ?? 1)) : 0;
   };
   function files(d: BbsDef, a: AgentDoc, u: User): BbsFiles {
     const lv = levelOf(a, u);
@@ -610,5 +610,20 @@ export function installBbs(game: Game) {
     dirty = false;
     game.store.put("bbs", "state", state);
   }
-  return { save, hangup, stats: () => ({ posts: Object.values(state.boards).reduce((s, b) => s + b.threads.reduce((q, t) => q + t.posts.filter((x) => !x.npc).length, 0), 0) }) };
+  const api = {
+    /** Il BBS a cui l'agente è collegato in questo momento, o null. */
+    sessionOf: (a: AgentDoc) => {
+      const s = sessions.get(a.id);
+      return s && typeof online(a, s.bbs) !== "string" ? s.bbs : null;
+    },
+    level: (bbs: string, a: AgentDoc) => levelOf(a, userOf(bbs, a)),
+    kb: (bbs: string, a: AgentDoc) => userOf(bbs, a).kb,
+    addKb: (bbs: string, a: AgentDoc, n: number) => {
+      userOf(bbs, a).kb = Math.max(0, userOf(bbs, a).kb + n);
+      dirty = true;
+    },
+    hasFiles: (bbs: string) => Boolean(def(bbs)?.files),
+    name: (bbs: string) => def(bbs)?.name ?? bbs,
+  };
+  return { ...api, save, hangup, stats: () => ({ posts: Object.values(state.boards).reduce((s, b) => s + b.threads.reduce((q, t) => q + t.posts.filter((x) => !x.npc).length, 0), 0) }) };
 }

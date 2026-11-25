@@ -6,6 +6,23 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.10.0",
+    date: "2026-11-25",
+    title: "Warez, virus e antivirus",
+    tags: ["malware", "warez", "antivirus", "BBS", "missioni"],
+    items: [
+      "Warez: nell'area file dei BBS ci sono ogni giorno quattro programmi pirata. Installati dal Laboratorio potenziano il deck per qualche ora: strumenti più veloci, trasferimenti tripli, più esperienza. Ma qualcuno è infetto, e i commenti di chi l'ha provato non sempre dicono il vero.",
+      "Il deck si ammala: un virus che rallenta gli strumenti, un dialer che ti mangia i crediti, un RAT che fa correre i trace, una bomba logica che cancella un file. Alcuni li noti dopo dieci minuti, altri mai, se non scansioni.",
+      "Antivirus in tre livelli, con le firme che invecchiano di giorno in giorno: scansiona i programmi prima di installarli, pulisce il deck, e al livello più alto blocca da solo quello che riconosce. Le firme si aggiornano gratis mentre sei collegato a un BBS.",
+      "Laboratorio (nuova voce del deck): i rossi assemblano le proprie creature da quattro moduli. Vettore (virus, trojan, RAT, macro, worm, bootkit), carico (ladro, keylogger, dialer, zombie, sabotatore, cifratore, esfiltratore…), involucro (packer, cifrato, polimorfico, rootkit) e innesco (subito, a orologeria, bomba logica, solo di notte). 23 moduli, e un nome scelto da te.",
+      "Le creature si impiantano dalla Console, da admin: rendono crediti, ti scrivono le password che vedono passare, ti portano file, spengono il sistema all'ora che vuoi, e alcune si replicano da sole sui sistemi vicini. Un RAT ti riapre la porta da operatore.",
+      "I cavalli di Troia si caricano anche sui BBS, travestiti da programma pirata: chi li installa senza controllare lavora per te.",
+      "Per i blu: scansione antivirus nei sistemi, quarantena con campione, e analisi nel Laboratorio per pubblicare la firma. Da quel momento ogni antivirus riconosce quel ceppo, e il suo autore deve reimpacchettarlo. Il Patch Kit ora schiaccia anche le infezioni.",
+      "Nel mondo girano ceppi selvatici (Ping-Pong, Cascata, Venerdì 17…): le segnalazioni arrivano nel Laboratorio dei blu e sul feed.",
+      "Moduli rari dal bottino dei contratti e smontando gli exploit; 2 gadget nuovi (dischetto di avvio pulito, PC sacrificale); 5 operazioni nuove; 48 traguardi: 568 in tutto.",
+    ],
+  },
+  {
     v: "0.9.0",
     date: "2026-11-25",
     title: "I BBS: bacheche, livelli, area file, porte",
