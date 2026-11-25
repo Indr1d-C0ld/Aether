@@ -3014,3 +3014,36 @@ table.board tr.you td {
   display: block;
   height: 100%;
 }
+
+/* ---------- borsa ---------- */
+
+.stock-row {
+  display: grid;
+  grid-template-columns: 56px minmax(120px, 1.6fr) 84px 64px 58px minmax(90px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  border-bottom: 1px solid var(--line);
+  padding: 3px 0;
+}
+.stock-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.spark {
+  width: 80px;
+  height: 22px;
+}
+@media (max-width: 760px) {
+  .stock-row {
+    grid-template-columns: 52px 1fr 60px 54px;
+  }
+  .stock-row .spark,
+  .stock-row > span:nth-child(6) {
+    display: none;
+  }
+  .stock-row > span:last-child {
+    grid-column: 1 / -1;
+  }
+}

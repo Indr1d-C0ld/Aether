@@ -6,6 +6,19 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.15.0",
+    date: "2026-11-25",
+    title: "Sandbox, quarto passo: la Borsa",
+    tags: ["sandbox", "borsa", "economia"],
+    items: [
+      "Nuova voce del deck: Borsa. Le trenta organizzazioni più grosse del Reticolo sono quotate, ognuna con la sua sigla e il grafico delle ultime ore.",
+      "Il prezzo non è casuale: insegue lo stato vero dell'azienda. Un sabotaggio, uno sciopero, una crisi di liquidità o una guerra commerciale lo fanno scendere; una reputazione che risale e una cassa piena lo fanno salire.",
+      "Si compra e si vende, e si vende anche allo scoperto: guadagni se il titolo scende. Sapere cosa sta per succedere a un'azienda, perché stai per farlo tu, è esattamente il vantaggio che sembra.",
+      "Si tratta solo quando in quella sede è orario d'ufficio. Le notizie della notte si scontano tutte all'apertura.",
+      "Commissione dell'1% a ordine, tetto di 500 titoli per società e 200 allo scoperto.",
+    ],
+  },
+  {
     v: "0.14.0",
     date: "2026-11-25",
     title: "Sandbox, terzo passo: abitanti con ambizioni, amicizie e faide",
