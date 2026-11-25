@@ -2972,3 +2972,45 @@ table.board tr.you td {
   border-bottom: 1px solid var(--line);
   padding-bottom: 8px;
 }
+
+/* ---------- cronaca e organizzazioni ---------- */
+
+.news-row {
+  display: grid;
+  grid-template-columns: 44px auto 1fr;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.linklike {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--faction);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+.org-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.org-stat b {
+  font-weight: normal;
+  text-align: right;
+}
+.org-bar {
+  display: inline-block;
+  width: 140px;
+  height: 8px;
+  background: var(--void);
+  border: 1px solid var(--line);
+}
+.org-bar i {
+  display: block;
+  height: 100%;
+}

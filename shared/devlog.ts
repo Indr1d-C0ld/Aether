@@ -6,6 +6,21 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.12.0",
+    date: "2026-11-25",
+    title: "Sandbox, primo passo: organizzazioni vive e Cronaca",
+    tags: ["sandbox", "organizzazioni", "cronaca", "mondo"],
+    items: [
+      "Ogni azienda, banca e ufficio ora ha una cassa, una reputazione, un morale e una paura. Quello che le fai (o che le fanno gli altri, abitanti compresi) le cambia davvero: un furto svuota la cassa, un sabotaggio abbatte il morale, un presidio rassicura.",
+      "E loro reagiscono. Chi ha paura e soldi compra difese migliori: il firewall che hai bucato ieri oggi è di un livello più su. Chi è in rosso taglia il turno di notte. Chi ha il morale a terra sciopera, e per due ore non risponde nessuno. Quando torna la calma, le difese comprate si lasciano scadere.",
+      "Concorrenti: ogni organizzazione ne ha due. Chi viene derubato sospetta di loro, poi li accusa in pubblico, e alla fine scoppia una guerra commerciale di sei ore, con contratti in bacheca per i rossi (pagati dall'una contro l'altra) e scorte per i blu.",
+      "Crisi e acquisizioni: chi resta troppo a lungo senza soldi viene comprato dal concorrente più ricco. Nessuno chiude per sempre, ma il gruppo cambia, e resta scritto.",
+      "Soglie di mondo: troppe intrusioni in un giorno e scatta lo stato d'emergenza (indagini più rapide, custodie più lunghe per dodici ore); troppi sistemi infetti in una regione e gli antivirus di quella regione si irrigidiscono per tre ore.",
+      "Nuova voce del deck: Cronaca. Le notizie di quello che è successo davvero, divise per giorno e per tema, e la scheda di ogni organizzazione con cassa, umore, difese, concorrenti e storia recente.",
+      "Le creature del Laboratorio ora hanno un tetto di resa complessivo, come le botnet di worm.",
+    ],
+  },
+  {
     v: "0.11.0",
     date: "2026-11-25",
     title: "Il mondo vive: giorno, notte e trenta persone che fanno la loro vita",

@@ -1944,7 +1944,7 @@ export class Game {
     const t = now();
     let f = 1;
     if (KIND_PROFILE[n.kind].night && isNight(n.x, t)) f *= WATCH_NIGHT;
-    f *= this.lifeWatch?.(n) ?? 1;
+    f *= (this.lifeWatch?.(n) ?? 1) * (this.orgWatch?.(n) ?? 1);
     if ((this.meta.blackout?.[regionAt(n.x, n.y)] ?? 0) > t) f *= WATCH_BLACKOUT;
     if ((n.alertUntil ?? 0) > t) f *= WATCH_ALERT;
     return f;
@@ -3218,7 +3218,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3255,6 +3255,11 @@ export class Game {
   lifeAdmin: ((a: Agent, n: WNode) => void) | null = null;
   lifeStaffed: ((n: WNode) => string | null) | null = null;
   lifeChat: ((lore: string) => string | null) | null = null;
+  // organizzazioni vive, cronaca, eventi di mondo (server/orgs.ts)
+  orgEvent: ((n: WNode, kind: "intrusione" | "furto" | "sabotaggio" | "infezione" | "difesa", who: string | null) => void) | null = null;
+  orgStrike: ((n: WNode) => boolean) | null = null;
+  orgWatch: ((n: WNode) => number) | null = null;
+  regionAlert: ((region: string) => boolean) | null = null;
   // warez, malware e antivirus (server/malware.ts)
   mwSpeed: ((a: Agent) => number) | null = null;
   mwTrace: ((a: Agent) => number) | null = null;

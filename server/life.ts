@@ -29,7 +29,7 @@ export function installLife(game: Game, bbs: BbsApi) {
   const now = () => Date.now();
   const forced = () => game.clockForce;
   const partAt = (x: number): DayPart => (forced() === "giorno" ? "mattina" : forced() === "notte" ? "notte" : dayPart(x, now()));
-  const open = (n: NodeDoc) => (forced() === "giorno" ? hoursOf(n.kind) !== "nessuno" : forced() === "notte" ? hoursOf(n.kind) === "sempre" : staffed(n.kind, n.x, now()));
+  const open = (n: NodeDoc) => !game.orgStrike?.(n) && (forced() === "giorno" ? hoursOf(n.kind) !== "nessuno" : forced() === "notte" ? hoursOf(n.kind) === "sempre" : staffed(n.kind, n.x, now()));
   const weekend = (x: number) => !forced() && isWeekend(x, now());
   const dark = (x: number) => partAt(x) === "notte";
 
@@ -147,6 +147,7 @@ export function installLife(game: Game, bbs: BbsApi) {
       s.heat += 8 + game.tierOf(n) * 6;
       game.log(n, "LOGIN admin from {FROM}", { fromIp: ip });
       if (Math.random() < 0.6) game.log(n, "LOG entries removed by admin", {});
+      game.orgEvent?.(n, Math.random() < 0.5 ? "furto" : "intrusione", p.handle);
       did(p, `è entrato in ${n.org} (${clockLabel(n.x, now())} ora loro)`);
       say(p, pick([`${n.org}, alle ${clockLabel(n.x, now())} ora loro. dormivano tutti.`, `fatto ${n.org}. pulito, quattro relay, zero righe.`, `stanotte ${n.org}. il turno di notte guardava la tv.`, `sono dentro ${n.org} da dieci minuti e nessuno ha alzato la testa`]));
     } else {
@@ -190,6 +191,7 @@ export function installLife(game: Game, bbs: BbsApi) {
     n.alertUntil = Math.max(n.alertUntil ?? 0, now() + 10 * 60_000);
     game.touch("node", n.id);
     s.credits += 120;
+    game.orgEvent?.(n, "difesa", p.handle);
     did(p, `ha fatto la ronda a ${n.org}`);
     say(p, pick([`ronda a ${n.org}: per dieci minuti lì sono tutti all'erta.`, `sto guardando ${n.org}. chi ci prova stanotte mi trova sveglio.`, `turno a ${n.org}. log pulito, troppo pulito.`]));
   }
