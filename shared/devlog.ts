@@ -6,6 +6,20 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.13.0",
+    date: "2026-11-25",
+    title: "Sandbox, secondo passo: le persone",
+    tags: ["sandbox", "persone", "ingegneria sociale"],
+    items: [
+      "I cento cittadini dell'anagrafe hanno una giornata: in ufficio, in giro, a casa, a dormire, in ferie. Quando l'amministratore è in ferie risponde il sostituto (niente voce da registrare, ma guarda meno); un PC di casa col padrone fuori non lo guarda nessuno.",
+      "Hanno debiti che crescono e calano, un lavoro che possono perdere quando la loro azienda taglia o va in crisi, e qualcuno una relazione con un collega che nessuno deve sapere.",
+      "Nuova voce del deck: Persone. Chi leggi in un organico finisce in rubrica, con dove si trova adesso e quello che sai di lei. Un'indagine apre il fascicolo completo.",
+      "Per i rossi: chi è indebitato vende il proprio badge (24 ore da operatore dal suo datore di lavoro); chi è stato licenziato racconta per posta l'utenza operatore e mezza password di root dell'ex azienda; chi ha un segreto si può ricattare. Ma chi è leale rifiuta e ne parla col capo, e qualcuno va dritto alla polizia.",
+      "Per i blu: mettere in guardia le persone a rischio. Per due giorni non si fanno comprare né ricattare, e i badge sospetti del loro ufficio vengono annullati.",
+      "I licenziamenti finiscono in Cronaca; dopo due settimane qualcuno li riassume.",
+    ],
+  },
+  {
     v: "0.12.0",
     date: "2026-11-25",
     title: "Sandbox, primo passo: organizzazioni vive e Cronaca",

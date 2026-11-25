@@ -15,6 +15,7 @@ import { installBbs } from "./bbs.ts";
 import { installMalware } from "./malware.ts";
 import { installLife } from "./life.ts";
 import { installOrgs } from "./orgs.ts";
+import { installCitizens } from "./citizens.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -209,11 +210,13 @@ game.socialAct = (agent, a, p) => {
   return socialAct?.(agent, a, p) ?? null;
 };
 
-installBio(game, installZones(game));
+const zones = installZones(game);
+installBio(game, zones);
 const bbs = installBbs(game);
 const malware = installMalware(game, bbs);
 const orgs = installOrgs(game);
 const life = installLife(game, bbs);
+const citizens = installCitizens(game, zones, orgs);
 
 installAdmin(game, {
   dbPath: DB_PATH,
@@ -412,6 +415,7 @@ setInterval(() => {
   malware.save();
   life.save();
   orgs.save();
+  citizens.save();
     game.flush();
   }
 }, 250);
@@ -422,6 +426,7 @@ process.on("SIGINT", () => {
   malware.save();
   life.save();
   orgs.save();
+  citizens.save();
   game.flush();
   process.exit(0);
 });
@@ -431,6 +436,7 @@ process.on("SIGTERM", () => {
   malware.save();
   life.save();
   orgs.save();
+  citizens.save();
   game.flush();
   process.exit(0);
 });
