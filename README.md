@@ -379,7 +379,7 @@ node scripts/smoke-gateway.ts 7099  # assalto a un gateway e rivalsa (server con
 node scripts/smoke-market.ts 7099   # mercato nero, ricettatore e taglie (server con AETHER_DEV=1)
 node scripts/smoke-depth.ts 7099    # archivi, banca, oggetti, giustizia, War Dialer (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/smoke-blue.ts 7099     # lato blu completo: 7 tipi di contratto (AETHER_DEV=1 AETHER_FAST=1)
-scripts/test-all.sh                 # tutti i test smoke (9), ognuno su un mondo pulito
+scripts/test-all.sh                 # tutti i 25 test smoke (scripts/smoke-*.ts), ognuno su un mondo pulito: più di dieci minuti
 node scripts/smoke-world.ts 7099    # mondo vivo: esplorazione, reazioni dei nodi, comandi di sistema (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/smoke-soc.ts 7099      # sala operativa blu: presidi, sensori come prova, analista (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/economy.ts             # economia: ricompense per grado, CR/ora, ore per salire di livello (senza server)
@@ -454,7 +454,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/admin.ts` | Il pannello dell'amministratore |
 | `shared/achievements.ts`, `shared/progress.ts` | Traguardi; specializzazioni |
 | `shared/devlog.ts` | Le novità mostrate ai giocatori |
-| `server/worldgen.ts` | Generatore del mondo: circa 490 nodi di 13 tipi su 73 città, datori di lavoro e PC di casa dei cittadini |
+| `server/worldgen.ts` | Generatore del mondo: circa 550 nodi di 14 tipi su 73 città, datori di lavoro e PC di casa dei cittadini |
 | `server/people.ts` | I 100 cittadini (generati da un seme fisso) che popolano anagrafe, casellario, atenei e banche |
 | `shared/depth.ts` | Rarità, exploit e chip, fama, etica, capi d'accusa e mandati, imprese |
 | `server/db.ts` | Persistenza SQLite (documenti JSON) e account (scrypt + token) |

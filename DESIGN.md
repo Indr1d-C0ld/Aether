@@ -556,11 +556,14 @@ Scelta di fondo: **niente riga di comando**. La libertà dentro un nodo si dà c
 
 ## Prossimi passi proposti
 
+Aggiornato al 25 novembre 2026 (0.21.0).
+
 1. **Grafica PixelLab**: sfondi di città per la schermata d'accesso, ritratti degli handle NPC, icone dei software in 32×32 a palette VGA, splash per le schede dei nodi.
 2. ~~Audio~~ (fatto, sintetizzato nel browser). La musica e gli effetti di PixelLab richiedono un abbonamento Tier 2: con quello si potrebbero aggiungere brani registrati da alternare a quelli generativi.
-3. ~~Gateway attaccabili~~ (fatto). Possibili estensioni: rubare strumenti, trojan che si attivano più tardi, IP rotabili a pagamento.
-4. ~~Mercato fra giocatori~~ (fatto: mercato nero, ricettatore, taglie). Possibile estensione: exploit con usura.
-5. **Stagioni ed eventi globali** («Zero-Day Outbreak», «Corporate War»), alleanze e cellule.
-6. **Mini-giochi opzionali** sopra agli strumenti automatici: fatti la griglia del firewall (0.5.0) , i rotori del Decrypter (0.6.0) i toni della Blue Box (0.7.0) e l'oscilloscopio delle barriere biometriche (0.8.0). Uno alla volta.
-7. **APK Android**: icona PNG 512, dominio HTTPS, `bubblewrap init --manifest https://…/manifest.webmanifest`.
-8. **Sicurezza di rete**: limiti di frequenza sulle azioni, scadenza dei token, HTTPS/WSS dietro un proxy.
+3. ~~Gateway attaccabili~~ (fatto). Possibili estensioni: rubare strumenti, IP rotabili a pagamento. I trojan che si attivano più tardi ci sono (innesco «a orologeria» del Laboratorio, 0.10).
+4. ~~Mercato fra giocatori~~ (fatto: mercato nero, ricettatore con offerta e richiesta, taglie, commissioni, informazioni). ~~Exploit con usura~~ (fatto: 0-day che invecchiano, 0.21).
+5. **Stagioni ed eventi a copione**: messi da parte su richiesta (17 novembre). Al loro posto ci sono eventi che nascono da soglie: guerre commerciali, stato d'emergenza, scandali, retate, aiuto da fuori, allerte virali (0.12-0.21).
+6. ~~Mini-giochi opzionali~~ (fatti: griglia del firewall 0.5, rotori del Decrypter 0.6, toni della Blue Box 0.7, oscilloscopio delle barriere biometriche 0.8).
+7. **APK Android**: messo da parte su richiesta (17 novembre). Il dominio HTTPS ora c'è; resterebbero l'icona PNG 512 e `bubblewrap init --manifest https://…/manifest.webmanifest`.
+8. **Sicurezza di rete**: ~~HTTPS/WSS dietro un proxy~~ (Apache su Balthasar), ~~limite di frequenza~~ (30 messaggi al secondo per connessione, tetti su accessi sbagliati e iscrizioni). Manca la **scadenza dei token**: oggi una sessione resta valida finché non si cambia la chiave.
+9. **Proposta sandbox** del 25 novembre: completa (0.12-0.21).
