@@ -6,6 +6,19 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.16.0",
+    date: "2026-11-25",
+    title: "Sandbox, quinto passo: la tua copertura",
+    tags: ["sandbox", "economia", "traguardi"],
+    items: [
+      "Dalla voce Affari puoi aprire un'attività legale intestata a te: sala giochi, copisteria o import-export per i rossi, assistenza computer o agenzia di sicurezza per i blu. Il nome sull'insegna lo scegli tu, e finisce in Cronaca.",
+      "Incassa da sola, ma solo in orario d'apertura (il tuo fuso), e la cassa ha un tetto: bisogna passare a ritirare. Sono crediti puliti.",
+      "Puoi assumere fino a due persone che conosci (+25% di incasso a testa), ampliare i locali, e una volta al giorno farti fare una fattura di comodo che abbassa il calore.",
+      "Se scotti troppo arriva la finanza: cassa sequestrata e sei ore di sigilli.",
+      "44 traguardi nuovi per persone, abitanti, Borsa e copertura: 640 in tutto.",
+    ],
+  },
+  {
     v: "0.15.0",
     date: "2026-11-25",
     title: "Sandbox, quarto passo: la Borsa",

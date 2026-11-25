@@ -17,6 +17,7 @@ import { installLife } from "./life.ts";
 import { installOrgs } from "./orgs.ts";
 import { installCitizens } from "./citizens.ts";
 import { installStocks } from "./stocks.ts";
+import { installFronts } from "./fronts.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -219,6 +220,7 @@ const orgs = installOrgs(game);
 const life = installLife(game, bbs);
 const citizens = installCitizens(game, zones, orgs);
 const stocks = installStocks(game, orgs);
+installFronts(game, orgs);
 
 installAdmin(game, {
   dbPath: DB_PATH,

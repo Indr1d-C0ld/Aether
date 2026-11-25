@@ -340,6 +340,26 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Sandbox (0.12.0 - 0.16.0)
+
+Principio: **niente evento a copione**. Ogni modulo tiene uno stato, lo fa cambiare da quello che succede davvero (le gesta dei giocatori via `Game.deed`, quelle degli abitanti via `Game.orgEvent`) e reagisce a soglie. Il racconto (Cronaca, feed, chat, BBS) legge quello stato, non lo inventa.
+
+**Organizzazioni** (`server/orgs.ts`, documento `world/state`). Cassa, reputazione, morale, paura; due concorrenti (i più vicini dello stesso tipo). Ogni battito ne passa un quinto: incasso in orario d'apertura, costi fissi, decadimento della paura. Reazioni: difese comprate a paura ≥ 60 se la cassa regge (al massimo due scatti sopra quelle di serie, e mai oltre 9 in tutto) e lasciate scadere dopo 48 ore di calma; turno di notte tagliato in rosso; sciopero col morale sotto 20; crisi sotto −75% della cassa iniziale e, dopo 12 ore, acquisizione (nessun nodo sparisce). Sospetti a ogni furto (40%), accusa pubblica a 3, guerra commerciale di sei ore a 5, con un contratto rosso e uno blu ogni 40 minuti. Stato d'emergenza a 45 intrusioni in 24 ore (indagini ×0,7, custodia ×1,3 per 12 ore, applicati avvolgendo `Game.num`); allerta virus di tre ore con 8 sistemi infetti in una regione.
+
+**Attenzione al bilanciamento:** le difese dei nodi ora cambiano da sole. I contratti già in bacheca su un nodo che si rafforza diventano più difficili senza che la paga cambi.
+
+**Persone** (`server/citizens.ts`). Dove si trova una persona è calcolato dall'orologio, non salvato. Stato salvato: debiti, lealtà, licenziamento, avvisi. Si conoscono leggendo un organico (o usandone le credenziali). Azioni: indagine 300 CR; badge da chi ha più di 3.000 CR di debiti (800 + 20% del debito, 24 ore da operatore; chi è leale o avvisato rifiuta e alza il calore); fonte fra i licenziati (500 CR: utenza operatore e mezza password di root per posta); ricatto a chi ha una relazione (500-1.400 CR, 20% di denuncia); per i blu la messa in guardia (48 ore di immunità, badge annullati).
+
+**Abitanti** (`server/life.ts`). Ambizione con avanzamento per impresa; favore per giocatore da −100 a 100 (regalo +8, risposta a una sua discussione +4, crew ×1,5, −3% al giorno). Sopra 30 soffiate vere ogni tre ore al massimo; sopra 45 prestito, sopra 60 alibi. Sotto −40 fanno il tuo nome. Quattro crew fisse con punteggio che decade del 30% al giorno.
+
+**Borsa** (`server/stocks.ts`). Valore equo = funzione dello stato dell'organizzazione; il prezzo lo insegue del 12% a battito con ±1% di rumore, solo a mercato aperto. Scoperto con margine del 50%. Il contatore `stock:insider` scatta quando si guadagna su un titolo toccato nelle due ore prima: è voluto, non un abuso.
+
+**Copertura** (`server/fronts.ts`). 5/9/14 CR a battito in orario d'apertura, tetto di cassa 1.500/3.500/7.000: un giorno di assenza rende al massimo un tetto.
+
+Non misurato, e da guardare per primo: reddito combinato di copertura, Borsa da insider e creature; frequenza reale di difese comprate e di guerre commerciali con pochi giocatori (con due soli giocatori e trenta abitanti quasi tutta la pressione viene dagli abitanti).
+
+Non fatto di quanto proposto: BBS di proprietà del giocatore, contratti scritti dai giocatori con condizioni, prezzi del ricettatore legati all'offerta, organizzazioni che aprono da zero.
+
 ## Il mondo vive: orologio e popolazione (0.11.0)
 
 **Orologio** (`shared/clock.ts`). Nessun tempo di gioco accelerato: ora vera, fuso dalla longitudine del nodo. Fasce: notte 22-6, alba 6-8, mattina 8-12:30, pranzo 12:30-14, pomeriggio 14-18, sera 18-22. Orari: «ufficio» (aziende, banche, enti, scuole, laboratori: lun-ven 8-18), «negozio» (lun-sab 9-20), «sempre» (polizia, ospedali, militari, giornali, telefoni, reti). L'ombra sulla mappa è la stessa funzione, con un'ora e mezza di crepuscolo.

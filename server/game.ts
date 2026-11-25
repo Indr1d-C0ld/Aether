@@ -3218,7 +3218,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3281,6 +3281,9 @@ export class Game {
   bioBlock: ((op: Op, agent: Agent, target: WNode) => string | null) | null = null;
   bioSamples: ((a: Agent) => unknown[]) | null = null;
   bioGadget: ((agent: Agent, op: Op, target: WNode, kind: "voce" | "impronta" | "retina") => string | null) | null = null;
+  homeX(a: Agent) {
+    return gatewayPos(a.gatewayIp).x;
+  }
   homeCity(a: Agent) {
     return gatewayPos(a.gatewayIp).city;
   }

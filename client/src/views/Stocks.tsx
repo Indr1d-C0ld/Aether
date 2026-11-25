@@ -5,6 +5,8 @@ import { STOCK_FEE } from "../../../shared/stocks.ts";
 import { fmtCr } from "../../../shared/rules.ts";
 import { net } from "../net.ts";
 import type { DeckCtx } from "./Deck.tsx";
+import type { FrontView } from "../../../shared/fronts.ts";
+import { FRONT_ALIBI_COST, FRONT_COST, FRONT_KINDS, FRONT_UP } from "../../../shared/fronts.ts";
 
 function Spark({ ys }: { ys: number[] }) {
   if (ys.length < 2) return <svg className="spark" viewBox="0 0 80 22" />;
@@ -34,15 +36,110 @@ export function StocksPanel({ ctx }: { ctx: DeckCtx }) {
     const r = await net.do("stock", { cmd, id, n: qty });
     if (r.ok) setV(r.data as StocksView);
   };
+  const [front, setFront] = useState<FrontView | null>(null);
+  const [fname, setFname] = useState("");
+  const [fkind, setFkind] = useState("");
+  const fdo = useCallback(async (cmd: string, p: Record<string, unknown> = {}) => {
+    const r = await net.do("front", { cmd, ...p }, cmd === "view");
+    if (r.ok) setFront(r.data as FrontView);
+  }, []);
+  useEffect(() => {
+    void fdo("view");
+  }, [fdo]);
+  const kinds = FRONT_KINDS.filter((k) => k.side === ctx.state.me.faction);
   if (!v) return <p className="dim">Apro il listino…</p>;
   return (
     <div className="list" style={{ gap: 14 }}>
       <div className="view-title">
         <div>
-          <h1>Borsa</h1>
+          <h1>Affari</h1>
           <p className="dim" style={{ margin: 0 }}>
             Il prezzo di un titolo segue quello che succede davvero all'azienda: cassa, reputazione, paura, scioperi, guerre. Chi sa cosa sta per succedere, perché sta per farlo lui, parte avvantaggiato.
           </p>
+        </div>
+      </div>
+      <div className="panel">
+        <div className="panel-head">
+          <span className="label">La tua copertura</span>
+          {front?.has ? <span className={`chip ${front.frozenUntil > ctx.serverNow ? "red" : front.open ? "green" : ""}`}>{front.frozenUntil > ctx.serverNow ? "sotto sequestro" : front.open ? "aperta" : "chiusa a quest'ora"}</span> : null}
+        </div>
+        <div className="panel-body list">
+          {front?.has ? (
+            <>
+              <div className="spread">
+                <div>
+                  <b className="px" style={{ fontSize: 22 }}>«{front.name}»</b> <span className="faint">{front.kind} · livello {front.level + 1}</span>
+                  <div className="dim" style={{ fontSize: 12 }}>
+                    In cassa {fmtCr(front.till)} su {fmtCr(front.cap)} · {front.rate} CR a battito in orario d'apertura · incassati finora {fmtCr(front.earned)}
+                  </div>
+                </div>
+                <div className="row">
+                  <button className="btn" disabled={front.till <= 0 || front.frozenUntil > ctx.serverNow} onClick={() => void fdo("collect")}>
+                    Incassa
+                  </button>
+                  <button className="btn small" disabled={!front.alibiReady || front.till < FRONT_ALIBI_COST || ctx.state.me.heat <= 0} onClick={() => void fdo("alibi")} title="Una al giorno: calore −10">
+                    Fattura di comodo · {fmtCr(FRONT_ALIBI_COST)}
+                  </button>
+                  {front.level + 1 < FRONT_UP.length ? (
+                    <button className="btn small" disabled={ctx.state.me.credits < FRONT_UP[front.level + 1]!} onClick={() => void fdo("upgrade")}>
+                      Amplia · {fmtCr(FRONT_UP[front.level + 1]!)}
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+              {front.staff.map((p) => (
+                <div key={p.id} className="spread" style={{ fontSize: 13 }}>
+                  <span>{p.name} lavora per te</span>
+                  <button className="btn small" onClick={() => void fdo("fire", { id: p.id })}>
+                    Lascia a casa
+                  </button>
+                </div>
+              ))}
+              {front.staff.length < 2 && front.hirable.length ? (
+                <details>
+                  <summary className="faint" style={{ cursor: "pointer", fontSize: 12 }}>Assumi qualcuno che conosci (+25% di incasso a testa)</summary>
+                  <div className="list" style={{ gap: 4, marginTop: 6 }}>
+                    {front.hirable.map((p) => (
+                      <div key={p.id} className="spread" style={{ fontSize: 13 }}>
+                        <span>{p.name} <span className="faint">{p.job}</span></span>
+                        <button className="btn small" onClick={() => void fdo("hire", { id: p.id })}>
+                          Assumi
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              ) : null}
+              <p className="faint" style={{ margin: 0, fontSize: 12 }}>Se il tuo calore passa 75 può arrivare la finanza: cassa sequestrata e sei ore di sigilli.</p>
+            </>
+          ) : (
+            <form
+              className="list"
+              style={{ gap: 8 }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                void fdo("found", { kind: fkind || kinds[0]?.id, name: fname });
+              }}
+            >
+              <p className="dim" style={{ margin: 0 }}>
+                Un'attività legale intestata a te: incassa da sola in orario d'ufficio (il tuo), dà lavoro a chi conosci, e una volta al giorno ti fa una fattura di comodo.
+              </p>
+              <div className="row">
+                <select value={fkind || kinds[0]?.id} onChange={(e) => setFkind(e.target.value)} aria-label="Tipo di attività">
+                  {kinds.map((k) => (
+                    <option key={k.id} value={k.id}>
+                      {k.name}
+                    </option>
+                  ))}
+                </select>
+                <input value={fname} onChange={(e) => setFname(e.target.value)} maxLength={28} placeholder="Il nome sull'insegna" style={{ flex: 1, minWidth: 160 }} aria-label="Nome dell'attività" />
+                <button className="btn primary" disabled={fname.trim().length < 3 || ctx.state.me.credits < FRONT_COST}>
+                  Apri · {fmtCr(FRONT_COST)}
+                </button>
+              </div>
+              <span className="faint" style={{ fontSize: 12 }}>{kinds.find((k) => k.id === (fkind || kinds[0]?.id))?.blurb}</span>
+            </form>
+          )}
         </div>
       </div>
       <div className="panel">

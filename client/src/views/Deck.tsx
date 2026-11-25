@@ -123,7 +123,7 @@ export function Deck({ snap }: { snap: Snapshot }) {
     { id: "lab", label: "Laboratorio" },
     { id: "world", label: "Cronaca" },
     { id: "people", label: "Persone" },
-    { id: "stocks", label: "Borsa" },
+    { id: "stocks", label: "Affari" },
     { id: "crew", label: "Crew", badge: state.duels.length + state.trades.filter((x) => x.incoming).length || undefined, alert: state.duels.some((d) => d.incoming || d.state === "live") },
     { id: "career", label: "Carriera" },
     { id: "feed", label: "Feed", badge: state.intrusions.length ? "!" : undefined, alert: state.intrusions.length > 0 },

@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.11.0](https://img.shields.io/badge/versione-0.11.0-39ff88)
+![Versione 0.16.0](https://img.shields.io/badge/versione-0.16.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -122,6 +122,24 @@ E c'è **gente**: trenta abitanti con un nome, una città e un fuso, che quando 
 buio, mettono in giro virus, fanno la ronda, finiscono in custodia e tornano, pagano la bolletta. Poi lo raccontano in chat,
 sui BBS e sui giornali.
 
+## Sandbox
+
+Quello che fai resta, e il mondo ci ragiona sopra.
+
+- **Organizzazioni vive.** Ogni azienda ha una cassa, una reputazione, un morale e una paura. Derubata, compra difese migliori
+  (il firewall bucato ieri oggi è un livello più su); in rosso, taglia il turno di notte; col morale a terra sciopera; in crisi,
+  viene comprata dal concorrente. Chi viene colpito sospetta dei concorrenti, e alla fine scoppia una guerra commerciale con
+  contratti per entrambe le cellule.
+- **Cronaca.** Un giornale che riporta solo cose successe davvero, con la scheda di ogni organizzazione.
+- **Persone.** I cento cittadini hanno una giornata, debiti, ferie, un lavoro che possono perdere e qualche segreto. Chi leggi
+  in un organico finisce in rubrica: puoi indagare, comprare un badge, farne una fonte, ricattare. O, da blu, metterla in guardia.
+- **Abitanti.** I trenta personaggi hanno ambizioni, crew, faide, e un'opinione su di te: chi ti stima ti scrive soffiate vere,
+  ti fa da alibi, ti presta soldi; chi ti detesta fa il tuo nome.
+- **Borsa.** Trenta titoli il cui prezzo segue lo stato vero dell'azienda. Si compra, si vende, si vende allo scoperto.
+- **Copertura.** Un'attività legale intestata a te, che incassa in orario d'ufficio e attira la finanza se scotti troppo.
+- **Soglie di mondo.** Troppe intrusioni in un giorno e scatta lo stato d'emergenza; troppi sistemi infetti in una regione e gli
+  antivirus si irrigidiscono.
+
 ## BBS
 
 ![Un BBS: insegna, aree, ultimi chiamanti e il muro](docs/img/bbs.jpg)
@@ -225,7 +243,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **596 traguardi**: 149 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **640 traguardi**: 160 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -258,6 +276,11 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.16.0 | 25 novembre 2026 | Sandbox: la copertura del giocatore |
+| 0.15.0 | 25 novembre 2026 | Sandbox: la Borsa del Reticolo |
+| 0.14.0 | 25 novembre 2026 | Sandbox: abitanti con ambizioni, amicizie, crew e faide |
+| 0.13.0 | 25 novembre 2026 | Sandbox: persone con routine, debiti e segreti |
+| 0.12.0 | 25 novembre 2026 | Sandbox: organizzazioni vive, Cronaca, eventi di mondo |
 | 0.11.0 | 25 novembre 2026 | Giorno e notte sull'ora vera, orari d'ufficio, trenta abitanti che agiscono da soli |
 | 0.10.0 | 25 novembre 2026 | Warez, laboratorio di malware, antivirus e firme |
 | 0.9.0 | 25 novembre 2026 | BBS: bacheche, livelli, area file, porte, e un sistema che vuole giocare |
@@ -363,6 +386,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/game.ts` | Simulazione autoritativa: mondo, operazioni live, trace, log, forensica, contratti, NPC |
 | `server/content.ts` | Nodi, file, password, NPC del mondo iniziale, nodi nascosti |
 | `server/scenarios.ts` | I copioni delle operazioni a tappe |
+| `server/orgs.ts`, `server/citizens.ts`, `server/stocks.ts`, `server/fronts.ts` | Sandbox: organizzazioni e cronaca, persone, Borsa, coperture |
 | `server/life.ts`, `server/life-text.ts`, `shared/clock.ts` | Orologio del mondo, regole di giorno e di notte, popolazione autonoma e i suoi testi |
 | `server/malware.ts`, `shared/malware.ts`, `client/src/views/Lab.tsx` | Warez, infezioni del deck, laboratorio, antivirus e firme |
 | `server/bbs.ts`, `server/bbs-text.ts`, `shared/bbs.ts`, `client/src/views/Bbs.tsx` | I BBS: stato, testi, tipi, interfaccia |

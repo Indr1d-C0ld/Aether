@@ -76,5 +76,31 @@ const closed = await act("stock", { cmd: "buy", id: s.id, n: 1 });
 check("a mercato chiuso non si tratta", !closed.ok && /mercato chiuso/.test(closed.error ?? ""));
 await act("devGrant", { clock: "giorno" });
 
+// ---- la società di copertura
+type FV = { has: boolean; till: number; cap: number; level: number; open: boolean; frozenUntil: number; alibiReady: boolean };
+const front = async (cmd: string, p: Record<string, unknown> = {}) => act("front", { cmd, ...p });
+await sleep(1200);
+check("un'attività dell'altra cellula non si può aprire", !(await front("found", { kind: "agency", name: "Prova" })).ok);
+const fd = await front("found", { kind: "arcade", name: "Sala Giochi Zenit" });
+check("copertura aperta", fd.ok && (fd.data as FV).has && (fd.data as FV).open);
+let fv = (await front("dev", { pulses: 20 })).data as FV;
+check("in orario d'ufficio la cassa si riempie", fv.till === 100);
+fv = (await front("dev", { pulses: 2000 })).data as FV;
+check("ma non oltre il tetto: bisogna passare a ritirare", fv.till === fv.cap);
+const c9 = state!.me.credits;
+check("incasso", (await front("collect")).ok);
+await sleep(1200);
+check("crediti puliti in tasca", state!.me.credits === c9 + fv.cap);
+await act("devGrant", { clock: "notte" });
+fv = (await front("dev", { pulses: 20 })).data as FV;
+check("di notte è chiusa e non incassa", fv.till === 0 && !fv.open);
+await act("devGrant", { clock: "giorno", charge: 0 });
+await front("dev", { set: { till: 500 } });
+await act("devGrant", { xp: 0 });
+const hot = await act("life", { cmd: "favor", handle: "Ohm", value: 0 });
+void hot;
+fv = (await front("dev", { pulses: 1 })).data as FV;
+check("la fattura di comodo vuole qualcosa da giustificare", state!.me.heat > 0 ? (await front("alibi")).ok : !(await front("alibi")).ok);
+
 console.log(fails.length ? `\n${fails.length} FALLITI` : "\ntutto ok");
 process.exit(fails.length ? 1 : 0);
