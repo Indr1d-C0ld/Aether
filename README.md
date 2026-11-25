@@ -165,6 +165,10 @@ pubblico o su invito. Gli abitanti della sua parte lo frequentano, ci caricano f
 cose vere; i visitatori ne fanno la fama. Ma troppo materiale rubato attira i sigilli della Guardia, e chi entra nel gateway del
 sysop può sfregiarne l'insegna.
 
+![Il pannello del sysop: insegna disegnata a mano, regole, aree, area file, porta](docs/img/sysop.jpg)
+
+![Un BBS di giocatore visto da dentro, con gli abitanti che lo frequentano](docs/img/bbs-giocatore.jpg)
+
 Accanto alla chat in tempo reale ci sono i **BBS**: sistemi che si chiamano col modem, uno alla volta e a tempo, dove i messaggi
 restano. Ogni BBS ha le sue bacheche, i suoi **livelli d'utente** (nuovo, validato, fidato, élite) che si guadagnano chiamando,
 scrivendo e caricando file, un'**area file** con il rapporto fra caricato e scaricato, il muro delle frasi, gli ultimi chiamanti e

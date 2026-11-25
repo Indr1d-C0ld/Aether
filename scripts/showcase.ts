@@ -81,6 +81,20 @@ await slow("bbs", { cmd: "post", bbs: "sottosuolo", area: "tecnica", title: "Seg
 await slow("bbs", { cmd: "oneliner", bbs: "sottosuolo", text: "segui l'ombra" });
 await slow("bbs", { cmd: "bye" });
 
+log("il BBS di Morgana");
+await slow("bbs", { cmd: "own:open", name: "Zona Franca", tagline: "Aperto la notte, chiuso di giorno.", banner: "  _______  _____  _   _    _\n |___  / |/ _ \\ \\| \\ | |  / \\\n    / /| | | | |  \\| | / _ \\\n   / /_| | |_| | |\\  |/ ___ \\\n  /____|_|\\___/|_| \\_/_/   \\_\\  F R A N C A\n\n  sysop Morgana  ·  14.400  ·  dalle 22 alle 6", motd: "Qui si parla di colpi, non di indirizzi. Chi scarica, carica. Il sysop legge tutto.", areas: ["generale", "tecnica", "colpi", "soffiate", "compravendita"], door: "mercante" });
+for (let i = 0; i < 3; i += 1) await slow("bbs", { cmd: "own:dev", npc: true });
+for (const h of ["Mantis", "Nyx_77", "Vex", "Tsuki", "Corax"]) await slow("life", { cmd: "force", handle: h, what: "bbs" });
+const zf = ((await slow("bbs", { cmd: "own:view" })).data as { id: string }).id;
+await slow("bbs", { cmd: "call", bbs: zf });
+await slow("bbs", { cmd: "post", bbs: zf, area: "generale", title: "Benvenuti in Zona Franca", body: "Aperto la notte, chiuso di giorno. Presentatevi qui, poi fate quello che volete.\nChi carica roba buona in area file ha i minuti che vuole." });
+await slow("bbs", { cmd: "post", bbs: zf, area: "colpi", title: "Lumen News, l'altra notte", body: "Due relay, proxy giù in otto secondi, password da dizionario. Il turno di notte guardava la tv.\nNiente nomi, niente orari. Come da regole." });
+await slow("bbs", { cmd: "post", bbs: zf, area: "tecnica", title: "Griglia del firewall: si parte dal centro", body: "Sempre dal centro. E se vi avanzano due sonde, il log resta pulito." });
+await slow("bbs", { cmd: "oneliner", bbs: zf, text: "aperti dalle 22. il caffè lo portate voi" });
+await slow("bbs", { cmd: "bye" });
+for (let i = 0; i < 12; i += 1) await slow("life", { cmd: "force", handle: ["Mantis", "Nyx_77", "Vex", "Tsuki", "Corax", "Blackbird"][i % 6], what: "bbs" });
+await slow("bbs", { cmd: "own:dev", set: { fame: 23, heat: 31 } });
+
 log("laboratorio: antivirus e tre creature");
 await slow("mw", { cmd: "dev", mods: { "v-rat": 1, "v-trojan": 1, "v-worm": 1, "c-spia": 1, "c-botnet": 1, "c-dialer": 1, "i-rootkit": 1, "i-poli": 1, "i-cripta": 1, "t-notte": 2, "t-venerdi": 1, "t-ritardo": 1, "v-macro": 1, "c-exfil": 1 }, av: 2, kit: 1 });
 await slow("mw", { cmd: "dev", mods: { "i-rootkit": 2 } });
@@ -197,6 +211,14 @@ await sleep(800);
 await click("Chiama");
 await sleep(3500);
 await shot("bbs");
+await js(`window.dispatchEvent(new KeyboardEvent("keydown", { key: "G" })); true`);
+await sleep(1500);
+await js(`[...document.querySelectorAll(".panel-head .label")].find((x) => x.textContent.startsWith("Il tuo BBS"))?.closest(".panel")?.scrollIntoView({ block: "start" }); true`);
+await shot("sysop");
+await js(`[...document.querySelectorAll(".panel-head button")].find((b) => b.textContent.trim() === "Chiama")?.click(); true`);
+await sleep(3500);
+await js(`window.scrollTo(0, 0); true`);
+await shot("bbs-giocatore");
 await js(`window.dispatchEvent(new KeyboardEvent("keydown", { key: "G" })); true`);
 
 // la barriera biometrica: una banca con impronta vocale, il campione dal registratore, l'oscilloscopio aperto
