@@ -240,7 +240,10 @@ export function installLife(game: Game, bbs: BbsApi) {
       s.heat += 8 + game.tierOf(n) * 6;
       game.log(n, "LOGIN admin from {FROM}", { fromIp: ip });
       if (Math.random() < 0.6) game.log(n, "LOG entries removed by admin", {});
-      game.orgEvent?.(n, Math.random() < 0.5 ? "furto" : "intrusione", p.handle);
+      const stole = Math.random() < 0.5;
+      game.orgEvent?.(n, stole ? "furto" : "intrusione", p.handle);
+      // quello che ruba lo porta al ricettatore: il mercato di quella merce si satura un po'
+      if (stole) game.fenceFlood?.(n, 0.5);
       did(p, `è entrato in ${n.org} (${clockLabel(n.x, now())} ora loro)`);
       say(p, pick([`${n.org}, alle ${clockLabel(n.x, now())} ora loro. dormivano tutti.`, `fatto ${n.org}. pulito, quattro relay, zero righe.`, `stanotte ${n.org}. il turno di notte guardava la tv.`, `sono dentro ${n.org} da dieci minuti e nessuno ha alzato la testa`]));
     } else {

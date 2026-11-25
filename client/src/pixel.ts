@@ -242,12 +242,35 @@ export function drawMap(g: CanvasRenderingContext2D, base: HTMLCanvasElement, s:
   // la notte: una fascia d'ombra che scorre con l'ora vera, sfumata al crepuscolo
   if (s.now) {
     const step = 2;
+    let prev = -1;
     for (let px = 0; px < MAP_W; px += step) {
       const wx = v.x + ((px + step / 2) / MAP_W) * v.w;
       const d = darkness(wx, s.now);
-      if (d <= 0) continue;
-      g.fillStyle = `rgba(2, 4, 22, ${(d * 0.5).toFixed(3)})`;
-      g.fillRect(px, 0, step, MAP_H);
+      // il terminatore: una linea tratteggiata dove il giorno diventa notte
+      if (prev >= 0 && (prev < 0.5) !== (d < 0.5)) {
+        g.fillStyle = "rgba(255, 176, 0, 0.5)";
+        for (let y = 0; y < MAP_H; y += 6) g.fillRect(px, y, 1, 3);
+      }
+      prev = d;
+      // il lato in luce appena più chiaro, la notte molto più scura: su una mappa scura serve tutte e due
+      if (d < 1) {
+        g.fillStyle = `rgba(120, 170, 255, ${((1 - d) * 0.07).toFixed(3)})`;
+        g.fillRect(px, 0, step, MAP_H);
+      }
+      if (d > 0) {
+        g.fillStyle = `rgba(0, 0, 8, ${(d * 0.66).toFixed(3)})`;
+        g.fillRect(px, 0, step, MAP_H);
+      }
+    }
+    // l'etichetta sulla mezzanotte locale, se è nell'inquadratura
+    const t = new Date(s.now);
+    let lon = -(t.getUTCHours() + t.getUTCMinutes() / 60) * 15;
+    lon = ((((lon + 180) % 360) + 360) % 360) - 180;
+    const mx = (((lon + 180) / 360) * 320 - v.x) * (MAP_W / v.w);
+    if (mx > 14 && mx < MAP_W - 14) {
+      g.fillStyle = "rgba(255, 176, 0, 0.8)";
+      g.font = "7px monospace";
+      g.fillText("☾ notte", mx - 12, 9);
     }
   }
   // dalle coordinate del mondo a quelle dell'inquadratura

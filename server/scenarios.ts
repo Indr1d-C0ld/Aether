@@ -13,6 +13,7 @@ export type Objective = {
   sub?: string;
   region?: Region;
   distinct?: "node" | "region" | "kind"; // le n volte devono differire per…
+  when?: "notte" | "giorno"; // conta solo se fatto di notte / in orario d'ufficio, ora del nodo
 };
 
 export type Scene = {

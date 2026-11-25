@@ -4,7 +4,7 @@
 import type { Game, AgentDoc, NodeDoc } from "./game.ts";
 import { fmtCr } from "../shared/rules.ts";
 import { hoursOf, opensIn, staffed } from "../shared/clock.ts";
-import { STOCK_FEE, STOCK_MARGIN, STOCK_MAX_LONG, STOCK_MAX_SHORT, type StockRow, type StocksView } from "../shared/stocks.ts";
+import { INSIDER_RISK, STOCK_FEE, STOCK_MARGIN, STOCK_MAX_LONG, STOCK_MAX_SHORT, type StockRow, type StocksView } from "../shared/stocks.ts";
 
 type R = { ok: boolean; error?: string; note?: string; data?: unknown };
 type Tick = { price: number; hist: number[]; n: number };
@@ -81,11 +81,18 @@ export function installStocks(game: Game, orgs: Orgs) {
     const fee = Math.round(price * qty * STOCK_FEE);
     a.credits += Math.round(back) - fee;
     p.n -= sign * qty;
-    if (gain > 0) game.bump(a, "stock:profit", Math.round(gain));
-    // insider: hai guadagnato su un titolo a cui hai fatto qualcosa tu, da poco
+    // insider: hai guadagnato su un titolo a cui hai fatto qualcosa tu, da poco. La vigilanza di Borsa a volte se ne accorge.
     const mine = (a.deeds ?? []).some((d) => d.node === n.id && now() - d.at < 2 * 3600_000 && /admin|sys:|mw:|t:copy|t:patch|preside/.test(d.d));
+    if (gain > 0 && mine && Math.random() < INSIDER_RISK) {
+      a.credits -= Math.round(gain);
+      a.heat = Math.min(100, a.heat + 15);
+      game.mail(a, "VIGILANZA DI BORSA", `Operazione sospetta su ${n.org}`, `L'operazione chiusa oggi su ${n.org} segue di poco un'intrusione nei sistemi della società. Il guadagno (${fmtCr(Math.round(gain))}) è sotto sequestro e il fascicolo passa alla Guardia del Reticolo.`);
+      game.bump(a, "stock:seized");
+      return { gain: 0, fee, seized: Math.round(gain) };
+    }
+    if (gain > 0) game.bump(a, "stock:profit", Math.round(gain));
     if (gain > 0 && mine) game.bump(a, "stock:insider");
-    return { gain: Math.round(gain), fee };
+    return { gain: Math.round(gain), fee, seized: 0 };
   }
   function act(a: AgentDoc, q: Record<string, unknown>): R {
     const cmd = String(q.cmd ?? "list");
@@ -117,7 +124,7 @@ export function installStocks(game: Game, orgs: Orgs) {
       if (p.n < 0) {
         const k = Math.min(qty, -p.n);
         const s = settle(a, n, p, k, t.price);
-        return done(`ricoperti ${k} ${tk}: ${s.gain >= 0 ? "+" : "−"}${fmtCr(Math.abs(s.gain))} (commissione ${fmtCr(s.fee)})`);
+        return done(s.seized ? `ricoperti ${k} ${tk}, ma la vigilanza ha sequestrato il guadagno (${fmtCr(s.seized)}): guarda la posta` : `ricoperti ${k} ${tk}: ${s.gain >= 0 ? "+" : "−"}${fmtCr(Math.abs(s.gain))} (commissione ${fmtCr(s.fee)})`);
       }
       if (p.n + qty > STOCK_MAX_LONG) return { ok: false, error: `al massimo ${STOCK_MAX_LONG} titoli per società` };
       const cost = Math.round(t.price * qty * (1 + STOCK_FEE));
@@ -132,7 +139,7 @@ export function installStocks(game: Game, orgs: Orgs) {
       if (p.n > 0) {
         const k = Math.min(qty, p.n);
         const s = settle(a, n, p, k, t.price);
-        return done(`venduti ${k} ${tk} a ${t.price.toFixed(2)}: ${s.gain >= 0 ? "+" : "−"}${fmtCr(Math.abs(s.gain))} (commissione ${fmtCr(s.fee)})`);
+        return done(s.seized ? `venduti ${k} ${tk}, ma la vigilanza ha sequestrato il guadagno (${fmtCr(s.seized)}): guarda la posta` : `venduti ${k} ${tk} a ${t.price.toFixed(2)}: ${s.gain >= 0 ? "+" : "−"}${fmtCr(Math.abs(s.gain))} (commissione ${fmtCr(s.fee)})`);
       }
       if (-p.n + qty > STOCK_MAX_SHORT) return { ok: false, error: `allo scoperto al massimo ${STOCK_MAX_SHORT} titoli per società` };
       const margin = Math.round(t.price * qty * STOCK_MARGIN);

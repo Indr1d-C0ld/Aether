@@ -5,6 +5,8 @@ export type StockRow = { id: string; ticker: string; name: string; kind: string;
 export type StocksView = { rows: StockRow[]; value: number; pnl: number; fee: number; maxLong: number; maxShort: number };
 export const STOCK_FEE = 0.01;
 export const STOCK_MAX_LONG = 500;
-export const STOCK_MAX_SHORT = 200;
+export const STOCK_MAX_SHORT = 100;
+/** Vigilanza: probabilità che un guadagno su un titolo che hai appena colpito venga notato. */
+export const INSIDER_RISK = 0.35;
 /** Margine richiesto per vendere allo scoperto: metà del controvalore. */
 export const STOCK_MARGIN = 0.5;

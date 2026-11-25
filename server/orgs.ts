@@ -221,6 +221,7 @@ export function installOrgs(game: Game) {
         o.group = buyer ? buyer.org : "un fondo estero";
         if (buyer) org(buyer).cash -= start(n) / 2;
         news("economia", `${n.org} è stata comprata da ${o.group}. Restano il nome sull'insegna e metà del personale.`, n);
+        game.orgAcquired?.(n);
       }
     }
     cursor = (cursor + slice) % Math.max(1, all.length);

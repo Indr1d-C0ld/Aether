@@ -6,6 +6,20 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.17.0",
+    date: "2026-11-25",
+    title: "Commissioni, il mercato del ricettatore e aziende che nascono",
+    tags: ["sandbox", "contratti", "economia", "mondo"],
+    items: [
+      "Commissioni: dalla bacheca delle taglie puoi scrivere un lavoro tuo su un sistema che conosci. Scegli cosa va fatto (entrare da admin, portare via un file, spegnerlo, impiantare una creatura, copiare il libro mastro; per i blu rinforzarlo, presidiarlo, bonificarlo, ri-registrare il personale) e le condizioni: senza lasciare tracce, solo di notte o solo in orario d'ufficio (ora loro), entro mezz'ora, solo per gente esperta. Ogni condizione alza la paga minima, e le condizioni contano davvero: un lavoro «di notte» fatto di giorno non si consegna.",
+      "Il ricettatore ha un mercato: quello che tutti gli portano lo paga meno (fino a meno della metà), quello che non vede da un po' lo paga di più, e ogni giorno cerca una merce in particolare, pagata il 50% in più. Contano anche i colpi degli abitanti. Il mercato si riprende in mezza giornata; la tabella è nel Mercato.",
+      "Aziende che nascono: chi resta senza lavoro prima o poi apre qualcosa (una software house, una radio libera, un provider, un poliambulatorio…), ne diventa l'amministratore e si porta dietro altri licenziati. Le aperture nascono deboli, con difese da principianti e password da dizionario, e poi crescono con il resto del mondo. Quando un'organizzazione viene comprata, metà del personale resta a casa.",
+      "Vigilanza di Borsa: un guadagno su un titolo che hai appena colpito tu viene sequestrato una volta su tre, con calore in più. Lo scoperto scende a 100 titoli per società.",
+      "Worm e creature del Laboratorio ora si dividono un unico tetto di resa, quello di una botnet di worm al completo.",
+      "4 traguardi nuovi: 648 in tutto.",
+    ],
+  },
+  {
     v: "0.16.0",
     date: "2026-11-25",
     title: "Sandbox, quinto passo: la tua copertura",

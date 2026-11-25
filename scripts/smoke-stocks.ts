@@ -102,5 +102,30 @@ void hot;
 fv = (await front("dev", { pulses: 1 })).data as FV;
 check("la fattura di comodo vuole qualcosa da giustificare", state!.me.heat > 0 ? (await front("alibi")).ok : !(await front("alibi")).ok);
 
+// ---- il ricettatore: prezzi legati all'offerta
+type FM = { cat: string; mult: number; wanted: boolean }[];
+await sleep(1200);
+const fm = async (p: Record<string, unknown> = {}) => (await act("fenceMarket", p)).data as FM;
+let m0 = await fm({ dev: true, reset: true });
+check("mercato del ricettatore: una richiesta del giorno, e a riposo la maggior parte delle merci al prezzo normale", m0.filter((x) => x.wanted).length === 1 && m0.filter((x) => !x.wanted && Math.abs(x.mult - 1) < 0.1).length >= 4 && !m0.every((x) => x.mult >= 1.2));
+await act("devGrant", { item: "x" });
+await sleep(1200);
+const it = state!.me.storage.find((x) => x.item)!;
+const cat = it.item!.kind;
+await fm({ dev: true, cat, supply: 0 });
+await act("devGrant", { xp: 1 });
+await sleep(1200);
+const pScarce = state!.me.storage.find((x) => x.key === it.key)!.fence ?? 0;
+await fm({ dev: true, cat, supply: 12 });
+await act("devGrant", { xp: 1 });
+await sleep(1200);
+const pFlood = state!.me.storage.find((x) => x.key === it.key)!.fence ?? 0;
+check("se il ricettatore ne ha pieni i cassetti, paga meno della metà", pFlood > 0 && pFlood < pScarce * 0.5);
+await fm({ dev: true, cat, supply: 0 });
+const mBefore = (await fm()).find((x) => x.cat === cat)!.mult;
+const sold = await act("fence", { key: it.key });
+const mAfter = (await fm()).find((x) => x.cat === cat)!.mult;
+check("ogni vendita satura un po' il mercato", sold.ok && mAfter < mBefore);
+
 console.log(fails.length ? `\n${fails.length} FALLITI` : "\ntutto ok");
 process.exit(fails.length ? 1 : 0);

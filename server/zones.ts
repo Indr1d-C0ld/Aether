@@ -30,7 +30,7 @@ export function installZones(game: Game) {
   const isOrg = (n: NodeDoc) => ORG_KINDS.includes(n.kind) && !n.hidden;
   /** Chi lavora in un nodo: i dipendenti veri, più l'amministratore; mai meno di tre nomi. */
   function staffOf(n: NodeDoc): Person[] {
-    const real = PEOPLE.filter((p) => WORLD.employer[p.id] === n.id);
+    const real = PEOPLE.filter((p) => (game.employerOf?.(p.id) ?? WORLD.employer[p.id]) === n.id);
     const admin = PEOPLE.find((p) => p.id === n.adminId);
     const out = [...(admin ? [admin] : []), ...real.filter((p) => p.id !== admin?.id)];
     for (let i = 0; out.length < 3; i += 1) {

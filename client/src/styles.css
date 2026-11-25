@@ -3047,3 +3047,11 @@ table.board tr.you td {
     grid-column: 1 / -1;
   }
 }
+
+/* ---------- mercato del ricettatore ---------- */
+
+.fence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 3px 22px;
+}

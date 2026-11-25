@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { FenceMarket } from "../../../shared/fence.ts";
+import { JOB_CONDS, JOB_GOALS, jobMin } from "../../../shared/jobs.ts";
 import type { MissionType } from "../../../shared/types.ts";
 import { BOUNTY_FEE, BOUNTY_MAX, BOUNTY_MIN, MARKET_FEE, MISSION_LABEL, clockShort, fmtCr } from "../../../shared/rules.ts";
 import { net } from "../net.ts";
@@ -11,6 +13,12 @@ export function BlackMarket({ ctx }: { ctx: DeckCtx }) {
   const market = ctx.state.market;
   const [prices, setPrices] = useState<Record<string, string>>({});
   const used = me.storage.reduce((s, f) => s + f.size, 0);
+  const [fm, setFm] = useState<FenceMarket>([]);
+  const stored = me.storage.length;
+  useEffect(() => {
+    void net.do("fenceMarket", {}, true).then((r) => r.ok && setFm(r.data as FenceMarket));
+  }, [stored]);
+  const wanted = fm.find((x) => x.wanted);
   return (
     <div className="list" style={{ gap: 14 }}>
       <p className="dim" style={{ margin: 0 }}>
@@ -58,6 +66,29 @@ export function BlackMarket({ ctx }: { ctx: DeckCtx }) {
           )}
         </div>
       </div>
+      {fm.length ? (
+        <div className="panel">
+          <div className="panel-head">
+            <span className="label">Il ricettatore</span>
+            {wanted ? <span className="chip green">oggi cerca {wanted.name}</span> : null}
+          </div>
+          <div className="panel-body">
+            <div className="fence-grid">
+              {fm.map((x) => (
+                <div key={x.cat} className="spread" style={{ fontSize: 13 }}>
+                  <span>{x.name}</span>
+                  <span className={x.mult >= 1.2 ? "t-green" : x.mult < 0.8 ? "t-red" : "faint"}>
+                    {x.mult >= 1.2 ? "paga bene" : x.mult < 0.8 ? "ne ha troppi" : "normale"} · ×{x.mult.toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="faint" style={{ margin: "8px 0 0", fontSize: 12 }}>
+              Quello che tutti gli portano lo paga meno, quello che non vede da un po' lo paga di più. Contano anche i colpi degli abitanti. Il mercato si riprende in mezza giornata.
+            </p>
+          </div>
+        </div>
+      ) : null}
       <div className="panel">
         <div className="panel-head">
           <span className="label">Il tuo archivio</span>
@@ -234,6 +265,7 @@ export function Bounties({ ctx }: { ctx: DeckCtx }) {
           </button>
         </div>
       </form>
+      <Commission ctx={ctx} />
       <div className="panel">
         <div className="panel-head">
           <span className="label">Le tue taglie</span>
@@ -265,5 +297,106 @@ export function Bounties({ ctx }: { ctx: DeckCtx }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/** Commissioni: un lavoro su un sistema a scelta, con obiettivo e condizioni. */
+function Commission({ ctx }: { ctx: DeckCtx }) {
+  const me = ctx.state.me;
+  const known = useMemo(() => ctx.state.nodes.filter((n) => !["relay", "registry", "gateway", "home"].includes(n.kind)), [ctx.state.nodes]);
+  const [side, setSide] = useState<"red" | "blue">("red");
+  const goals = JOB_GOALS.filter((g) => g.side === side);
+  const [goal, setGoal] = useState(goals[0]!.id);
+  const [nodeId, setNodeId] = useState(known[0]?.id ?? "");
+  const [conds, setConds] = useState<string[]>([]);
+  const [hours, setHours] = useState("6");
+  const min = jobMin(conds);
+  const [reward, setReward] = useState(String(min));
+  const r = Number(reward) || 0;
+  const fee = Math.ceil(r * BOUNTY_FEE);
+  const toggle = (c: string) => {
+    const next = conds.includes(c) ? conds.filter((x) => x !== c) : [...conds.filter((x) => !(c === "notte" && x === "giorno") && !(c === "giorno" && x === "notte")), c];
+    setConds(next);
+    // ogni condizione alza il minimo: la ricompensa lo segue, così il pulsante non si spegne senza motivo apparente
+    if ((Number(reward) || 0) < jobMin(next)) setReward(String(jobMin(next)));
+  };
+  return (
+    <form
+      className="panel"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void net.do("postJob", { goal, nodeId, conds, reward: r, hours: Number(hours) });
+      }}
+    >
+      <div className="panel-head">
+        <span className="label">Nuova commissione</span>
+        <span className="t-amber">{r ? `${fmtCr(r)} + ${fmtCr(fee)} di commissione` : ""}</span>
+      </div>
+      <div className="panel-body list">
+        <span className="dim" style={{ fontSize: 13 }}>
+          Un lavoro su misura: scegli il sistema, cosa va fatto e come. Più condizioni metti, più deve pagare. Lo vede in bacheca la cellula che scegli.
+        </span>
+        <div className="tabs">
+          {(["red", "blue"] as const).map((s) => (
+            <button
+              type="button"
+              key={s}
+              className={side === s ? "on" : ""}
+              onClick={() => {
+                setSide(s);
+                setGoal(JOB_GOALS.find((g) => g.side === s)!.id);
+                setConds([]);
+              }}
+            >
+              {s === "red" ? "per i rossi" : "per i blu"}
+            </button>
+          ))}
+        </div>
+        <label className="spread">
+          <span className="dim">Sistema</span>
+          <select value={nodeId} onChange={(e) => setNodeId(e.target.value)}>
+            {known.map((n) => (
+              <option key={n.id} value={n.id}>
+                {n.org}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="spread">
+          <span className="dim">Obiettivo</span>
+          <select value={goal} onChange={(e) => setGoal(e.target.value)}>
+            {goals.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {JOB_CONDS.filter((c) => !c.side || c.side === side).map((c) => (
+          <label key={c.id} className="row" style={{ gap: 8, fontSize: 13 }} title={c.hint}>
+            <input type="checkbox" checked={conds.includes(c.id)} onChange={() => toggle(c.id)} />
+            <span>{c.name}</span>
+            <span className="faint" style={{ fontSize: 12 }}>{c.hint}</span>
+          </label>
+        ))}
+        <label className="spread">
+          <span className="dim">Ricompensa (minimo {fmtCr(min)})</span>
+          <input value={reward} onChange={(e) => setReward(e.target.value.replace(/[^0-9]/g, ""))} style={{ width: 120 }} />
+        </label>
+        <label className="spread">
+          <span className="dim">Durata</span>
+          <select value={hours} onChange={(e) => setHours(e.target.value)}>
+            {[1, 3, 6, 12, 24].map((h) => (
+              <option key={h} value={h}>
+                {h} ore
+              </option>
+            ))}
+          </select>
+        </label>
+        <button className="btn primary" disabled={!nodeId || r < min || r > BOUNTY_MAX || me.credits < r + fee}>
+          Pubblica la commissione
+        </button>
+      </div>
+    </form>
   );
 }

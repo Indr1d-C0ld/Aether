@@ -98,5 +98,24 @@ await dev(null, { intrusions: EMERGENCY_AT, pulses: 1 });
 w = await world();
 check("troppe intrusioni in un giorno: stato d'emergenza", w.emergencyUntil > Date.now() && w.news.some((x) => x.kind === "legge"));
 
+// ---- aperture: chi resta a casa si mette in proprio
+await sleep(1200);
+const born = (await act("world", { cmd: "found" })).data as { id: string; org: string; ip: string; adminId: string; password: string };
+w = await world();
+check("nasce un'organizzazione nuova, in cronaca e fra le aperture", Boolean(born?.id) && w.news.some((x) => x.org === born.id && /Apre/.test(x.text)) && ((w as unknown as { startups?: { id: string }[] }).startups ?? []).some((x) => x.id === born.id));
+o = await orgOf(born.id);
+check("nasce debole e con poca cassa", o.sec.proxy <= 1 && o.sec.firewall === 1 && o.cash === 2500 && o.status === "attiva");
+await act("devGrant", { cool: true });
+const c2 = await act("connect", { chain: ["r-sable", "r-kiln", born.id] });
+check("risponde come ogni altro sistema", c2.ok);
+await sleep(300);
+if (!state!.op!.bypass.proxy) await act("run", { tool: "proxy" });
+await sleep(600);
+for (let i = 0; i < 60 && !state!.op!.bypass.proxy; i += 1) await sleep(250);
+const lg = await act("login", { password: born.password });
+if (!lg.ok) console.log("  login:", lg.error, JSON.stringify(state!.op?.bypass), state!.op?.target.id);
+check("e la password di root è una parola da dizionario", lg.ok);
+await act("disconnect");
+
 console.log(fails.length ? `\n${fails.length} FALLITI` : "\ntutto ok");
 process.exit(fails.length ? 1 : 0);

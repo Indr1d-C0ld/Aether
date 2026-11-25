@@ -340,6 +340,29 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Commissioni, ricettatore, aperture (0.17.0)
+
+**Commissioni** (`shared/jobs.ts`, `Game.postJob`). Un contratto scritto da un giocatore: obiettivo (un'impresa registrata in `Game.deed` su quel nodo) e condizioni. «Di notte» e «in orario d'ufficio» sono un campo `when` dell'obiettivo, controllato sull'ora del nodo nel momento dell'impresa (`Game.whenOk`); «senza tracce» aggiunge l'obiettivo `ghostexit`; «fretta» mette un limite di 30 minuti; «esperti» un minimo di 1.500 XP. Paga minima 800 CR × (1 + 0,35 a condizione); ricompensa e 5% di commissione in deposito come per le taglie.
+
+**Ricettatore** (`server/fence.ts`, `shared/fence.ts`). Ogni categoria di merce (tipo di nodo d'origine, o exploit, chip, gadget) ha un'offerta che decade con mezza vita di 6 ore verso un livello «normale» del giorno (da 0 a 6, la metà delle volte 3); moltiplicatore 1,25 − 0,08 × offerta, fra 0,45 e 1,25; la richiesta del giorno vale ×1,5. Ogni vendita aggiunge 1, ogni furto di un abitante 0,5. Prima di questa versione l'offerta tendeva a zero e a mercato fermo ogni merce valeva il 25% in più: ora a riposo la maggior parte vale ×1.
+
+**Aperture** (`server/startups.ts`, testi in `server/startups-text.ts`). Al più una ogni 3 ore, al più 16 vive; a ogni battito la probabilità è 0,4% + 0,4% per disoccupato (fino a 6). Il fondatore è un disoccupato (amministratore del nodo nuovo), con fino a due licenziati; difese proxy 0-1, firewall 1, monitor 1, password da dizionario, cassa 2.500 CR. I nodi nuovi sono documenti come gli altri e sopravvivono ai riavvii. Quando un'organizzazione viene comprata (`Game.orgAcquired`), metà del personale non amministratore viene licenziata.
+
+### Misura del reddito (25 novembre 2026)
+
+`scripts/economy.ts` (contratti) e `scripts/sandbox-economy.ts` (fonti nuove), motore in memoria:
+
+| Fonte | Resa |
+|---|---|
+| Contratti giocati attivamente, rossi | 33.000-76.000 CR/ora (modello ideale: un contratto dopo l'altro, senza errori) |
+| Ricettazione nel gioco libero | 10.000-30.000 CR/ora |
+| Copertura al livello massimo, due dipendenti | 1.680 CR/ora d'apertura, circa 16.800 al giorno |
+| Botnet: worm v3 al completo su nodi di grado 2 | 11.520 CR/ora |
+| Creature del Laboratorio | al più 5.120 CR/ora, e nello stesso tetto dei worm: insieme non superano 11.520 |
+| Borsa da insider, 100 titoli allo scoperto | 1 sabotaggio: ~830 CR attesi · 2: ~2.040 · 3: ~3.450 (vigilanza al 35%) |
+
+Conclusione: le fonti passive messe insieme (botnet al tetto più copertura) valgono circa 13.000 CR l'ora, un quinto o un terzo dei contratti giocati; la Borsa da insider rende meno di un contratto per lo stesso tempo. Correzioni fatte in base a questa misura: tetto unico per worm e creature, vigilanza di Borsa al 35% con sequestro e calore, scoperto da 200 a 100 titoli, mercato del ricettatore che torna verso il normale invece che verso la scarsità. Non misurato: il ricettatore con la richiesta del giorno sfruttata a ripetizione (ogni vendita abbassa il moltiplicatore dell'8%, quindi si esaurisce in poche vendite).
+
 ## Sandbox (0.12.0 - 0.16.0)
 
 Principio: **niente evento a copione**. Ogni modulo tiene uno stato, lo fa cambiare da quello che succede davvero (le gesta dei giocatori via `Game.deed`, quelle degli abitanti via `Game.orgEvent`) e reagisce a soglie. Il racconto (Cronaca, feed, chat, BBS) legge quello stato, non lo inventa.

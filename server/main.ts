@@ -17,6 +17,8 @@ import { installLife } from "./life.ts";
 import { installOrgs } from "./orgs.ts";
 import { installCitizens } from "./citizens.ts";
 import { installStocks } from "./stocks.ts";
+import { installFence } from "./fence.ts";
+import { installStartups } from "./startups.ts";
 import { installFronts } from "./fronts.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
@@ -220,6 +222,8 @@ const orgs = installOrgs(game);
 const life = installLife(game, bbs);
 const citizens = installCitizens(game, zones, orgs);
 const stocks = installStocks(game, orgs);
+const fence = installFence(game);
+const startups = installStartups(game, orgs, citizens);
 installFronts(game, orgs);
 
 installAdmin(game, {
@@ -421,6 +425,8 @@ setInterval(() => {
   orgs.save();
   citizens.save();
   stocks.save();
+  fence.save();
+  startups.save();
     game.flush();
   }
 }, 250);
@@ -433,6 +439,8 @@ process.on("SIGINT", () => {
   orgs.save();
   citizens.save();
   stocks.save();
+  fence.save();
+  startups.save();
   game.flush();
   process.exit(0);
 });
@@ -444,6 +452,8 @@ process.on("SIGTERM", () => {
   orgs.save();
   citizens.save();
   stocks.save();
+  fence.save();
+  startups.save();
   game.flush();
   process.exit(0);
 });

@@ -9,7 +9,7 @@ import { clockLabel, hoursOf, isWeekend, localHour, staffed } from "../shared/cl
 import { INVESTIGATE_COST, SOURCE_COST, type CitizenRow, type Where } from "../shared/citizens.ts";
 
 type R = { ok: boolean; error?: string; note?: string; data?: unknown };
-type Cit = { debt: number; loyalty: number; fired: string | null; firedAt: number; warned: number; cd: Record<string, number> };
+type Cit = { debt: number; loyalty: number; fired: string | null; firedAt: number; warned: number; cd: Record<string, number>; job?: string };
 type State = { people: Record<string, Cit> };
 type Zones = { staffOf: (n: NodeDoc) => Person[]; opPass: (n: NodeDoc) => string };
 type Orgs = { news: (kind: "gente" | "economia", text: string, n: NodeDoc | null, feed?: boolean) => void; statusOf: (n: NodeDoc) => string; isOrg: (n: NodeDoc) => boolean; org: (n: NodeDoc) => { cuts: boolean; crisisSince: number } };
@@ -23,7 +23,7 @@ export function installCitizens(game: Game, zones: Zones, orgs: Orgs) {
   const state: State = game.store.get<State>("cit", "state") ?? { people: {} };
   let dirty = false;
   const cit = (p: Person): Cit => (state.people[p.id] ??= { debt: hash(p.id + "d") % 4 === 0 ? 2500 + (hash(p.id + "e") % 9000) : hash(p.id + "d") % 900, loyalty: 30 + (hash(p.id + "l") % 65), fired: null, firedAt: 0, warned: 0, cd: {} });
-  const employerOf = (p: Person) => (cit(p).fired ? null : (game.nodes.get(WORLD.employer[p.id] ?? "") ?? null));
+  const employerOf = (p: Person) => (cit(p).fired ? null : (game.nodes.get(cit(p).job ?? WORLD.employer[p.id] ?? "") ?? null));
   const homeOf = (p: Person) => game.nodes.get(WORLD.home[p.id] ?? "") ?? null;
   const cityX = (p: Person) => employerOf(p)?.x ?? homeOf(p)?.x ?? 170;
   const onVacation = (p: Person) => hash(`${p.id}:${week()}`) % 9 === 0;
@@ -49,6 +49,10 @@ export function installCitizens(game: Game, zones: Zones, orgs: Orgs) {
     if (e && hoursOf(e.kind) === "sempre" && h >= 8 && h < 17 && !isWeekend(x, now())) return "in ufficio";
     return h >= 18.5 || h < 8 ? "a casa" : "in giro";
   }
+  game.employerOf = (pid) => {
+    const p = PEOPLE.find((x) => x.id === pid);
+    return p ? (employerOf(p)?.id ?? null) : null;
+  };
   const contacts = (a: AgentDoc) => ((a as unknown as { contacts?: string[] }).contacts ??= []);
   const dossiers = (a: AgentDoc) => ((a as unknown as { dossiers?: string[] }).dossiers ??= []);
   function meet(a: AgentDoc, ps: Person[]) {
@@ -100,8 +104,8 @@ export function installCitizens(game: Game, zones: Zones, orgs: Orgs) {
         c.debt += 1500;
         orgs.news("gente", `${e.org} lascia a casa ${p.name}, ${p.job}. «Riorganizzazione», dice l'azienda.`, e, false);
       }
-      // dopo due settimane qualcuno li riassume
-      if (c.fired && now() - c.firedAt > 14 * DAY) c.fired = null;
+      // dopo due settimane qualcuno li riassume (se non li ha già presi un'organizzazione nuova)
+      if (c.fired && !c.job && now() - c.firedAt > 14 * DAY) c.fired = null;
     }
     cursor = (cursor + slice) % PEOPLE.length;
     dirty = true;
@@ -213,6 +217,35 @@ export function installCitizens(game: Game, zones: Zones, orgs: Orgs) {
 
   return {
     whereIs,
+    /** Chi è senza lavoro adesso: licenziati da un'organizzazione. */
+    jobless: () => PEOPLE.filter((p) => cit(p).fired && !cit(p).job),
+    /** Assunzione in un'organizzazione nuova: cambia il datore di lavoro e cancella il licenziamento. */
+    hire(pid: string, nodeId: string) {
+      const p = PEOPLE.find((x) => x.id === pid);
+      if (!p) return;
+      const c = cit(p);
+      c.fired = null;
+      c.job = nodeId;
+      c.loyalty = 60;
+      c.debt = Math.max(0, c.debt - 1000);
+      dirty = true;
+    },
+    /** Licenziamento deciso da fuori (un'acquisizione): il cittadino resta senza lavoro. */
+    fire(pid: string, nodeId: string) {
+      const p = PEOPLE.find((x) => x.id === pid);
+      if (!p) return;
+      const c = cit(p);
+      c.fired = nodeId;
+      c.firedAt = now();
+      c.job = undefined;
+      c.loyalty = 5;
+      c.debt += 1500;
+      dirty = true;
+    },
+    employerId: (pid: string) => {
+      const p = PEOPLE.find((x) => x.id === pid);
+      return p ? (employerOf(p)?.id ?? null) : null;
+    },
     save() {
       if (!dirty) return;
       dirty = false;

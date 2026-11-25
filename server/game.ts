@@ -10,6 +10,8 @@ import { TONE_BONUS_FINDS, TONE_FAIL_COST, TONE_KEYS, TONE_ROUNDS, TONE_WINDOW_M
 import { ROTOR_CLEAN, ROTOR_FAIL_TRACE, ROTOR_FREEZE_MS, ROTOR_SYMBOLS, rotorScore, rotorSpec, type RotorView } from "../shared/rotors.ts";
 import { GRID_CLEAN, GRID_FAIL_TRACE, gridClue, gridSpec, type GridView } from "../shared/grid.ts";
 import { rollScene, type Objective, type SNode } from "./scenarios.ts";
+import { JOB_CONDS, JOB_GOALS, jobMin, type JobCond } from "../shared/jobs.ts";
+import { localHour, localWeekday } from "../shared/clock.ts";
 import { specLevel, type SpecId } from "../shared/progress.ts";
 import { WORLD, WORLD_CITIES } from "./worldgen.ts";
 import { CITIES, CIVIL, CLEARANCES, CRIMES, DEGREES, GRADES, PEOPLE, STATUSES, personById, type Person } from "./people.ts";
@@ -1214,10 +1216,62 @@ export class Game {
   /** Quante volte un obiettivo risulta fatto da quando il contratto è stato accettato. */
   objectiveCount(agent: Agent, m: Mission, o: Objective) {
     const hits = (agent.deeds ?? []).filter(
-      (x) => x.at >= (m.takenAt ?? 0) && x.d === o.deed && (!o.nodeId || x.node === o.nodeId) && (!o.kind || x.kind === o.kind) && (!o.region || x.region === o.region) && (!o.sub || this.node(x.node)?.sub === o.sub),
+      (x) => x.at >= (m.takenAt ?? 0) && x.d === o.deed && (!o.nodeId || x.node === o.nodeId) && (!o.kind || x.kind === o.kind) && (!o.region || x.region === o.region) && (!o.sub || this.node(x.node)?.sub === o.sub) && (!o.when || this.whenOk(o.when, x.node, x.at)),
     );
     if (!o.distinct) return hits.length;
     return new Set(hits.map((x) => (o.distinct === "node" ? x.node : o.distinct === "kind" ? x.kind : x.region)).filter(Boolean)).size;
+  }
+
+  /** Notte (22-6) o orario d'ufficio (8-18 feriale), nell'ora del nodo e nel momento indicato. */
+  whenOk(when: "notte" | "giorno", nodeId: string, at: number) {
+    if (this.clockForce) return this.clockForce === when;
+    const n = this.node(nodeId);
+    if (!n) return false;
+    const h = localHour(n.x, at);
+    const wd = localWeekday(n.x, at);
+    return when === "notte" ? h >= 22 || h < 6 : wd >= 1 && wd <= 5 && h >= 8 && h < 18;
+  }
+
+  /** Commissione: un contratto scritto da un giocatore, con obiettivo e condizioni (shared/jobs.ts). */
+  postJob(agent: Agent, p: Record<string, unknown>) {
+    const goal = JOB_GOALS.find((g) => g.id === p.goal);
+    if (!goal) return { ok: false, error: "scegli un obiettivo" };
+    const node = this.node(String(p.nodeId ?? ""));
+    if (!node || ["relay", "registry", "gateway", "home"].includes(node.kind) || node.hidden) return { ok: false, error: "scegli un sistema bersaglio" };
+    if (!agent.knownNodes.includes(node.id)) return { ok: false, error: "puoi commissionare lavori solo su sistemi che conosci" };
+    const conds = [...new Set(asStrList(p.conds))].filter((c) => JOB_CONDS.some((x) => x.id === c && (!x.side || x.side === goal.side))) as JobCond[];
+    if (conds.includes("notte") && conds.includes("giorno")) return { ok: false, error: "o di notte o di giorno: non tutte e due" };
+    const reward = Math.round(Number(p.reward));
+    const min = jobMin(conds);
+    if (!Number.isFinite(reward) || reward < min || reward > BOUNTY_MAX) return { ok: false, error: `con queste condizioni la paga va da ${fmtCr(min)} a ${fmtCr(BOUNTY_MAX)}` };
+    const fee = Math.ceil(reward * BOUNTY_FEE);
+    if (agent.credits < reward + fee) return { ok: false, error: `servono ${fmtCr(reward + fee)} (ricompensa più commissione)` };
+    if ([...this.missions.values()].filter((m) => m.postedBy === agent.id && (m.status === "open" || m.status === "taken")).length >= 3) return { ok: false, error: "hai già tre lavori aperti in bacheca" };
+    const hours = Math.max(1, Math.min(24, Math.round(Number(p.hours ?? 6))));
+    const when = conds.includes("notte") ? "notte" : conds.includes("giorno") ? "giorno" : undefined;
+    const m = this.baseMission(goal.side, goal.side === "red" ? "chain" : "audit", node);
+    m.objectives = [{ deed: goal.deed, n: 1, nodeId: node.id, when, label: `${goal.label(node.org)}${when === "notte" ? ", di notte (ora loro)" : when === "giorno" ? ", in orario d'ufficio" : ""}` }];
+    if (conds.includes("ghost")) m.objectives.push({ deed: "ghostexit", n: 1, nodeId: node.id, label: "Esci senza lasciare righe leggibili nel log" });
+    if (conds.includes("fretta")) m.limitMin = 30;
+    m.minXp = conds.includes("esperti") ? 1500 : 0;
+    m.reward = reward;
+    m.xp = Math.min(320, 60 + Math.round(reward / 40));
+    m.postedBy = agent.id;
+    m.expiresAt = now() + hours * 3600_000;
+    m.title = `Commissione: ${goal.name.toLowerCase()} · ${node.org}`;
+    m.brief = `${agent.handle} paga ${fmtCr(reward)} a chi riesce a ${goal.name.toLowerCase()} (${node.org}).${conds.length ? ` Condizioni: ${conds.map((c) => JOB_CONDS.find((x) => x.id === c)!.name.toLowerCase()).join("; ")}.` : ""} Si consegna dalla bacheca quando tutto risulta fatto.`;
+    if (goal.side === "blue") {
+      m.clientAccess = true;
+      m.clientNodes = [node.id];
+      m.requires = goal.id === "patch" ? ["patch"] : goal.id === "clean" ? [] : [];
+    } else m.requires = goal.id === "admin" || goal.id === "mastro" ? (node.proxy ? ["proxy"] : []) : this.secRequires(node);
+    agent.credits -= reward + fee;
+    this.missions.set(m.id, m);
+    this.touch("mission", m.id);
+    this.touch("agent", agent.id);
+    this.bump(agent, "job:post");
+    this.feed(`Nuova commissione di ${agent.handle}: «${m.title}» (${fmtCr(reward)}).`, goal.side);
+    return { ok: true, note: `commissione pubblicata · −${fmtCr(reward + fee)}` };
   }
 
   /** Statistiche globali: totale e giorno per giorno (solo giocatori veri). */
@@ -2762,7 +2816,7 @@ export class Game {
       tools: a.tools,
       storage: a.storage.map((st) => ({
         ...st,
-        fence: Math.round(this.priceOf(st) * (!st.item && now() - (a.fenced[`${st.nodeId}:${st.fileId}`] ?? 0) < FENCE_MEMORY ? FENCE_REPEAT : 1)),
+        fence: Math.round(this.priceOf(st) * (this.fenceDemand?.(st) ?? 1) * (!st.item && now() - (a.fenced[`${st.nodeId}:${st.fileId}`] ?? 0) < FENCE_MEMORY ? FENCE_REPEAT : 1)),
       })),
       storageCap: this.storageMax(a),
       presiding: a.presiding.filter((x) => x.until > now()),
@@ -3218,7 +3272,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3257,9 +3311,18 @@ export class Game {
   lifeChat: ((lore: string) => string | null) | null = null;
   /** Un giocatore fa qualcosa che a un abitante piace (o no): cambia il rapporto. */
   lifeFavor: ((a: Agent, handle: string, delta: number) => void) | null = null;
+  /** Datore di lavoro attuale di un cittadino (server/citizens.ts): tiene conto di licenziamenti e assunzioni. */
+  employerOf: ((pid: string) => string | null) | null = null;
+  // il mercato del ricettatore (server/fence.ts)
+  fenceDemand: ((st: StoredFile) => number) | null = null;
+  fenceSold: ((st: StoredFile, n?: number) => void) | null = null;
+  fenceFlood: ((n: WNode, amount?: number) => void) | null = null;
+  fenceMarket: (() => import("../shared/fence.ts").FenceMarket) | null = null;
   // organizzazioni vive, cronaca, eventi di mondo (server/orgs.ts)
   orgEvent: ((n: WNode, kind: "intrusione" | "furto" | "sabotaggio" | "infezione" | "difesa", who: string | null) => void) | null = null;
   orgStrike: ((n: WNode) => boolean) | null = null;
+  /** Un'organizzazione è stata comprata: chi ascolta (server/startups.ts) lascia a casa metà del personale. */
+  orgAcquired: ((n: WNode) => void) | null = null;
   orgWatch: ((n: WNode) => number) | null = null;
   regionAlert: ((region: string) => boolean) | null = null;
   // warez, malware e antivirus (server/malware.ts)
@@ -3354,6 +3417,8 @@ export class Game {
           return this.disconnect(agent);
         case "tone":
           return this.tone(agent, String(p.act ?? "open"), p);
+        case "postJob":
+          return this.postJob(agent, p);
         case "rotor":
           return this.rotor(agent, String(p.act ?? "open"), p);
         case "grid":
@@ -4683,12 +4748,14 @@ export class Game {
     // lo stesso file non lo ricompra a prezzo pieno: sul mercato non vale niente una seconda copia
     const fkey = `${st.nodeId}:${st.fileId}`;
     const repeat = !st.item && now() - (agent.fenced[fkey] ?? 0) < FENCE_MEMORY;
-    const price = Math.round(this.priceOf(st) * (repeat ? FENCE_REPEAT : 1) * this.num("fenceMult") * (1 + this.chip(agent, "fence") / 100));
+    const demand = this.fenceDemand?.(st) ?? 1;
+    const price = Math.round(this.priceOf(st) * demand * (repeat ? FENCE_REPEAT : 1) * this.num("fenceMult") * (1 + this.chip(agent, "fence") / 100));
+    if (!repeat) this.fenceSold?.(st);
     if (!st.item) agent.fenced[fkey] = now();
     agent.storage = agent.storage.filter((x) => x !== st);
     agent.credits += price;
     this.touch("agent", agent.id);
-    return { ok: true, note: repeat ? `il ricettatore ce l'ha già: ${fmtCr(price)}` : `il ricettatore paga ${fmtCr(price)}` };
+    return { ok: true, note: repeat ? `il ricettatore ce l'ha già: ${fmtCr(price)}` : demand >= 1.3 ? `il ricettatore lo cercava proprio: ${fmtCr(price)}` : demand < 0.8 ? `il ricettatore ne ha pieni i cassetti: ${fmtCr(price)}` : `il ricettatore paga ${fmtCr(price)}` };
   }
 
   // ------------------------------------------------------------ taglie dei giocatori

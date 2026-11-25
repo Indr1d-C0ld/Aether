@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.16.0](https://img.shields.io/badge/versione-0.16.0-39ff88)
+![Versione 0.17.0](https://img.shields.io/badge/versione-0.17.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -116,7 +116,7 @@ orari: uffici aperti dal lunedì al venerdì, negozi fino al sabato, polizia e o
 collega non fa notizia, di notte sì; al centralino risponde qualcuno solo quando in ufficio c'è qualcuno; in pausa pranzo i
 monitor sono pigri; le casse dei negozi sono piene la sera.
 
-![La mappa con la fascia della notte](docs/img/notte.jpg)
+![La mappa con la fascia della notte: in questo momento è buio in Asia e in Oceania](docs/img/notte.jpg)
 
 E c'è **gente**: trenta abitanti con un nome, una città e un fuso, che quando sono svegli agiscono davvero. Fanno colpi dove è
 buio, mettono in giro virus, fanno la ronda, finiscono in custodia e tornano, pagano la bolletta. Poi lo raccontano in chat,
@@ -137,14 +137,24 @@ Quello che fai resta, e il mondo ci ragiona sopra.
   ti fa da alibi, ti presta soldi; chi ti detesta fa il tuo nome.
 - **Borsa.** Trenta titoli il cui prezzo segue lo stato vero dell'azienda. Si compra, si vende, si vende allo scoperto.
 - **Copertura.** Un'attività legale intestata a te, che incassa in orario d'ufficio e attira la finanza se scotti troppo.
+- **Commissioni.** Contratti scritti dai giocatori su un sistema a scelta, con condizioni che contano davvero: senza lasciare
+  tracce, solo di notte o solo in orario d'ufficio (ora loro), entro mezz'ora, solo per gente esperta.
+- **Il ricettatore ha un mercato.** Quello che tutti gli portano lo paga meno, quello che scarseggia lo paga di più, e ogni
+  giorno cerca una merce in particolare. Contano anche i colpi degli abitanti.
+- **Aziende che nascono.** Chi resta senza lavoro prima o poi apre qualcosa, con difese da principianti; quando
+  un'organizzazione viene comprata, metà del personale resta a casa.
 - **Soglie di mondo.** Troppe intrusioni in un giorno e scatta lo stato d'emergenza; troppi sistemi infetti in una regione e gli
   antivirus si irrigidiscono.
 
-![La Cronaca, con la scheda di una banca in difficoltà](docs/img/cronaca.jpg)
+![La Cronaca: aperture, guerre commerciali, sabotaggi, e la scheda di un poliambulatorio appena nato](docs/img/cronaca.jpg)
 
-![Le crew degli abitanti nella voce Persone](docs/img/persone.jpg)
+![Persone: la rubrica di chi conosci e le crew degli abitanti](docs/img/persone.jpg)
 
 ![Affari: la copertura e il listino di Borsa](docs/img/affari.jpg)
+
+![Una commissione con due condizioni: senza tracce e solo di notte](docs/img/commissioni.jpg)
+
+![Il mercato del ricettatore: chi paga bene, chi ne ha troppi, e la richiesta del giorno](docs/img/ricettatore.jpg)
 
 ## BBS
 
@@ -158,7 +168,7 @@ classifica, e, su un numero che trova solo il War Dialer, un sistema che a tris 
 
 ## Warez, virus e antivirus
 
-![Il banco di assemblaggio del Laboratorio](docs/img/laboratorio.jpg)
+![Il banco di assemblaggio del Laboratorio, con tre creature pronte](docs/img/laboratorio.jpg)
 
 Nell'area file dei BBS girano i **warez**: programmi pirata che potenziano il deck per qualche ora, e che ogni tanto sono
 infetti. Il deck si ammala (virus, dialer, RAT, bombe logiche) e si cura con un **antivirus** a tre livelli, le cui firme
@@ -249,7 +259,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **640 traguardi**: 160 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **648 traguardi**: 162 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -282,6 +292,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.17.0 | 25 novembre 2026 | Commissioni con condizioni, mercato del ricettatore, aziende che nascono |
 | 0.16.0 | 25 novembre 2026 | Sandbox: la copertura del giocatore |
 | 0.15.0 | 25 novembre 2026 | Sandbox: la Borsa del Reticolo |
 | 0.14.0 | 25 novembre 2026 | Sandbox: abitanti con ambizioni, amicizie, crew e faide |
@@ -423,6 +434,9 @@ le barre (trace e task) fra un aggiornamento e l'altro.
 Le immagini in pixel art (scena d'accesso, icone dei software e dei nodi, ritratti NPC, icona dell'app) sono generate
 con PixelLab: vedi [ASSETS.md](ASSETS.md) e `scripts/pixellab.ts`. Se un file manca, il client ripiega sul disegno procedurale.
 
+
+Le schermate del README si rifanno con `scripts/showcase.ts`: prepara un mondo di prova pieno di cose (nodi scoperti, cronaca,
+persone, creature, copertura, Borsa, una commissione) e le fotografa con Chromium senza finestra, a 2160×1350.
 ## Audio
 
 Musica ed effetti sono sintetizzati nel browser con il Web Audio API, alla maniera delle schede FM anni '90
