@@ -6,6 +6,15 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.21.1",
+    date: "2026-11-25",
+    title: "Sessioni che scadono",
+    tags: ["sicurezza"],
+    items: [
+      "Un accesso resta valido 30 giorni dall'ultima volta che giochi. Ogni volta che rientri si rinnova, quindi chi gioca spesso non se ne accorge. Se la sessione è scaduta, la pagina d'ingresso te lo dice e ti chiede handle e chiave.",
+    ],
+  },
+  {
     v: "0.21.0",
     date: "2026-11-25",
     title: "Cicatrici, mercato nero e una mappa più comoda",

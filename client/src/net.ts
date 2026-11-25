@@ -79,7 +79,8 @@ class Net {
           break;
         case "auth_err":
           if (msg.error === "sessione scaduta") writeToken(null);
-          this.set({ authed: false, authError: msg.error === "sessione scaduta" ? null : msg.error });
+          // una sessione scaduta (o un token di prima) non è un errore: si torna a chiedere handle e chiave
+          this.set({ authed: false, authError: msg.error === "sessione scaduta" ? "La sessione è scaduta: rientra con handle e chiave." : msg.error });
           break;
         case "state":
           // l'elenco dei nodi arriva a intervalli: quando manca si tiene l'ultimo ricevuto

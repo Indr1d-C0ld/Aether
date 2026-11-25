@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.21.0](https://img.shields.io/badge/versione-0.21.0-39ff88)
+![Versione 0.21.1](https://img.shields.io/badge/versione-0.21.1-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -321,6 +321,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.21.1 | 25 novembre 2026 | Le sessioni scadono 30 giorni dopo l'ultimo uso |
 | 0.21.0 | 25 novembre 2026 | Cicatrici sulla mappa, traslochi, 0-day che invecchiano, retate; mappa trascinabile e filtri per tipo |
 | 0.20.0 | 25 novembre 2026 | Leggi e contrappesi: fiducia nella Guardia, scandali, aiuto da fuori a chi perde |
 | 0.19.0 | 25 novembre 2026 | Le informazioni come merce: Mediatore, bancarella, segnalazioni, soffiate alla Guardia |
@@ -367,7 +368,8 @@ npm run build
 npm start          # http://0.0.0.0:7077
 ```
 
-Variabili d'ambiente: `AETHER_PORT` (default 7077), `AETHER_DB` (default `data/aether.db`).
+Variabili d'ambiente: `AETHER_PORT` (default 7077), `AETHER_DB` (default `data/aether.db`), `AETHER_SESSION_DAYS`
+(giorni senza accessi dopo cui una sessione scade, default 30).
 Il server usa solo Node 26 (TypeScript nativo, `node:sqlite`) e la libreria `ws`.
 
 Controlli:
@@ -379,7 +381,7 @@ node scripts/smoke-gateway.ts 7099  # assalto a un gateway e rivalsa (server con
 node scripts/smoke-market.ts 7099   # mercato nero, ricettatore e taglie (server con AETHER_DEV=1)
 node scripts/smoke-depth.ts 7099    # archivi, banca, oggetti, giustizia, War Dialer (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/smoke-blue.ts 7099     # lato blu completo: 7 tipi di contratto (AETHER_DEV=1 AETHER_FAST=1)
-scripts/test-all.sh                 # tutti i 25 test smoke (scripts/smoke-*.ts), ognuno su un mondo pulito: più di dieci minuti
+scripts/test-all.sh                 # tutti i 26 test smoke (scripts/smoke-*.ts), ognuno su un mondo pulito: più di dieci minuti
 node scripts/smoke-world.ts 7099    # mondo vivo: esplorazione, reazioni dei nodi, comandi di sistema (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/smoke-soc.ts 7099      # sala operativa blu: presidi, sensori come prova, analista (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/economy.ts             # economia: ricompense per grado, CR/ora, ore per salire di livello (senza server)

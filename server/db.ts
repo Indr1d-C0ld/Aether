@@ -4,6 +4,9 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
+/** Una sessione scade dopo tanto tempo senza usarla (variabile AETHER_SESSION_DAYS, predefinita 30 giorni). */
+export const TOKEN_TTL_MS = Math.max(1, Number(process.env.AETHER_SESSION_DAYS) || 30) * 86400_000;
+
 export class Store {
   db: DatabaseSync;
 
@@ -16,6 +19,10 @@ export class Store {
       create table if not exists accounts (handle_key text primary key, handle text not null, salt text not null, hash text not null, agent_id text not null);
       create table if not exists tokens (token text primary key, agent_id text not null, created integer not null);
     `);
+    // le sessioni scadono: «used» è l'ultimo uso (le righe di prima contano dalla creazione)
+    const cols = this.db.prepare("pragma table_info(tokens)").all() as { name: string }[];
+    if (!cols.some((c) => c.name === "used")) this.db.exec("alter table tokens add column used integer");
+    this.purgeTokens();
   }
 
   all<T>(kind: string): T[] {
@@ -103,12 +110,27 @@ export class Store {
 
   issueToken(agentId: string) {
     const token = randomBytes(24).toString("base64url");
-    this.db.prepare("insert into tokens (token, agent_id, created) values (?, ?, ?)").run(token, agentId, Date.now());
+    const t = Date.now();
+    this.db.prepare("insert into tokens (token, agent_id, created, used) values (?, ?, ?, ?)").run(token, agentId, t, t);
+    this.purgeTokens();
     return token;
   }
 
+  /** L'agente di una sessione, se non è scaduta. Ogni uso la rinnova (al più una scrittura l'ora). */
   agentForToken(token: string): string | null {
-    const row = this.db.prepare("select agent_id from tokens where token = ?").get(token) as { agent_id: string } | undefined;
-    return row?.agent_id ?? null;
+    const row = this.db.prepare("select agent_id, coalesce(used, created) as used from tokens where token = ?").get(token) as { agent_id: string; used: number } | undefined;
+    if (!row) return null;
+    const t = Date.now();
+    if (t - row.used > TOKEN_TTL_MS) {
+      this.db.prepare("delete from tokens where token = ?").run(token);
+      return null;
+    }
+    if (t - row.used > 3600_000) this.db.prepare("update tokens set used = ? where token = ?").run(t, token);
+    return row.agent_id;
+  }
+
+  /** Toglie le sessioni scadute. */
+  purgeTokens() {
+    this.db.prepare("delete from tokens where coalesce(used, created) < ?").run(Date.now() - TOKEN_TTL_MS);
   }
 }

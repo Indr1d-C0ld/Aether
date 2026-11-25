@@ -556,7 +556,7 @@ Scelta di fondo: **niente riga di comando**. La libertà dentro un nodo si dà c
 
 ## Prossimi passi proposti
 
-Aggiornato al 25 novembre 2026 (0.21.0).
+Aggiornato al 25 novembre 2026 (0.21.1).
 
 1. **Grafica PixelLab**: sfondi di città per la schermata d'accesso, ritratti degli handle NPC, icone dei software in 32×32 a palette VGA, splash per le schede dei nodi.
 2. ~~Audio~~ (fatto, sintetizzato nel browser). La musica e gli effetti di PixelLab richiedono un abbonamento Tier 2: con quello si potrebbero aggiungere brani registrati da alternare a quelli generativi.
@@ -565,5 +565,5 @@ Aggiornato al 25 novembre 2026 (0.21.0).
 5. **Stagioni ed eventi a copione**: messi da parte su richiesta (17 novembre). Al loro posto ci sono eventi che nascono da soglie: guerre commerciali, stato d'emergenza, scandali, retate, aiuto da fuori, allerte virali (0.12-0.21).
 6. ~~Mini-giochi opzionali~~ (fatti: griglia del firewall 0.5, rotori del Decrypter 0.6, toni della Blue Box 0.7, oscilloscopio delle barriere biometriche 0.8).
 7. **APK Android**: messo da parte su richiesta (17 novembre). Il dominio HTTPS ora c'è; resterebbero l'icona PNG 512 e `bubblewrap init --manifest https://…/manifest.webmanifest`.
-8. **Sicurezza di rete**: ~~HTTPS/WSS dietro un proxy~~ (Apache su Balthasar), ~~limite di frequenza~~ (30 messaggi al secondo per connessione, tetti su accessi sbagliati e iscrizioni). Manca la **scadenza dei token**: oggi una sessione resta valida finché non si cambia la chiave.
+8. **Sicurezza di rete**: ~~HTTPS/WSS dietro un proxy~~ (Apache su Balthasar), ~~limite di frequenza~~ (30 messaggi al secondo per connessione, tetti su accessi sbagliati e iscrizioni). ~~Scadenza dei token~~ (0.21.1: 30 giorni dall'ultimo uso, rinnovata a ogni accesso, `AETHER_SESSION_DAYS`; le sessioni scadute si cancellano a ogni nuovo accesso e all'avvio).
 9. **Proposta sandbox** del 25 novembre: completa (0.12-0.21).
