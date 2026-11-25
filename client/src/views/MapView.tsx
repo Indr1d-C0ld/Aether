@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { NodeView } from "../../../shared/types.ts";
 import { KIND_LABEL, KIND_PROFILE, MISSION_LABEL, SCAN_COST, SENSOR_COST, scanFinds, socPresidia, socSensors, REGION_NAME, RELAY_CLASS, WARDIAL_COST, fmtCr, heatTraceFactor, regionAt, routeTrace, type HopInput } from "../../../shared/rules.ts";
 import { DialLog } from "../cinema.tsx";
+import { Tones } from "./Tones.tsx";
 import { net } from "../net.ts";
 import { MAP_H, MAP_STYLES, MAP_VIEWS, MAP_W, RELAY_COLOR, drawMap, loadBaseMap, KIND_COLOR } from "../pixel.ts";
 import { sfx } from "../audio.ts";
@@ -320,6 +321,7 @@ function WarDialer({ ctx }: { ctx: DeckCtx }) {
   const [region, setRegion] = useState<string>(me.home.region);
   if (!v) return null;
   const left = Math.max(0, Math.ceil((me.scanUntil - ctx.serverNow) / 1000));
+  const holding = me.tone?.state === "open";
   return (
     <div className="list" style={{ gap: 6, borderTop: "1px solid var(--line)", paddingTop: 10 }}>
       <div className="spread">
@@ -336,12 +338,26 @@ function WarDialer({ ctx }: { ctx: DeckCtx }) {
             </option>
           ))}
         </select>
-        <button className="btn" disabled={left > 0 || Boolean(ctx.state.op) || me.credits < SCAN_COST} onClick={() => void net.do("wardial", { region })}>
-          {left > 0 ? `In corso… ${left}s` : `Scandaglia · ${fmtCr(SCAN_COST)}`}
+        <button className="btn" disabled={left > 0 || holding || Boolean(ctx.state.op) || me.credits < SCAN_COST} onClick={() => void net.do("wardial", { region })}>
+          {holding ? "Linea aperta…" : left > 0 ? `In corso… ${left}s` : `Scandaglia · ${fmtCr(SCAN_COST)}`}
         </button>
       </div>
-      {left > 0 ? (
-        <DialLog serverNow={ctx.serverNow} />
+      {me.tone ? (
+        <Tones tone={me.tone} />
+      ) : left > 0 ? (
+        <>
+          <DialLog serverNow={ctx.serverNow} />
+          <button
+            className="btn small"
+            onClick={() => {
+              sfx.whistle();
+              void net.do("tone", { act: "open" });
+            }}
+            title="Fischia nella cornetta e ripeti i toni del centralino: se li azzecchi ti passa le linee riservate"
+          >
+            Blue Box · fischia nella cornetta
+          </button>
+        </>
       ) : (
         <span className="faint" style={{ fontSize: 12 }}>
           Ogni scansione mette sulla mappa fino a {scanFinds(v)} nodi della regione che non conosci: negozi, uffici, banche, PC di casa. Ogni tanto risponde

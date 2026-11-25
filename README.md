@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.6.0](https://img.shields.io/badge/versione-0.6.0-39ff88)
+![Versione 0.7.0](https://img.shields.io/badge/versione-0.7.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -120,6 +120,10 @@ Il secondo sono i **rotori del Decrypter**: la chiave di un file cifrato è una 
 dice quanti sono allineati e quanti simboli sono giusti ma fuori posto; trovata la chiave il file è in chiaro, e con almeno
 2 prove avanzate il trace si ferma dieci secondi. Anche qui si può andare a mano un livello sopra il proprio Decrypter.
 
+Il terzo sono i **toni della Blue Box**: mentre il War Dialer compone, un fischio a 2600 Hz apre la linea e il centralino suona
+una sequenza di toni DTMF da ripetere sul tastierino, per tre giri sempre più lunghi. Chi li azzecca chiude subito la scansione
+con 2 nodi in più e più probabilità di trovare un nodo segreto; chi sbaglia paga 300 CR di interurbana.
+
 ## ReticoloNet
 
 Dentro il deck c'è una rete IRC come quelle del 1996: è lì che i giocatori si parlano, trattano e si sfidano.
@@ -177,7 +181,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **468 traguardi**: 117 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **472 traguardi**: 118 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -210,6 +214,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.7.0 | 25 novembre 2026 | I toni della Blue Box, il terzo minigioco |
 | 0.6.0 | 25 novembre 2026 | I rotori del Decrypter, il secondo minigioco |
 | 0.5.0 | 25 novembre 2026 | La griglia del firewall, il primo minigioco |
 | 0.4.0 | 24 novembre 2026 | Sottosistemi, tre livelli di accesso, posta interna, reti interne |
@@ -310,6 +315,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/game.ts` | Simulazione autoritativa: mondo, operazioni live, trace, log, forensica, contratti, NPC |
 | `server/content.ts` | Nodi, file, password, NPC del mondo iniziale, nodi nascosti |
 | `server/scenarios.ts` | I copioni delle operazioni a tappe |
+| `shared/tones.ts`, `client/src/views/Tones.tsx` | I toni della Blue Box |
 | `shared/rotors.ts`, `client/src/views/Rotors.tsx` | I rotori del Decrypter |
 | `shared/grid.ts`, `client/src/views/FirewallGrid.tsx` | La griglia del firewall (la logica sta in `server/game.ts`, il segreto non lascia il server) |
 | `server/zones.ts`, `shared/zones.ts` | Sottosistemi dei nodi, credenziali del personale, posta interna, reti interne |

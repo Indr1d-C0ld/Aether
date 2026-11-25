@@ -245,6 +245,18 @@ export function blip(freq = 660, dur = 0.05, type: OscillatorType = "square", vo
 let lastKey = 0;
 
 export const sfx = {
+  /** Un tasto del telefono: la coppia di frequenze DTMF vera. */
+  dtmf: (lo: number, hi: number, dur = 0.16) => {
+    const s = sfxBusOrNull();
+    if (!s) return;
+    tone(s.bus, lo, s.t, dur, 0.09, { type: "sine" });
+    tone(s.bus, hi, s.t, dur, 0.09, { type: "sine" });
+  },
+  /** Il fischio a 2600 Hz che apre la linea. */
+  whistle: () => {
+    const s = sfxBusOrNull();
+    if (s) tone(s.bus, 2600, s.t, 0.5, 0.06, { type: "sine" });
+  },
   click: () => {
     const s = sfxBusOrNull();
     if (s) fm(s.bus, 1320, s.t, 0.025, 0.12, { ratio: 2, index: 0.8, decay: 0.02, sustain: 0.1, release: 0.02 });

@@ -6,6 +6,19 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.7.0",
+    date: "2026-11-25",
+    title: "I toni della Blue Box: il terzo minigioco",
+    tags: ["minigiochi", "war dialer", "phreaking"],
+    items: [
+      "Mentre il War Dialer compone, sulla mappa compare «Blue Box · fischia nella cornetta»: un fischio a 2600 Hz e la linea è tua.",
+      "Il centralino suona una sequenza di toni (quelli veri dei telefoni a tastiera) e tu la ripeti sul tastierino. Tre giri: quattro toni, poi cinque, poi sei.",
+      "Se li azzecchi tutti la scansione si chiude subito, il centralino ti passa 2 nodi in più e sale la probabilità che risponda qualcosa che non è in nessun elenco.",
+      "Un tono sbagliato e l'operatore ti addebita 300 CR di interurbana; la scansione va avanti come sempre. Finché stai componendo, la linea ti aspetta.",
+      "È facoltativa, come gli altri minigiochi. 4 traguardi nuovi: 472 in tutto.",
+    ],
+  },
+  {
     v: "0.6.0",
     date: "2026-11-25",
     title: "I rotori del Decrypter: il secondo minigioco",

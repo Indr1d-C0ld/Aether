@@ -122,6 +122,7 @@ export type AgentView = {
   account: string; // il tuo conto, per i bonifici
   pending: { amount: number; clearAt: number; from: string }[]; // bonifici rubati non ancora accreditati
   scanUntil: number; // War Dialer in corso
+  tone: import("./tones.ts").ToneView | null; // i toni della Blue Box, se la linea è aperta
   hiddenFound: number;
   hiddenTotal: number;
   maxHops: number; // modem + chip

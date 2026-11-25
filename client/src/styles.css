@@ -2482,3 +2482,88 @@ table.board tr.you td {
   text-decoration: none;
   color: var(--faint);
 }
+
+/* ---------- toni della Blue Box (minigioco) ---------- */
+
+.tone-box {
+  border: 1px solid var(--line-hi);
+  background: var(--void);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tone-box.won {
+  border-color: var(--green);
+}
+.tone-box.lost {
+  border-color: var(--red);
+}
+.tone-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+.tone-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  gap: 5px;
+}
+.tone-key {
+  height: 40px;
+  border: 1px solid var(--line-hi);
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--pixel);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.tone-key:not(:disabled):hover,
+.tone-key:not(:disabled):focus-visible {
+  border-color: var(--cyan);
+  outline: none;
+}
+.tone-key:disabled {
+  cursor: default;
+  color: var(--dim);
+}
+.tone-key.lit {
+  background: var(--blue);
+  border-color: var(--cyan);
+  color: #fff;
+  box-shadow: 0 0 12px rgb(61 139 255 / 0.7);
+}
+.tone-side {
+  flex: 1 1 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tone-slots {
+  display: flex;
+  gap: 4px;
+  font-family: var(--pixel);
+  font-size: 26px;
+  line-height: 1;
+}
+.tone-slots span {
+  width: 24px;
+  text-align: center;
+  border-bottom: 2px solid var(--line-hi);
+  color: var(--faint);
+}
+.tone-slots span.on {
+  color: var(--amber);
+  border-color: var(--amber);
+}
+.tone-box.won .tone-slots span {
+  color: var(--green);
+  border-color: var(--green);
+}
+.tone-box.lost .tone-slots span {
+  color: var(--red);
+  border-color: var(--red);
+}

@@ -102,6 +102,7 @@ export const TRACKS: Track[] = [
 
   // ---------------------------------------------------------------- esplorazione
   T("a:wardial", "esplorazione", "Giochiamo?|Telefono rosso|Centralinista|WOPR", [1, 10, 50, 200], "Lancia {n} scansioni con il War Dialer."),
+  T("mg:tone", "esplorazione", "Fischio giusto|2600 Hz|Captain Crunch|Il centralino sono io", [1, 10, 50, 200], "Ripeti {n} volte tutti i toni con la Blue Box durante una scansione."),
   T("seen", "esplorazione", "Prime coordinate|Cartografo|Esploratore|La mappa è il territorio", [10, 80, 220, 480], "Metti {n} nodi sulla tua mappa."),
   T("hidden", "esplorazione", "Fuori dalla mappa|Segreti|Archeologo|Tutti e quattro", [1, 4, 9, 17], "Trova {n} nodi nascosti."),
   T("rumor", "esplorazione", "Soffiata|Orecchie lunghe|Confidente|L'Oracolo sono io", [1, 3, 6, 12], "Ricevi {n} soffiate sui nodi nascosti."),
@@ -259,6 +260,8 @@ export const STAT_LABEL: Record<string, string> = {
   ghostpay: "Bonus «senza traccia»",
   bounty: "Taglie eseguite",
   "a:wardial": "Scansioni del War Dialer",
+  "mg:tone": "Centralini ingannati",
+  "mg:tonelost": "Toni sbagliati",
   seen: "Nodi sulla mappa",
   hidden: "Nodi nascosti trovati",
   "a:registry": "Interrogazioni del Registro",

@@ -6,6 +6,7 @@ import { randomBytes } from "node:crypto";
 import { TIER_FAME as ACH_FAME, TIER_NAME as ACH_TIER, achId, trackValue, tracksFor } from "../shared/achievements.ts";
 import { DEFAULT_SETTINGS, type AuditRow, type IpBan, type Settings } from "../shared/admin.ts";
 import type { Store } from "./db.ts";
+import { TONE_BONUS_FINDS, TONE_FAIL_COST, TONE_KEYS, TONE_ROUNDS, TONE_WINDOW_MS, type ToneView } from "../shared/tones.ts";
 import { ROTOR_CLEAN, ROTOR_FAIL_TRACE, ROTOR_FREEZE_MS, ROTOR_SYMBOLS, rotorScore, rotorSpec, type RotorView } from "../shared/rotors.ts";
 import { GRID_CLEAN, GRID_FAIL_TRACE, gridClue, gridSpec, type GridView } from "../shared/grid.ts";
 import { rollScene, type Objective, type SNode } from "./scenarios.ts";
@@ -1365,26 +1366,73 @@ export class Game {
     if (agent.scanUntil > now()) return { ok: false, error: "scansione già in corso" };
     if (agent.credits < SCAN_COST) return { ok: false, error: `la bolletta è ${fmtCr(SCAN_COST)} a scansione` };
     agent.credits -= SCAN_COST;
+    this.tones.delete(agent.id);
     agent.scanRegion = region as Region;
     agent.scanUntil = now() + (FAST ? 1500 : scanSeconds(v) * 1000);
     this.touch("agent", agent.id);
     return { ok: true, note: `scansione di ${REGION_NAME[region as Region]} avviata · −${fmtCr(SCAN_COST)}` };
   }
 
-  finishScan(agent: Agent) {
+  // ------------------------------------------------------------ i toni della Blue Box (minigioco)
+
+  tones = new Map<string, { seq: number[]; round: number; state: "open" | "won" | "lost"; until: number }>();
+
+  toneView(a: Agent): ToneView | null {
+    const g = this.tones.get(a.id);
+    if (!g) return null;
+    return { round: g.round, rounds: TONE_ROUNDS.length, seq: g.state === "open" ? g.seq.slice(0, TONE_ROUNDS[g.round]) : g.seq, state: g.state, until: g.until };
+  }
+
+  tone(agent: Agent, act: string, p: Record<string, unknown>) {
+    const g = this.tones.get(agent.id);
+    if (act === "open") {
+      if (!agent.scanUntil) return { ok: false, error: "la Blue Box serve mentre il War Dialer sta componendo" };
+      if (g) return g.state === "open" ? { ok: true } : { ok: false, error: "il centralino ha già riattaccato: alla prossima scansione" };
+      const seq = Array.from({ length: TONE_ROUNDS.at(-1)! }, () => Math.floor(Math.random() * TONE_KEYS.length));
+      this.tones.set(agent.id, { seq, round: 0, state: "open", until: now() + TONE_WINDOW_MS });
+      return { ok: true, note: "2600 Hz: la linea è tua" };
+    }
+    if (act !== "dial" || !g || g.state !== "open") return { ok: false, error: "nessuna linea aperta" };
+    const want = g.seq.slice(0, TONE_ROUNDS[g.round]);
+    const keys = Array.isArray(p.keys) ? p.keys.map(Number) : [];
+    if (keys.length !== want.length) return { ok: false, error: "sequenza incompleta" };
+    if (keys.some((k, i) => k !== want[i])) {
+      g.state = "lost";
+      const fee = Math.min(agent.credits, TONE_FAIL_COST);
+      agent.credits -= fee;
+      this.touch("agent", agent.id);
+      this.bump(agent, "mg:tonelost");
+      this.out.toast(agent.id, `Tono sbagliato: l'operatore ha sentito e ti addebita l'interurbana${fee ? ` · −${fmtCr(fee)}` : ""}.`, "warn");
+      return { ok: true, data: { lost: true } };
+    }
+    g.round += 1;
+    if (g.round < TONE_ROUNDS.length) return { ok: true, data: { round: g.round } };
+    g.round = TONE_ROUNDS.length - 1;
+    g.state = "won";
+    this.bump(agent, "mg:tone");
+    this.out.toast(agent.id, "Il centralino ti passa le linee riservate.", "ok");
+    this.finishScan(agent, true);
+    return { ok: true, data: { won: true } };
+  }
+
+  finishScan(agent: Agent, bonus = false) {
     const region = agent.scanRegion ?? "eu";
     const v = agent.tools.wardialer ?? 1;
+    // la partita chiusa resta a schermo qualche secondo, poi sparisce
+    const game = this.tones.get(agent.id);
+    if (game?.state === "open") this.tones.delete(agent.id);
+    else if (game) game.until = now() + 6000;
     agent.scanUntil = 0;
     agent.scanRegion = null;
     this.touch("agent", agent.id);
     this.dirty.add(agent.id);
     const inRegion = (n: WNode) => regionAt(n.x, n.y) === region;
     const pool = [...this.nodes.values()].filter((n) => n.kind !== "gateway" && !n.hidden && !n.inner && inRegion(n) && !agent.knownNodes.includes(n.id)).sort(() => Math.random() - 0.5);
-    const found = pool.slice(0, scanFinds(v));
+    const found = pool.slice(0, scanFinds(v) + (bonus ? TONE_BONUS_FINDS : 0));
     for (const n of found) this.reveal(agent, n.id);
     // ogni tanto risponde qualcosa che non è in nessun elenco
     const secret = [...this.nodes.values()].filter((n) => n.hidden && inRegion(n) && !agent.discovered.includes(n.id));
-    if (secret.length && chance(wardialChance(v) * 0.35)) this.discover(agent, pick(secret));
+    if (secret.length && chance(wardialChance(v) * (bonus ? 1 : 0.35))) this.discover(agent, pick(secret));
     if (!found.length) {
       this.out.toast(agent.id, pool.length ? "Solo toni di occupato, fax e una segreteria. Riprova." : `In ${REGION_NAME[region]} non risponde più nessuno che tu non conosca già.`, "info");
       return;
@@ -2734,6 +2782,7 @@ export class Game {
       account: a.account,
       pending: a.pending.map((p) => ({ amount: p.amount, clearAt: p.clearAt, from: p.from })),
       scanUntil: a.scanUntil,
+      tone: this.toneView(a),
       hiddenFound: a.discovered.length,
       hiddenTotal: [...this.nodes.values()].filter((n) => n.hidden).length,
       maxHops: this.hopsMax(a),
@@ -2939,7 +2988,10 @@ export class Game {
       this.dirty.add(agent.id);
     }
     for (const a of this.agents.values()) {
-      if (a.scanUntil && a.scanUntil < t) this.finishScan(a);
+      const tg = this.tones.get(a.id);
+      if (tg && tg.until < t && (tg.state !== "open" || !a.scanUntil)) this.tones.delete(a.id), this.dirty.add(a.id);
+      // finché stai componendo i toni, il centralino tiene la linea aperta
+      if (a.scanUntil && a.scanUntil < t && !(tg?.state === "open" && tg.until > t)) this.finishScan(a);
       if (a.jailUntil && a.jailUntil < t) {
         a.jailUntil = 0;
         this.touch("agent", a.id);
@@ -3141,7 +3193,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3229,6 +3281,8 @@ export class Game {
           return this.overload(agent);
         case "disconnect":
           return this.disconnect(agent);
+        case "tone":
+          return this.tone(agent, String(p.act ?? "open"), p);
         case "rotor":
           return this.rotor(agent, String(p.act ?? "open"), p);
         case "grid":
