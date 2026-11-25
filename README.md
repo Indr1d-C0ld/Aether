@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.18.0](https://img.shields.io/badge/versione-0.18.0-39ff88)
+![Versione 0.18.1](https://img.shields.io/badge/versione-0.18.1-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -230,7 +230,7 @@ Dentro il deck c'è una rete IRC come quelle del 1996: è lì che i giocatori si
 - **Duelli**: stessa posta, un bersaglio a sorte uguale per tutti e due, dieci minuti. Chi buca per primo prende il piatto.
 - **Scambi**: qualunque oggetto passa di mano, a un prezzo o in regalo; i crediti si mandano con una commissione del 5%.
 
-![La scheda Crew e sfide: la crew, un duello in arrivo, gli scambi](docs/img/crew.jpg)
+![La scheda Crew e sfide: la crew con il suo motto, un duello in arrivo, il banco degli scambi](docs/img/crew.jpg)
 
 ## Il mondo
 
@@ -286,11 +286,11 @@ La password cede un carattere alla volta, mentre il brute force scorre.
 
 Lo schedario sfoglia le foto tessera a raffica prima di fermarsi sulla scheda giusta.
 
-![Confronto delle schede nell'anagrafe](docs/img/schedario.jpg)
+![L'anagrafe di un archivio civico, con il fascicolo e il log della sessione in ambra](docs/img/schedario.jpg)
 
 E quando il trace stringe, lo schermo te lo dice.
 
-![Trace al 98 per cento: stacca](docs/img/trace.jpg)
+![Trace al 91 per cento: stacca](docs/img/trace.jpg)
 
 ## Dev-log
 
@@ -301,6 +301,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.18.1 | 25 novembre 2026 | Contratti ripagati quando il bersaglio si rafforza; tutte le immagini rifatte |
 | 0.18.0 | 25 novembre 2026 | Il BBS del giocatore: insegna, aree, area file, fama, sequestri e sfregi |
 | 0.17.0 | 25 novembre 2026 | Commissioni con condizioni, mercato del ricettatore, aziende che nascono |
 | 0.16.0 | 25 novembre 2026 | Sandbox: la copertura del giocatore |

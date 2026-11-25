@@ -393,9 +393,9 @@ Principio: **niente evento a copione**. Ogni modulo tiene uno stato, lo fa cambi
 
 **Copertura** (`server/fronts.ts`). 5/9/14 CR a battito in orario d'apertura, tetto di cassa 1.500/3.500/7.000: un giorno di assenza rende al massimo un tetto.
 
-Non misurato, e da guardare per primo: reddito combinato di copertura, Borsa da insider e creature; frequenza reale di difese comprate e di guerre commerciali con pochi giocatori (con due soli giocatori e trenta abitanti quasi tutta la pressione viene dagli abitanti).
+Il reddito combinato di copertura, Borsa da insider e creature è misurato nella 0.17 (sezione «Misura del reddito»). Resta da guardare nelle partite vere la frequenza di difese comprate e di guerre commerciali con pochi giocatori: con due soli giocatori e trenta abitanti quasi tutta la pressione viene dagli abitanti.
 
-Non fatto di quanto proposto: BBS di proprietà del giocatore, contratti scritti dai giocatori con condizioni, prezzi del ricettatore legati all'offerta, organizzazioni che aprono da zero.
+Quanto restava della proposta (contratti dei giocatori con condizioni, prezzi del ricettatore legati all'offerta, organizzazioni che aprono da zero, BBS del giocatore) è arrivato con la 0.17 e la 0.18.
 
 ## Il mondo vive: orologio e popolazione (0.11.0)
 
@@ -433,7 +433,7 @@ Tre sistemi che si tengono (`server/malware.ts`, regole in `shared/malware.ts`, 
 
 **Ceppi selvatici.** Con `npcActive`, a ogni battito c'è il 20% che un handle NPC impianti uno dei sei ceppi di serie in un nodo di grado basso (al massimo 10 vivi): materia per le missioni dei blu.
 
-Non misurato: la resa oraria di 15 infezioni vive con carichi rari. Sulla carta un ladro di resa 2 su 15 nodi di grado 2 dà circa 16.800 CR l'ora (14 CR a battito per nodo, 80 battiti l'ora), più del tetto dei worm: da riguardare con il contatore `mw:cr` prima di toccare altro.
+Resa: sulla carta 15 infezioni con un ladro di resa 2 su nodi di grado 2 darebbero circa 16.800 CR l'ora. Dalla 0.12 le creature hanno un tetto di 64 CR a battito (circa 5.000 l'ora), e dalla 0.17 lo dividono con i worm dello stesso autore: insieme non superano una botnet di worm v3 al completo (11.520 l'ora).
 
 ## BBS (0.9.0)
 

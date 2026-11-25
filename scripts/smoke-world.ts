@@ -186,6 +186,10 @@ await off();
 
 console.log("== SPEGNIMENTO E RIAVVIO");
 await red.do("devGrant", { cool: true }); // il test fa molto rumore: senza raffreddare finirebbe in arresto per calore
+// il sistema da sabotare è scelto a caso: se ha una barriera biometrica il rosso del test la salta,
+// e se è di grado alto il blu deve avere la fama per vederne il contratto di riavvio in bacheca
+await red.do("devGrant", { bio: true });
+await blue.do("devGrant", { fame: 1000 }); // i contratti di grado 4 chiedono 700 di fama
 const corp = gen("corp", (n) => n.id !== org.id);
 const sab = await red.do("devGrant", { mission: "sabotage" });
 const sabNode = WORLD.nodes.find((n) => n.id === (sab.data as { nodeId: string }).nodeId) ?? corp;
@@ -194,6 +198,7 @@ await dial(sabIp);
 await crack();
 const sd = await red.do("sys", { cmd: "shutdown" });
 await sleep(1300);
+if (!sd.ok) console.log("  spegnimento:", sd.error, "· accesso", red.state!.op?.access);
 check("sistema spento: la connessione cade", sd.ok && red.state!.op === null);
 const back = await red.do("connect", { chain: ROUTE, targetIp: sabIp });
 check("un sistema spento non risponde", !back.ok);

@@ -6,6 +6,15 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.18.1",
+    date: "2026-11-25",
+    title: "Contratti che seguono le difese",
+    tags: ["contratti", "sandbox"],
+    items: [
+      "Quando un'organizzazione compra difese migliori, i contratti su quel sistema pagano di più, anche quelli che hai già accettato: te lo dice un messaggio con la paga nuova. Se invece lascia scadere le difese, scende la paga dei contratti ancora in bacheca, non di quelli già tuoi.",
+    ],
+  },
+  {
     v: "0.18.0",
     date: "2026-11-25",
     title: "Il tuo BBS",

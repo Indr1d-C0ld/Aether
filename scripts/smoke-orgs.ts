@@ -68,10 +68,13 @@ let w = await world();
 check("un sabotaggio finisce in cronaca", w.news.some((x) => x.kind === "sabotaggio" && x.org === corp.id) && o.history.length >= 1);
 check("le più colpite sono in evidenza", w.hit.some((x) => x.id === corp.id));
 
-// paura e soldi: compra difese
+// paura e soldi: compra difese (e i contratti su quel nodo pagano di più)
 const sum0 = o.sec.proxy + o.sec.firewall + o.sec.monitor;
+const job0 = (await act("world", { cmd: "dev", id: corp.id, mkJob: true })).data as { jobId: string; jobReward: number };
 o = await dev(corp.id, { set: { fear: 90, cash: 50000 }, pulses: 6 });
 check("con paura e soldi rafforza le difese", o.sec.proxy + o.sec.firewall + o.sec.monitor === sum0 + 1 && o.fear < 60);
+const job1 = (await act("world", { cmd: "dev", id: corp.id, jobId: job0.jobId })).data as { jobReward: number };
+check("e il contratto già in bacheca su quel nodo paga di più", job1.jobReward > job0.jobReward);
 check("e le difese di serie restano annotate", o.base.proxy + o.base.firewall + o.base.monitor === sum0);
 
 // conti in rosso: tagli, crisi, acquisizione

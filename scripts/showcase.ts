@@ -12,6 +12,7 @@ import type { GameState, ServerMsg } from "../shared/types.ts";
 import type { BbsHome } from "../shared/bbs.ts";
 import type { LabView } from "../shared/malware.ts";
 import { WORLD } from "../server/worldgen.ts";
+import { PEOPLE } from "../server/people.ts";
 
 const port = process.argv[2] ?? "7480";
 const out = process.argv[3] ?? "docs/img";
@@ -164,10 +165,10 @@ const send = (method: string, params: Record<string, unknown> = {}) =>
     cdp.send(JSON.stringify({ id, method, params }));
   });
 const js = async (expr: string) => ((await send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true })).result as { value?: unknown } | undefined)?.value;
-const click = (label: string) => js(`(() => { const b = [...document.querySelectorAll("button")].find((x) => x.textContent.trim().startsWith(${JSON.stringify(label)})); if (b) b.click(); return Boolean(b); })()`);
-async function shot(name: string, scrollSel?: string, clip?: { width: number }) {
+const click = (label: string) => js(`(() => { const b = [...document.querySelectorAll("button")].find((x) => x.textContent.trim().startsWith(${JSON.stringify(label)})); if (b) b.click(); window.scrollTo(0, 0); document.querySelector("main")?.scrollTo?.(0, 0); return Boolean(b); })()`);
+async function shot(name: string, scrollSel?: string, clip?: { width: number }, wait = 900) {
   if (scrollSel) await js(`document.querySelector(${JSON.stringify(scrollSel)})?.scrollIntoView({ block: "start" })`);
-  await sleep(900);
+  await sleep(wait);
   const r = await send("Page.captureScreenshot", { format: "jpeg", quality: 86, ...(clip ? { clip: { x: 0, y: 0, width: clip.width, height: H, scale: 1 } } : {}) });
   writeFileSync(join(out, `${name}.jpg`), Buffer.from(String(r.data), "base64"));
   log(`foto: ${name}.jpg`);
@@ -178,6 +179,12 @@ await send("Runtime.enable");
 await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: 1.5, mobile: false });
 await send("Page.navigate", { url: `http://127.0.0.1:${port}/` });
 await sleep(1500);
+await js(`localStorage.setItem("aether.cine", "off"); localStorage.setItem("aether.audio", "off"); true`);
+await send("Page.reload");
+await sleep(2500);
+await shot("accesso");
+await js(`document.querySelector(".devlog-head")?.closest("section, .panel, div")?.scrollIntoView({ block: "start" }); true`);
+await shot("devlog");
 await js(`localStorage.setItem("aether.token", ${JSON.stringify(token)}); localStorage.setItem("aether.cine", "off"); localStorage.setItem("aether.audio", "off"); true`);
 await send("Page.reload");
 await sleep(3500);
@@ -238,6 +245,149 @@ await sleep(800);
 await js(`[...document.querySelectorAll("button")].filter((b) => /Frequenza: più|Ampiezza: più/.test(b.getAttribute("aria-label") ?? "")).forEach((b) => b.click()); true`);
 await shot("oscilloscopio", ".sec-grid", { width: 900 });
 await act("disconnect");
+
+// ---------------------------------------------------------------- le scene delle immagini più vecchie
+const setInput = (sel: string, value: string) => js(`(() => { const i = document.querySelector(${JSON.stringify(sel)}); if (!i) return false; const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set; set.call(i, ${JSON.stringify(value)}); i.dispatchEvent(new Event("input", { bubbles: true })); return true; })()`);
+const enter = async (chain: string[], login?: string) => {
+  if (state!.op) await act("disconnect");
+  await act("devGrant", { cool: true });
+  await act("connect", { chain });
+  await sleep(500);
+  await act("run", { tool: "monbypass" });
+  if (!state!.op?.bypass.proxy) await act("run", { tool: "proxy" });
+  if (!state!.op?.bypass.firewall) await act("run", { tool: "firewall" });
+  await idle();
+  if (login) await act("login", { password: login });
+  await sleep(500);
+};
+const relays = state!.nodes.filter((n) => n.kind === "relay").slice(0, 4).map((n) => n.id);
+
+log("carriera");
+await click("Carriera");
+await shot("carriera");
+
+log("ReticoloNet");
+await click("IRC");
+await sleep(2500);
+for (const t of ["ciao a tutti", "qualcuno ha visto passare un worm su #2600?", "/me accende il modem e aspetta la portante", "X: chi presidia la Orsini stanotte?", "buonasera, c'è nessuno sveglio?"]) {
+  await slow("irc", { text: t, where: "#reticolo" });
+  await sleep(1800);
+}
+await sleep(4000);
+await shot("irc");
+
+log("crew, duello e scambio");
+const pal = new WebSocket(`ws://127.0.0.1:${port}/ws`);
+let palSeq = 0;
+const palPending = new Map<number, (m: Res) => void>();
+await new Promise<void>((r) => {
+  pal.on("open", () => pal.send(JSON.stringify({ t: "auth", mode: "register", handle: "Nyxie", pass: "vetrina1234", faction: "red" })));
+  pal.on("message", (raw) => {
+    const m = JSON.parse(String(raw)) as ServerMsg;
+    if (m.t === "res") palPending.get(m.id)?.(m);
+    if (m.t === "auth_ok") r();
+  });
+});
+const palAct = async (a: string, p: Record<string, unknown> = {}) => {
+  await sleep(80);
+  return new Promise<Res>((r) => {
+    const id = ++palSeq;
+    palPending.set(id, r);
+    pal.send(JSON.stringify({ t: "do", id, a, p }));
+  });
+};
+await palAct("devGrant", { xp: 3000, credits: 20000, item: "x" });
+await slow("crewCreate", { tag: "ZDY", name: "Zero Day" });
+await slow("crewMotto", { text: "entriamo di notte, usciamo puliti" });
+await slow("crewInvite", { handle: "Nyxie" });
+await palAct("crewJoin", { tag: "ZDY" });
+await palAct("duelOffer", { handle: "Morgana", stake: 2000 });
+await sleep(1000);
+const palStore = (await palAct("devGrant", { xp: 0 })) && null;
+void palStore;
+await click("Crew");
+await sleep(1200);
+await shot("crew");
+
+log("operazioni accettate");
+await slow("devGrant", { mission: "scene:zerocool" });
+await slow("devGrant", { mission: "scene:timeo" });
+await click("Bacheca");
+await sleep(1200);
+await shot("operazioni");
+
+log("mappa con il rimbalzo");
+await enter([...relays, "orsini-bank"]);
+await click("Mappa");
+await sleep(1200);
+await shot("mappa");
+
+log("strumenti al lavoro");
+await act("disconnect");
+await act("devGrant", { cool: true, hw: { cpu: 1 } });
+await act("connect", { chain: [...relays.slice(0, 2), "meridia-pd"] });
+await sleep(400);
+for (const t of ["monbypass", "proxy", "firewall"]) await act("run", { tool: t });
+await click("cine");
+await click("Console");
+await shot("strumenti", undefined, undefined, 1800);
+
+log("password breaker");
+await act("devGrant", { hw: { cpu: 5 } });
+await idle();
+await act("devGrant", { hw: { cpu: 1 } });
+await act("run", { tool: "breaker" });
+await sleep(3500);
+await js(`window.scrollTo(0, 0); true`);
+await shot("password", ".sec-grid", undefined, 600);
+await click("cine");
+await act("devGrant", { hw: { cpu: 5 } });
+await idle();
+await act("disconnect");
+
+log("anagrafe");
+await enter([...relays.slice(0, 2), "vesper-civic"], "CIVIC");
+await click("Console");
+await sleep(1000);
+await setInput('input[placeholder^="nome, anno di nascita"]', "19");
+await js(`[...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Cerca")?.click(); true`);
+await sleep(1500);
+await js(`document.querySelectorAll(".archive-row")[1]?.click(); true`);
+await sleep(1500);
+await js(`document.querySelector('input[placeholder^="nome, anno di nascita"]')?.closest(".panel")?.scrollIntoView({ block: "start" }); true`);
+await shot("schedario");
+await act("disconnect");
+
+log("sottosistemi e posta interna");
+const corpN = WORLD.nodes.find((n) => n.kind === "corp" && n.adminId && !n.inner && n.proxy + n.firewall + n.monitor <= 6)!;
+const boss = PEOPLE.find((p) => p.id === corpN.adminId)!;
+const personal = `${boss.name.split(" ")[0]!.toUpperCase().normalize("NFD").replace(/[^A-Z]/g, "")}${String(boss.born).slice(2)}`;
+await enter([...relays.slice(0, 2), corpN.id], personal);
+await click("Console");
+await sleep(1000);
+await js(`[...document.querySelectorAll(".zone")].find((b) => b.textContent.includes("Posta interna"))?.click(); true`);
+await sleep(1500);
+await js(`document.querySelector(".zone-body button")?.click(); true`);
+await sleep(1200);
+await shot("sottosistemi", ".zones");
+await act("disconnect");
+
+log("trace al limite");
+await act("devGrant", { cool: true });
+await act("connect", { chain: [relays[0]!, "orsini-bank"] });
+await sleep(400);
+await act("run", { tool: "proxy" });
+await click("Console");
+for (let i = 0; i < 600; i += 1) {
+  await sleep(100);
+  const tr = state!.op?.trace;
+  if (!state!.op) break;
+  if (tr?.totalMs && tr.progressMs && tr.progressMs / tr.totalMs >= 0.8) break;
+}
+await js(`window.scrollTo(0, 0); true`);
+await shot("trace", undefined, undefined, 150);
+await act("disconnect");
+pal.close();
 
 void (null as unknown as LabView | BbsHome);
 cdp.close();

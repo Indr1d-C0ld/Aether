@@ -156,6 +156,25 @@ export function installOrgs(game: Game) {
     }
   }
 
+  /** Le difese di un nodo sono cambiate: i contratti generati su quel nodo seguono la stessa formula della paga di base.
+   * Se salgono, salgono anche quelli già accettati (e chi li ha in mano lo viene a sapere); se scendono, solo quelli ancora aperti. */
+  function reprice(n: NodeDoc, before: number, up: boolean) {
+    const after = n.proxy + n.firewall + n.monitor;
+    const k = (450 + after * 260) / (450 + before * 260);
+    for (const m of game.missions.values()) {
+      if (m.nodeId !== n.id || m.postedBy || !(m.status === "open" || (up && m.status === "taken"))) continue;
+      const old = m.reward;
+      m.reward = Math.round(m.reward * k);
+      if (m.faction === "red") m.requires = [...new Set([...m.requires.filter((t) => t !== "proxy" && t !== "firewall"), ...game.secRequires(n)])];
+      game.touch("mission", m.id);
+      const taker = m.takenBy ? game.agents.get(m.takenBy) : null;
+      if (taker && !taker.npc && m.reward !== old) {
+        game.out.toast(taker.id, `${n.org} ha alzato le difese: il tuo contratto ora paga ${fmtCr(m.reward)}.`, "info");
+        game.dirty.add(taker.id);
+      }
+    }
+  }
+
   // ---------------------------------------------------------------- il battito
   let cursor = 0;
   function pulse() {
@@ -176,7 +195,9 @@ export function installOrgs(game: Game) {
       if (o.fear >= 60 && o.cash >= cost * 1.5 && o.invested < 2 && n.proxy + n.firewall + n.monitor < 9) {
         const key = (["firewall", "proxy", "monitor"] as const).filter((k) => n[k] < 3).sort((a, b) => n[a] - n[b])[0];
         if (key) {
+          const before = n.proxy + n.firewall + n.monitor;
           n[key] += 1;
+          reprice(n, before, true);
           o.cash -= cost;
           o.fear = clamp(o.fear - 40);
           o.invested += 1;
@@ -189,7 +210,9 @@ export function installOrgs(game: Game) {
       if (o.invested > 0 && t - o.investedAt > 48 * H && o.fear < 10 && Math.random() < 0.02) {
         const key = (["monitor", "proxy", "firewall"] as const).find((k) => n[k] > o.base[k]);
         if (key) {
+          const before = n.proxy + n.firewall + n.monitor;
           n[key] -= 1;
+          reprice(n, before, false);
           o.invested -= 1;
           game.touch("node", n.id);
           news("economia", `${n.org} non rinnova il contratto di sicurezza: ${key} torna al livello ${n[key]}.`, n, false);
@@ -299,7 +322,19 @@ export function installOrgs(game: Game) {
       }
       if (typeof p.intrusions === "number") state.intrusions = Array.from({ length: p.intrusions }, () => now());
       for (let i = 0; i < Number(p.pulses ?? 0); i += 1) pulse();
-      return { ok: true, data: n ? orgView(n) : world(agent) };
+      let job: { jobId: string; jobReward: number } | Record<string, never> = {};
+      if (n && p.mkJob) {
+        const m = game.baseMission("red", "chain", n);
+        m.objectives = [{ deed: "admin", n: 1, nodeId: n.id, label: `Diventa admin su ${n.org}` }];
+        m.title = `Prova: ${n.org}`;
+        game.missions.set(m.id, m);
+        job = { jobId: m.id, jobReward: m.reward };
+      }
+      if (typeof p.jobId === "string") {
+        const m = game.missions.get(p.jobId);
+        if (m) job = { jobId: m.id, jobReward: m.reward };
+      }
+      return { ok: true, data: n ? { ...orgView(n), ...job } : world(agent) };
     }
     return { ok: true, data: world(agent) };
   };
