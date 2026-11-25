@@ -9,6 +9,7 @@ import { DICTIONARY } from "./content.ts";
 import { ALERT_MINUTES, fmtCr, regionAt } from "../shared/rules.ts";
 import { CLEARANCE, ORG_KINDS, ZONES, type MailMsg, type ZoneView } from "../shared/zones.ts";
 import { MAIL_GOSSIP } from "./irc-text.ts";
+import { MAIL_TIMES } from "./life-text.ts";
 
 type R = { ok: boolean; error?: string; note?: string; data?: unknown };
 const now = () => Date.now();
@@ -113,7 +114,7 @@ export function installZones(game: Game) {
       const h = pick(secret);
       add({ from: other().name, to: admin.name, subject: "Numero strano nei tabulati", body: `Nei tabulati c'è una chiamata verso ${h.ip.split(".").slice(0, 3).join(".")}.x che nessuno ha fatto. Non è su nessun elenco. Tu ne sai qualcosa?` });
     }
-    const gossip = [...MAIL_GOSSIP].sort(() => r() - 0.5).slice(0, 2 + Math.floor(r() * 2));
+    const gossip = [...MAIL_GOSSIP, ...MAIL_TIMES].sort(() => r() - 0.5).slice(0, 3 + Math.floor(r() * 2));
     for (const g of gossip) {
       const p = pick(staff);
       add({ from: p.name, to: "tutti", subject: g[0], body: `${g[1]}\n\n${first(p)}` });

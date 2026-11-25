@@ -1443,7 +1443,7 @@ export class Game {
     this.dirty.add(agent.id);
     const inRegion = (n: WNode) => regionAt(n.x, n.y) === region;
     const pool = [...this.nodes.values()].filter((n) => n.kind !== "gateway" && !n.hidden && !n.inner && inRegion(n) && !agent.knownNodes.includes(n.id)).sort(() => Math.random() - 0.5);
-    const found = pool.slice(0, scanFinds(v) + (bonus ? TONE_BONUS_FINDS : 0));
+    const found = pool.slice(0, scanFinds(v) + (bonus ? TONE_BONUS_FINDS : 0) + (this.lifeScan?.(region) ?? 0));
     for (const n of found) this.reveal(agent, n.id);
     // ogni tanto risponde qualcosa che non è in nessun elenco
     const secret = [...this.nodes.values()].filter((n) => n.hidden && inRegion(n) && !agent.discovered.includes(n.id));
@@ -1944,6 +1944,7 @@ export class Game {
     const t = now();
     let f = 1;
     if (KIND_PROFILE[n.kind].night && isNight(n.x, t)) f *= WATCH_NIGHT;
+    f *= this.lifeWatch?.(n) ?? 1;
     if ((this.meta.blackout?.[regionAt(n.x, n.y)] ?? 0) > t) f *= WATCH_BLACKOUT;
     if ((n.alertUntil ?? 0) > t) f *= WATCH_ALERT;
     return f;
@@ -2289,6 +2290,8 @@ export class Game {
     // banche, polizia e militari indagano in fretta; chi è già ricercato ha gli inquirenti addosso
     let delay = (op.grave || node?.kind === "bank" || node?.kind === "law" || node?.kind === "mil" ? SWEEP_DELAY / 2 : SWEEP_DELAY) * this.num("sweepMult");
     if (actor && warrantLevel(actor.charges) >= 2) delay /= 2;
+    // di notte e nel fine settimana in ufficio non c'è nessuno che apra la pratica
+    if (node) delay *= this.lifeSweep?.(node) ?? 1;
     const inc: Incident = { opId: op.id, actorId: op.agentId, nodeId: op.nodeId, at: now(), sweepAt: now() + delay, resolved: false, touched: op.touched, grave: Boolean(op.grave) };
     this.incidents.set(inc.opId, inc);
     this.touch("incident", inc.opId);
@@ -2405,7 +2408,7 @@ export class Game {
     let data: unknown;
     switch (cmd) {
       case "cash": {
-        const amount = SHOP_CASH[0] + Math.floor(Math.random() * (SHOP_CASH[1] - SHOP_CASH[0]));
+        const amount = Math.round((SHOP_CASH[0] + Math.floor(Math.random() * (SHOP_CASH[1] - SHOP_CASH[0]))) * (this.lifeCash?.(target) ?? 1));
         agent.credits += amount;
         agent.ethics = clamp(agent.ethics - 1, -100, 100);
         cool(30);
@@ -3178,6 +3181,7 @@ export class Game {
         if (op.chain.length - 1 >= 6) this.bump(agent, "longroute");
         const tn0 = this.node(target);
         if (tn0 && KIND_PROFILE[tn0.kind]?.night && isNight(tn0.x, now())) this.bump(agent, "night");
+        if (tn0) this.lifeAdmin?.(agent, tn0);
       }
     }
     if (how === "clean" && op.access !== "client") this.registerIncident({ id: op.id, agentId: op.agentId, nodeId: target, touched: op.touched, stolen: op.stolen, grave: op.grave });
@@ -3214,7 +3218,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3240,6 +3244,17 @@ export class Game {
   /** Sottosistemi dei nodi (server/zones.ts). */
   staffLogin: ((op: Op, agent: Agent, target: WNode, password: string) => { ok: boolean; error?: string; note?: string } | null) | null = null;
   opExtra: ((op: Op, me: Agent, target: WNode) => Record<string, unknown>) | null = null;
+  // l'orologio del mondo e la popolazione virtuale (server/life.ts)
+  /** Solo per i test: ferma il mondo in pieno giorno feriale o in piena notte. Nei test veloci parte «giorno». */
+  clockForce: "giorno" | "notte" | null = FAST ? "giorno" : null;
+  lifeWatch: ((n: WNode) => number) | null = null;
+  lifeQuietLogin: ((n: WNode) => boolean) | null = null;
+  lifeCash: ((n: WNode) => number) | null = null;
+  lifeSweep: ((n: WNode) => number) | null = null;
+  lifeScan: ((region: string) => number) | null = null;
+  lifeAdmin: ((a: Agent, n: WNode) => void) | null = null;
+  lifeStaffed: ((n: WNode) => string | null) | null = null;
+  lifeChat: ((lore: string) => string | null) | null = null;
   // warez, malware e antivirus (server/malware.ts)
   mwSpeed: ((a: Agent) => number) | null = null;
   mwTrace: ((a: Agent) => number) | null = null;
@@ -3248,6 +3263,10 @@ export class Game {
   mwGadget: ((a: Agent, code: string) => string | null) | null = null;
   mwLab: ((a: Agent) => unknown) | null = null;
   mwKb: ((a: Agent) => number) | null = null;
+  /** Un habitué mette in giro un ceppo (server/life.ts): torna dove e quale. */
+  mwWild: ((nearX?: number) => { org: string; name: string } | null) | null = null;
+  /** Un habitué blu ripulisce un sistema da un ceppo selvatico. */
+  mwCure: (() => { org: string; name: string } | null) | null = null;
   mwXp: ((a: Agent) => number) | null = null;
   onPulse: (() => void)[] = [];
   // barriere biometriche (server/bio.ts)
@@ -3376,6 +3395,8 @@ export class Game {
           }
           if (typeof p.charge === "number") this.charge(agent, "accusa di prova", p.charge, "test");
           if (p.bio) (agent as Agent & { bioDev?: boolean }).bioDev = true;
+          // «clock»: ferma il mondo di giorno o di notte, o null per tornare all'ora vera
+          if (p.clock === null || p.clock === "giorno" || p.clock === "notte") this.clockForce = p.clock;
           if (p.cool) {
             agent.heat = 0;
             agent.charges = [];
@@ -4157,11 +4178,19 @@ export class Game {
     if (op.access === "admin" || op.access === "client") return { ok: false, error: "sei già dentro" };
     if (!op.bypass.proxy) return { ok: false, error: "il proxy blocca il login: abbattilo prima" };
     if (op.lockedUntil > now()) return { ok: false, error: `accesso bloccato per ${Math.ceil((op.lockedUntil - now()) / 1000)}s: troppi tentativi` };
-    this.noisy(op, agent, target);
     if (password.trim().toUpperCase() !== target.password.toUpperCase()) {
       // non è la password di root: forse è quella di un dipendente o dell'operatore
       const staff = this.staffLogin?.(op, agent, target, password);
-      if (staff) return staff;
+      if (staff) {
+        // in orario d'ufficio un dipendente che entra non fa notizia; fuori orario sì
+        if (staff.ok && this.lifeQuietLogin?.(target)) {
+          this.bump(agent, "office");
+          return { ...staff, note: `${staff.note} · in orario d'ufficio non se ne accorge nessuno` };
+        }
+        this.noisy(op, agent, target);
+        return staff;
+      }
+      this.noisy(op, agent, target);
       op.fails += 1;
       const max = KIND_PROFILE[target.kind].lockout;
       if (max && op.fails >= max) {
@@ -4179,6 +4208,7 @@ export class Game {
     if (bio) return { ok: false, error: `password giusta, ma non basta · ${bio}` };
     op.access = "admin";
     this.log(target, "LOGIN admin from {FROM}", { opId: op.id, actorId: agent.id, fromIp: this.prevIp(op, agent) });
+    this.noisy(op, agent, target);
     this.gotAdmin(op, agent, target);
     return { ok: true, note: "accesso admin" };
   }

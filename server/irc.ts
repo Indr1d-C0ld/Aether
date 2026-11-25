@@ -634,7 +634,8 @@ export function installIrc(game: Game, social: Social, send: (agentId: string, e
     const here = [...c.users.keys()].filter((n) => bots.has(n) && ![SERVICE, XDCC, NEWS, ORACLE].includes(n));
     if (!here.length) return;
     const pool = c.only ? CHATTER[c.only]! : (CHATTER[c.lore ?? "main"] ?? CHATTER.main!);
-    botSay(c, pick(here), pick(pool), 0);
+    const alive = c.only ? null : (game.lifeChat?.(c.lore ?? "main") ?? null);
+    botSay(c, pick(here), alive ?? pick(pool), 0);
   }, 38_000).unref();
   setInterval(() => {
     if (!humans().length || Math.random() < 0.5) return;

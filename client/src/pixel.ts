@@ -1,4 +1,5 @@
 // Pixel art procedurale a bassa risoluzione (stile VGA 320×180), poi scalata senza filtri.
+import { darkness } from "../../shared/clock.ts";
 import type { NodeKind, NodeView } from "../../shared/types.ts";
 export { gatewayPos } from "../../shared/rules.ts";
 
@@ -230,12 +231,25 @@ export type MapScene = {
   presiding: string[];
   view: MapRect;
   t: number;
+  /** ora del server: da qui l'ombra della notte */
+  now?: number;
 };
 
 export function drawMap(g: CanvasRenderingContext2D, base: HTMLCanvasElement, s: MapScene) {
   g.imageSmoothingEnabled = false;
   const v = s.view;
   g.drawImage(base, v.x, v.y, v.w, v.h, 0, 0, MAP_W, MAP_H);
+  // la notte: una fascia d'ombra che scorre con l'ora vera, sfumata al crepuscolo
+  if (s.now) {
+    const step = 2;
+    for (let px = 0; px < MAP_W; px += step) {
+      const wx = v.x + ((px + step / 2) / MAP_W) * v.w;
+      const d = darkness(wx, s.now);
+      if (d <= 0) continue;
+      g.fillStyle = `rgba(2, 4, 22, ${(d * 0.5).toFixed(3)})`;
+      g.fillRect(px, 0, step, MAP_H);
+    }
+  }
   // dalle coordinate del mondo a quelle dell'inquadratura
   const T = (p: { x: number; y: number }) => ({ x: Math.round(((p.x - v.x) * MAP_W) / v.w), y: Math.round(((p.y - v.y) * MAP_H) / v.h) });
   const zoom = MAP_W / v.w;

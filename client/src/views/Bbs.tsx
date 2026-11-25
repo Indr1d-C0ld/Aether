@@ -8,6 +8,7 @@ import { sfx } from "../audio.ts";
 import type { DeckCtx } from "./Deck.tsx";
 import type { WarezRow } from "../../../shared/malware.ts";
 
+type WhoRow = { handle: string; city: string; clock: string; status: "sveglio" | "dorme" | "custodia"; about: string; last: string; lastAt: number };
 type WarezData = { rows: WarezRow[]; kb: number; builds?: { id: string; name: string; up: boolean }[] };
 
 type Screen =
@@ -17,7 +18,7 @@ type Screen =
   | { k: "compose"; area: string; name: string }
   | { k: "files"; f: BbsFiles; w: WarezData | null }
   | { k: "read"; name: string; body: string }
-  | { k: "users"; rows: BbsUserRow[] }
+  | { k: "users"; rows: BbsUserRow[]; who: WhoRow[] }
   | { k: "bulletin"; n: number }
   | { k: "tris"; s: TrisState }
   | { k: "gtw"; s: GtwState }
@@ -276,7 +277,13 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
           {home.next ? <div className="bbs-line bbs-amber">{home.next}</div> : null}
           <div className="bbs-menu">
             {home.hasFiles ? <Key c="F" label="Area file" on={() => void openFiles()} /> : null}
-            <Key c="U" label="Utenti" on={() => void cmd("users").then((d) => d && setScreen({ k: "users", rows: (d as { rows: BbsUserRow[] }).rows }))} />
+            <Key c="U" label="Utenti" on={() =>
+                void cmd("users").then(async (d) => {
+                  if (!d) return;
+                  const w = await net.do("life", {}, true);
+                  setScreen({ k: "users", rows: (d as { rows: BbsUserRow[] }).rows, who: w.ok ? (w.data as { rows: WhoRow[] }).rows : [] });
+                })
+              } />
             <Key c="B" label="Bollettini" on={() => setScreen({ k: "bulletin", n: 0 })} />
             <Key c="S" label="Chiama il sysop" on={() => void cmd("page").then((d) => d && setMsg((d as { line: string }).line))} />
             <Key c="G" label="Riattacca" on={() => void bye()} />
@@ -442,6 +449,13 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
             <div key={u.handle} className="bbs-line">
               <b>{u.handle}</b> · {u.level}
               <span>{u.days} giorni · {u.posts} msg · {u.uploads} file · {when(u.last)}</span>
+            </div>
+          ))}
+          <div className="bbs-h">La gente del Reticolo · {screen.who.filter((w) => w.status === "sveglio").length} svegli adesso</div>
+          {screen.who.map((w) => (
+            <div key={w.handle} className="bbs-line" title={w.about}>
+              <b className={w.status === "sveglio" ? "bbs-green" : w.status === "custodia" ? "bbs-red" : ""}>{w.handle}</b> · {w.city}, {w.clock} · {w.status === "custodia" ? "in custodia" : w.status}
+              <span>{w.last ? `${w.last} · ${when(w.lastAt)}` : w.about}</span>
             </div>
           ))}
           <div className="bbs-menu">

@@ -86,6 +86,9 @@ export function installBio(game: Game, zones: { staffOf: (n: NodeDoc) => Person[
       z.actions = z.actions
         .filter((a) => !(["modelli", "riregistra"].includes(a.id) && !kind))
         .map((a) => {
+          // fuori orario al centralino non risponde nessuno: lo si vede subito, prima di ogni altro impedimento
+          const closed = a.id === "voce" && a.need <= ((base.clearance as number) ?? 0) ? (game.lifeStaffed?.(target) ?? null) : null;
+          if (closed) return { ...a, blocked: closed };
           if (a.blocked) return a;
           if ((a.id === "voce" || a.id === "impronta") && (me.cooldowns?.[`z:${a.id}:${target.id}`] ?? 0) > now()) return { ...a, blocked: "già fatto da poco" };
           if (a.id === "retina" && !wanted(me).length) return { ...a, blocked: "non stai cercando la retina di nessuno: prima trova uno scanner" };
@@ -146,11 +149,14 @@ export function installBio(game: Game, zones: { staffOf: (n: NodeDoc) => Person[
     };
     const boss = zones.staffOf(n)[0]!;
     switch (action) {
-      case "voce":
+      case "voce": {
+        const closed = game.lifeStaffed?.(n) ?? null;
+        if (closed) return { ok: false, error: closed };
         take(agent, boss, "voce");
         cds[`z:voce:${n.id}`] = now() + 10 * 60_000;
         noise("PBX call recorded ext 100 src={FROM}");
         return done("voce", `«Pronto? Chi parla?» Hai la voce di ${boss.name}.`);
+      }
       case "impronta":
         take(agent, boss, "impronta");
         cds[`z:impronta:${n.id}`] = now() + 10 * 60_000;

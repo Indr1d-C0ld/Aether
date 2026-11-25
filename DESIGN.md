@@ -340,6 +340,26 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Il mondo vive: orologio e popolazione (0.11.0)
+
+**Orologio** (`shared/clock.ts`). Nessun tempo di gioco accelerato: ora vera, fuso dalla longitudine del nodo. Fasce: notte 22-6, alba 6-8, mattina 8-12:30, pranzo 12:30-14, pomeriggio 14-18, sera 18-22. Orari: «ufficio» (aziende, banche, enti, scuole, laboratori: lun-ven 8-18), «negozio» (lun-sab 9-20), «sempre» (polizia, ospedali, militari, giornali, telefoni, reti). L'ombra sulla mappa è la stessa funzione, con un'ora e mezza di crepuscolo.
+
+**Cosa cambia** (`server/life.ts`, agganci `life*` nel motore):
+- login con credenziali di un dipendente in orario d'ufficio: non avvia il monitor (prima lo avviava sempre);
+- centralino/voce: solo a ufficio aperto e non in pausa pranzo;
+- sorveglianza: ×1,15 in pausa pranzo, ×1,2 nel fine settimana di giorno (la notte ×1,3 c'era già);
+- indagini: ×1,5 più lente se l'ufficio è chiuso;
+- casse dei negozi: ×1,5 la sera, ×0,6 al mattino;
+- War Dialer: +1 nodo se la regione è al buio.
+
+**Popolazione.** Trenta personaggi (`server/life-text.ts`) con fuso, ore di veglia, schieramento e BBS frequentati; stato salvato in `life/state` (calore, crediti, custodia, ultima impresa). A ogni battito chi è sveglio ha l'1,2% di agire (il doppio se è al verde) e il 2% di chiamare un BBS. I rossi colpiscono nodi di grado basso dove è notte: scrivono righe vere nei log, alzano l'attività del nodo, a volte mettono in giro un ceppo; il calore sale e a 100 finiscono in custodia per 2-6 ore. I blu tolgono ceppi selvatici o mettono un nodo in allerta per dieci minuti. A mezzanotte UTC la bolletta.
+
+**Racconto.** Ogni impresa finisce in una coda che la chat pesca per prima; i BBS ricevono chiamate, frasi sul muro, risposte e discussioni con i segnaposto riempiti dal mondo ({org}, {city}, {ora}, {virus}, {chi}); le notizie d'agenzia seguono l'ora del posto di cui parlano.
+
+**Nei test** il mondo è fermo «di giorno» (`clockForce`), così nessun test dipende dall'ora in cui gira.
+
+Non misurato: quanto il login silenzioso di giorno accorcia i contratti, e quanto disturbano i giocatori le allerte e i ceppi messi in giro dagli abitanti. Tutta la popolazione si spegne con l'impostazione «Handle NPC attivi».
+
 ## Warez, malware e antivirus (0.10.0)
 
 Tre sistemi che si tengono (`server/malware.ts`, regole in `shared/malware.ts`, azione `mw {cmd,…}`).

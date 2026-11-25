@@ -623,6 +623,39 @@ export function installBbs(game: Game) {
       dirty = true;
     },
     hasFiles: (bbs: string) => Boolean(def(bbs)?.files),
+    // ---- la vita della bacheca: gli habitué chiamano, scrivono, rispondono (server/life.ts)
+    ids: () => BBS.map((d) => d.id),
+    areasOf: (bbs: string) => def(bbs)?.areas.map((x) => x.id) ?? [],
+    npcCall: (bbs: string, handle: string, from: string) => {
+      const b = board(bbs);
+      b.callers = [{ handle, at: now(), from }, ...b.callers.filter((c) => c.handle !== handle)].slice(0, 12);
+      dirty = true;
+    },
+    npcLine: (bbs: string, handle: string, text: string) => {
+      const b = board(bbs);
+      b.oneliners = [{ handle, text }, ...b.oneliners.filter((o) => o.handle !== handle)].slice(0, 12);
+      dirty = true;
+    },
+    npcPost: (bbs: string, area: string, by: string, title: string, body: string) => {
+      const b = board(bbs);
+      if (!def(bbs)?.areas.some((x) => x.id === area) || b.threads.some((t) => t.title === title)) return false;
+      b.seq += 1;
+      b.threads.push({ id: `n${b.seq}-${now().toString(36)}`, area, title, posts: [{ by, at: now(), body, npc: true }] });
+      const per = b.threads.filter((x) => x.area === area && !x.pinned);
+      if (per.length > 60) b.threads.splice(b.threads.indexOf(per.sort((x, y) => x.posts.at(-1)!.at - y.posts.at(-1)!.at)[0]!), 1);
+      dirty = true;
+      return true;
+    },
+    /** Una risposta a una discussione recente, mai due volte di fila dalla stessa mano. */
+    npcReply: (bbs: string, by: string, body: string) => {
+      const b = board(bbs);
+      const pool = b.threads.filter((t) => !t.pinned && t.posts.length < 30 && t.posts.at(-1)!.by !== by && now() - t.posts.at(-1)!.at < 3 * DAY);
+      const t = pool[Math.floor(Math.random() * pool.length)];
+      if (!t) return false;
+      t.posts.push({ by, at: now(), body, npc: true });
+      dirty = true;
+      return true;
+    },
     name: (bbs: string) => def(bbs)?.name ?? bbs,
   };
   return { ...api, save, hangup, stats: () => ({ posts: Object.values(state.boards).reduce((s, b) => s + b.threads.reduce((q, t) => q + t.posts.filter((x) => !x.npc).length, 0), 0) }) };

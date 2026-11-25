@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.10.0](https://img.shields.io/badge/versione-0.10.0-39ff88)
+![Versione 0.11.0](https://img.shields.io/badge/versione-0.11.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -109,7 +109,22 @@ I blu, dalle stesse stanze, rivedono i nastri, revocano i badge e mettono in all
 
 ![I sottosistemi di un'azienda, con la posta interna aperta](docs/img/sottosistemi.jpg)
 
+## Un mondo che vive
+
+Il Reticolo gira sull'**ora vera**. Sulla mappa una fascia d'ombra segna dove è notte; ogni nodo ha la sua ora locale e i suoi
+orari: uffici aperti dal lunedì al venerdì, negozi fino al sabato, polizia e ospedali sempre. Di giorno un impiegato che si
+collega non fa notizia, di notte sì; al centralino risponde qualcuno solo quando in ufficio c'è qualcuno; in pausa pranzo i
+monitor sono pigri; le casse dei negozi sono piene la sera.
+
+![La mappa con la fascia della notte](docs/img/notte.jpg)
+
+E c'è **gente**: trenta abitanti con un nome, una città e un fuso, che quando sono svegli agiscono davvero. Fanno colpi dove è
+buio, mettono in giro virus, fanno la ronda, finiscono in custodia e tornano, pagano la bolletta. Poi lo raccontano in chat,
+sui BBS e sui giornali.
+
 ## BBS
+
+![Un BBS: insegna, aree, ultimi chiamanti e il muro](docs/img/bbs.jpg)
 
 Accanto alla chat in tempo reale ci sono i **BBS**: sistemi che si chiamano col modem, uno alla volta e a tempo, dove i messaggi
 restano. Ogni BBS ha le sue bacheche, i suoi **livelli d'utente** (nuovo, validato, fidato, élite) che si guadagnano chiamando,
@@ -119,6 +134,8 @@ classifica, e, su un numero che trova solo il War Dialer, un sistema che a tris 
 
 ## Warez, virus e antivirus
 
+![Il banco di assemblaggio del Laboratorio](docs/img/laboratorio.jpg)
+
 Nell'area file dei BBS girano i **warez**: programmi pirata che potenziano il deck per qualche ora, e che ogni tanto sono
 infetti. Il deck si ammala (virus, dialer, RAT, bombe logiche) e si cura con un **antivirus** a tre livelli, le cui firme
 invecchiano ogni giorno. Nel **Laboratorio** i rossi assemblano le proprie creature da quattro moduli (vettore, carico,
@@ -127,6 +144,8 @@ quarantena, analizzano i campioni e **pubblicano le firme**, costringendo gli au
 gioco: nessun codice vero, solo regole.
 
 ## Barriere biometriche
+
+![L'oscilloscopio davanti a un'impronta vocale](docs/img/oscilloscopio.jpg)
 
 Sui sistemi più blindati (banche, basi militari, metà delle reti interne) la password di root non basta: serve anche **la voce,
 l'impronta o la retina** dell'amministratore. Il campione si ruba altrove: la voce dal centralino, l'impronta dalla scheda del
@@ -206,7 +225,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **568 traguardi**: 142 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **596 traguardi**: 149 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -239,6 +258,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.11.0 | 25 novembre 2026 | Giorno e notte sull'ora vera, orari d'ufficio, trenta abitanti che agiscono da soli |
 | 0.10.0 | 25 novembre 2026 | Warez, laboratorio di malware, antivirus e firme |
 | 0.9.0 | 25 novembre 2026 | BBS: bacheche, livelli, area file, porte, e un sistema che vuole giocare |
 | 0.8.0 | 25 novembre 2026 | Barriere biometriche, oscilloscopio, campioni da rubare |
@@ -343,6 +363,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/game.ts` | Simulazione autoritativa: mondo, operazioni live, trace, log, forensica, contratti, NPC |
 | `server/content.ts` | Nodi, file, password, NPC del mondo iniziale, nodi nascosti |
 | `server/scenarios.ts` | I copioni delle operazioni a tappe |
+| `server/life.ts`, `server/life-text.ts`, `shared/clock.ts` | Orologio del mondo, regole di giorno e di notte, popolazione autonoma e i suoi testi |
 | `server/malware.ts`, `shared/malware.ts`, `client/src/views/Lab.tsx` | Warez, infezioni del deck, laboratorio, antivirus e firme |
 | `server/bbs.ts`, `server/bbs-text.ts`, `shared/bbs.ts`, `client/src/views/Bbs.tsx` | I BBS: stato, testi, tipi, interfaccia |
 | `server/bio.ts`, `shared/bio.ts`, `client/src/views/Scope.tsx` | Barriere biometriche, campioni, oscilloscopio |

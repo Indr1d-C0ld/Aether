@@ -6,6 +6,22 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.11.0",
+    date: "2026-11-25",
+    title: "Il mondo vive: giorno, notte e trenta persone che fanno la loro vita",
+    tags: ["mondo", "giorno/notte", "popolazione", "mappa"],
+    items: [
+      "Il Reticolo gira sull'ora vera. Sulla mappa una fascia d'ombra segna dove è notte, e scorre da sola; ogni nodo mostra la sua ora locale e il cartello sulla porta: uffici aperti, pausa pranzo, chiuso per il fine settimana, turno di notte.",
+      "Gli orari contano. In orario d'ufficio un impiegato che si collega non fa notizia: con le credenziali di un dipendente entri senza svegliare il monitor. Fuori orario lo stesso login è una riga sospetta.",
+      "Al centralino risponde una persona solo quando in quell'ufficio c'è qualcuno: di notte e nel fine settimana c'è la segreteria, a pranzo nessuno. Se ti serve una voce da registrare, guarda l'orologio (il loro).",
+      "In pausa pranzo e nel fine settimana i monitor sono più pigri; con gli uffici chiusi le indagini partono più tardi; le casse dei negozi sono piene la sera e vuote al mattino; il War Dialer, dove è notte, trova un numero in più.",
+      "Trenta abitanti con un nome, una città, un fuso e un'ora in cui la madre stacca il telefono. Quando sono svegli agiscono davvero: fanno colpi dove è buio (e nei log restano le righe), mettono in giro virus, fanno la ronda, tolgono infezioni, finiscono in custodia e tornano. Ogni giorno a mezzanotte pagano la bolletta, e chi resta al verde si dà da fare di più.",
+      "Quello che fanno lo raccontano: in chat, sui BBS (dove chiamano, rispondono e aprono discussioni), sul muro e sui giornali. Sui BBS, alla voce Utenti, c'è l'elenco di chi è sveglio adesso e di cosa ha appena combinato.",
+      "Molti più testi, tutti legati all'ora di chi parla: chiacchiere per ogni fascia della giornata, notizie d'agenzia, trentatré discussioni, risposte, frasi sul muro, e nuova posta interna negli uffici su turni, scadenze e backup delle due di notte.",
+      "28 traguardi nuovi per chi lavora all'alba, in pausa pranzo, nel fine settimana, in pieno giorno, o seguendo la notte intorno al mondo: 596 in tutto.",
+    ],
+  },
+  {
     v: "0.10.0",
     date: "2026-11-25",
     title: "Warez, virus e antivirus",

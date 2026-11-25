@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { NodeView } from "../../../shared/types.ts";
 import { KIND_LABEL, KIND_PROFILE, MISSION_LABEL, SCAN_COST, SENSOR_COST, scanFinds, socPresidia, socSensors, REGION_NAME, RELAY_CLASS, WARDIAL_COST, fmtCr, heatTraceFactor, regionAt, routeTrace, type HopInput } from "../../../shared/rules.ts";
 import { DialLog } from "../cinema.tsx";
+import { PART_NAME, clockLabel, dayPart, statusLine } from "../../../shared/clock.ts";
 import { Tones } from "./Tones.tsx";
 import { net } from "../net.ts";
 import { MAP_H, MAP_STYLES, MAP_VIEWS, MAP_W, RELAY_COLOR, drawMap, loadBaseMap, KIND_COLOR } from "../pixel.ts";
@@ -41,8 +42,8 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
   const missionNodes = useMemo(() => new Set(state.missions.filter((m) => m.mine).flatMap((m) => [m.nodeId, ...m.clientNodes])), [state.missions]);
   const activeRoute = op ? op.chain : route;
   const drawNodes = op && op.target.kind === "gateway" ? [...state.nodes, op.target] : state.nodes;
-  const sceneRef = useRef({ nodes: drawNodes, route: activeRoute, live: Boolean(op), trace, selected, presiding: me.presiding.map((x) => x.nodeId), view });
-  sceneRef.current = { nodes: drawNodes, route: activeRoute, live: Boolean(op), trace, selected, presiding: me.presiding.map((x) => x.nodeId), view };
+  const sceneRef = useRef({ nodes: drawNodes, route: activeRoute, live: Boolean(op), trace, selected, presiding: me.presiding.map((x) => x.nodeId), view, now: ctx.serverNow });
+  sceneRef.current = { nodes: drawNodes, route: activeRoute, live: Boolean(op), trace, selected, presiding: me.presiding.map((x) => x.nodeId), view, now: ctx.serverNow };
 
   useEffect(() => {
     const c = canvas.current;
@@ -51,7 +52,7 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
     let raf = 0;
     const loop = (t: number) => {
       const s = sceneRef.current;
-      drawMap(g, base, { nodes: s.nodes, gateway: gw, route: s.route, live: s.live, traceFrac: s.trace, selected: s.selected, presiding: s.presiding, view: s.view, t });
+      drawMap(g, base, { nodes: s.nodes, gateway: gw, route: s.route, live: s.live, traceFrac: s.trace, selected: s.selected, presiding: s.presiding, view: s.view, t, now: s.now });
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -475,6 +476,7 @@ function NodePanel({ ctx, node }: { ctx: DeckCtx; node: NodeView }) {
         )}
         {node.kind !== "registry" ? (
           <div className="row">
+            <span className="chip" title={statusLine(node.kind, node.x, ctx.serverNow)}>{clockLabel(node.x, ctx.serverNow)} · {PART_NAME[dayPart(node.x, ctx.serverNow)]}</span>
             <span className={`chip ${node.sec.proxy ? "red" : ""}`}>proxy {node.sec.proxy}</span>
             <span className={`chip ${node.sec.firewall ? "red" : ""}`}>firewall {node.sec.firewall}</span>
             <span className={`chip ${node.sec.monitor > 2 ? "red" : node.sec.monitor ? "amber" : ""}`}>monitor {node.sec.monitor}</span>
