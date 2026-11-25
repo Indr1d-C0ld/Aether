@@ -6,6 +6,19 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.6.0",
+    date: "2026-11-25",
+    title: "I rotori del Decrypter: il secondo minigioco",
+    tags: ["minigiochi", "decrypter", "traguardi"],
+    items: [
+      "Sui file cifrati, sotto «Decifra», ora c'è «Rotori»: la chiave è una fila di 3, 4 o 5 rotori da girare a colpi di freccia. A ogni prova il sistema dice quanti sono allineati e quanti simboli sono giusti ma sul rotore sbagliato.",
+      "Trovata la chiave, il file è in chiaro subito, senza aspettare la barra. Se ti avanzano almeno 2 prove il sistema la prende per buona e il trace si ferma dieci secondi.",
+      "«A mano»: con i rotori puoi decifrare un file di un livello sopra il tuo Decrypter. Hai una prova in meno, e se le finisci la chiave viene ruotata e il trace fa un balzo in avanti.",
+      "Sono facoltativi: la barra funziona come prima, e puoi lanciarla e girare i rotori mentre corre.",
+      "12 traguardi nuovi per chi decifra a mano: 468 in tutto.",
+    ],
+  },
+  {
     v: "0.5.0",
     date: "2026-11-25",
     title: "La griglia del firewall: il primo minigioco",

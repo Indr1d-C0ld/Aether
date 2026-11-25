@@ -340,6 +340,12 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Minigiochi: i rotori del Decrypter (0.6.0)
+
+**Rotori** (`shared/rotors.ts`, azione `rotor {act: open|try, fileId, guess}`). Un Mastermind a 6 simboli con ripetizioni: 3/4/5 rotori e 6/6/7 prove per cifratura L1/L2/L3. Riscontro: allineati e giusti-fuori-posto. Chiave trovata → file decifrato per questa connessione, la barra in corso si chiude; con ≥ 2 prove avanzate il trace si ferma 10 s. **A mano** un livello sopra il Decrypter, con una prova in meno; prove finite → chiave ruotata (su quel file a mano non si riprova nella stessa connessione) e, solo a mano, trace +12%. Una chiave sul banco alla volta.
+
+Taratura (simulazione: «attento» prova solo chiavi compatibili con i riscontri, «distratto» una volta su tre ne prova una a caso): con lo strumento giusto vince 99% / 82-90%; a mano 85-96% / 58-75%. Chi prova a caso resta sotto il 3%. Contatori `mg:rotor`, `mg:rotorclean`, `mg:rotormanual`, `mg:rotorlost`.
+
 ## Sottosistemi, livelli di accesso, posta interna (0.4.0)
 
 Scelta di fondo: **niente riga di comando**. La libertà dentro un nodo si dà con stanze cliccabili e poche azioni ciascuna, non con una shell.
@@ -367,6 +373,6 @@ Scelta di fondo: **niente riga di comando**. La libertà dentro un nodo si dà c
 3. ~~Gateway attaccabili~~ (fatto). Possibili estensioni: rubare strumenti, trojan che si attivano più tardi, IP rotabili a pagamento.
 4. ~~Mercato fra giocatori~~ (fatto: mercato nero, ricettatore, taglie). Possibile estensione: exploit con usura.
 5. **Stagioni ed eventi globali** («Zero-Day Outbreak», «Corporate War»), alleanze e cellule.
-6. **Mini-giochi opzionali** sopra agli strumenti automatici: fatta la griglia del firewall (0.5.0). Prossimi: rotori del Decrypter, toni della Blue Box, oscilloscopio per i blu. Uno alla volta.
+6. **Mini-giochi opzionali** sopra agli strumenti automatici: fatti la griglia del firewall (0.5.0) e i rotori del Decrypter (0.6.0). Prossimi: toni della Blue Box, oscilloscopio per i blu. Uno alla volta.
 7. **APK Android**: icona PNG 512, dominio HTTPS, `bubblewrap init --manifest https://…/manifest.webmanifest`.
 8. **Sicurezza di rete**: limiti di frequenza sulle azioni, scadenza dei token, HTTPS/WSS dietro un proxy.

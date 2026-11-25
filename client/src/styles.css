@@ -2355,3 +2355,130 @@ table.board tr.you td {
     animation: none;
   }
 }
+
+/* ---------- rotori del Decrypter (minigioco) ---------- */
+
+.rot-box {
+  border: 1px solid var(--line-hi);
+  background: var(--void);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rot-box.won {
+  border-color: var(--green);
+}
+.rot-box.lost {
+  border-color: var(--red);
+}
+.rot-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-start;
+}
+.rot-wheels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.rot-wheel {
+  display: flex;
+  flex-direction: column;
+  width: 44px;
+}
+.rot-arrow {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--dim);
+  font-size: 11px;
+  height: 24px;
+  cursor: pointer;
+  padding: 0;
+}
+.rot-arrow:not(:disabled):hover,
+.rot-arrow:not(:disabled):focus-visible {
+  color: var(--cyan);
+  border-color: var(--cyan);
+  outline: none;
+}
+.rot-arrow:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.rot-face {
+  border-left: 1px solid var(--line-hi);
+  border-right: 1px solid var(--line-hi);
+  background: linear-gradient(var(--deep), var(--panel-2) 50%, var(--deep));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--pixel);
+  line-height: 1;
+  padding: 2px 0;
+}
+.rot-sym {
+  font-size: 34px;
+  color: var(--amber);
+  text-shadow: 0 0 8px rgb(255 176 0 / 0.5);
+}
+.rot-box.won .rot-sym {
+  color: var(--green);
+  text-shadow: 0 0 8px rgb(57 255 136 / 0.6);
+}
+.rot-box.lost .rot-sym {
+  color: var(--red);
+  text-shadow: none;
+}
+.rot-ghost {
+  font-size: 15px;
+  color: var(--faint);
+}
+.rot-try {
+  margin-left: 6px;
+  align-self: center;
+}
+.rot-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--pixel);
+  font-size: 20px;
+}
+.rot-log li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px dashed var(--line);
+  padding: 1px 2px;
+}
+.rot-log li.faint {
+  font-family: var(--mono);
+  font-size: 12px;
+  border: 0;
+}
+.rot-log li.ok .rot-code {
+  color: var(--green);
+}
+.rot-code {
+  color: var(--ink);
+  letter-spacing: 0.08em;
+}
+.rot-fb {
+  color: var(--green);
+  letter-spacing: 0.1em;
+}
+.rot-fb em {
+  font-style: normal;
+  color: var(--amber);
+}
+.rot-fb s {
+  text-decoration: none;
+  color: var(--faint);
+}

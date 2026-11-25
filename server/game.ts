@@ -6,6 +6,7 @@ import { randomBytes } from "node:crypto";
 import { TIER_FAME as ACH_FAME, TIER_NAME as ACH_TIER, achId, trackValue, tracksFor } from "../shared/achievements.ts";
 import { DEFAULT_SETTINGS, type AuditRow, type IpBan, type Settings } from "../shared/admin.ts";
 import type { Store } from "./db.ts";
+import { ROTOR_CLEAN, ROTOR_FAIL_TRACE, ROTOR_FREEZE_MS, ROTOR_SYMBOLS, rotorScore, rotorSpec, type RotorView } from "../shared/rotors.ts";
 import { GRID_CLEAN, GRID_FAIL_TRACE, gridClue, gridSpec, type GridView } from "../shared/grid.ts";
 import { rollScene, type Objective, type SNode } from "./scenarios.ts";
 import { specLevel, type SpecId } from "../shared/progress.ts";
@@ -344,6 +345,8 @@ type Op = {
   guard: number; // moltiplicatore del trace per i contratti «presidiati»
   grave: boolean; // ha toccato denaro: l'indagine è rapida
   clearance: number; // 0 nessuno · 1 impiegato · 2 operatore (admin e cliente valgono 3)
+  rotor?: { fileId: string; code: number[]; guesses: { g: number[]; exact: number; near: number }[]; tries: number; state: "open" | "won" | "lost"; manual: boolean };
+  rotorLost?: string[]; // file su cui la chiave è stata ruotata: a mano non si riprova
   grid?: { side: number; hidden: number[]; found: number[]; probed: number[]; probes: number; state: "open" | "won" | "lost"; manual: boolean };
   zoneUsed: string[]; // azioni dei sottosistemi già usate in questa connessione
 };
@@ -2873,6 +2876,7 @@ export class Game {
       clearance: 0,
       zones: [],
       grid: this.gridView(op),
+      rotor: this.rotorView(op, target),
       ...(this.opExtra?.(op, me, target) ?? {}),
       looted: op.looted,
     };
@@ -3137,7 +3141,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3225,6 +3229,8 @@ export class Game {
           return this.overload(agent);
         case "disconnect":
           return this.disconnect(agent);
+        case "rotor":
+          return this.rotor(agent, String(p.act ?? "open"), p);
         case "grid":
           return this.grid(agent, String(p.act ?? "open"), Number(p.cell));
         case "run":
@@ -3692,6 +3698,82 @@ export class Game {
       return { ok: true, data: { hit: hit >= 0, lost: true } };
     }
     return { ok: true, data: { hit: hit >= 0 } };
+  }
+
+  // ------------------------------------------------------------ i rotori del Decrypter (minigioco)
+
+  rotorView(op: Op, target: WNode): RotorView | null {
+    const r = op.rotor;
+    if (!r) return null;
+    const file = target.files.find((f) => f.id === r.fileId);
+    return { fileId: r.fileId, fileName: file?.name ?? "?", rotors: r.code.length, guesses: r.guesses, tries: r.tries, state: r.state, manual: r.manual, code: r.state === "open" ? null : r.code };
+  }
+
+  rotor(agent: Agent, act: string, p: Record<string, unknown>) {
+    const { op, target } = this.requireOpSafe(agent);
+    if (!op || !target) return { ok: false, error: "non sei collegato" };
+    const version = agent.tools.decrypt ?? 0;
+    if (act === "open") {
+      if (op.access !== "admin" && op.access !== "client") return { ok: false, error: "serve l'accesso admin" };
+      if (!version) return { ok: false, error: `non possiedi ${toolDef("decrypt").name}` };
+      const file = target.files.find((f) => f.id === p.fileId && !f.deleted);
+      if (!file) return { ok: false, error: "file assente" };
+      if (!file.encryption || op.decrypted.has(file.id)) return { ok: false, error: "il file è già in chiaro" };
+      if (file.encryption > version + 1) return { ok: false, error: `troppi rotori per farlo a mano: serve almeno il Decrypter v${file.encryption - 1}` };
+      if (op.rotor?.state === "open") return op.rotor.fileId === file.id ? { ok: true } : { ok: false, error: "hai già una chiave sul banco: finisci quella" };
+      if (op.rotorLost?.includes(file.id)) return { ok: false, error: "la chiave di questo file è stata ruotata: a mano non si riprova" };
+      const manual = version < file.encryption;
+      const spec = rotorSpec(file.encryption, manual);
+      const code = Array.from({ length: spec.rotors }, () => Math.floor(Math.random() * ROTOR_SYMBOLS.length));
+      op.rotor = { fileId: file.id, code, guesses: [], tries: spec.tries, state: "open", manual };
+      this.noisy(op, agent, target);
+      return { ok: true, note: "chiave sul banco" };
+    }
+    const r = op.rotor;
+    if (act !== "try" || !r || r.state !== "open") return { ok: false, error: "nessuna chiave sul banco" };
+    const g = Array.isArray(p.guess) ? p.guess.map(Number) : [];
+    if (g.length !== r.code.length || g.some((x) => !Number.isInteger(x) || x < 0 || x >= ROTOR_SYMBOLS.length)) return { ok: false, error: "combinazione non valida" };
+    const sc = rotorScore(r.code, g);
+    r.guesses.push({ g, ...sc });
+    r.tries -= 1;
+    if (op.decrypted.has(r.fileId)) {
+      // la barra ha finito prima: i rotori restano un passatempo
+      r.state = "won";
+      return { ok: true, data: sc };
+    }
+    if (sc.exact === r.code.length) {
+      r.state = "won";
+      op.decrypted.add(r.fileId);
+      for (const k of op.tasks) {
+        if (k.tool === "decrypt" && k.state === "run" && k.arg.fileId === r.fileId) {
+          k.done = k.work;
+          k.state = "done";
+          k.note = "chiave trovata a mano";
+          k.finishedAt = now();
+        }
+      }
+      const clean = r.tries >= ROTOR_CLEAN;
+      if (clean && op.trace.active) op.frozenUntil = Math.max(op.frozenUntil, now() + ROTOR_FREEZE_MS);
+      this.bump(agent, "t:decrypt");
+      this.deed(agent, "t:decrypt", target);
+      this.bump(agent, "mg:rotor");
+      if (clean) this.bump(agent, "mg:rotorclean");
+      if (r.manual) this.bump(agent, "mg:rotormanual");
+      this.out.toast(agent.id, clean ? `Chiave trovata: il sistema la prende per buona, trace fermo per ${ROTOR_FREEZE_MS / 1000} secondi.` : "Chiave trovata: il file è in chiaro.", "ok");
+      return { ok: true, data: { ...sc, won: true, clean } };
+    }
+    if (r.tries <= 0) {
+      r.state = "lost";
+      (op.rotorLost ??= []).push(r.fileId);
+      if (r.manual) {
+        const total = op.trace.hopTimes.reduce((q, v) => q + v, 0);
+        if (op.trace.active && total > 0) op.trace.progressMs = Math.min(total * 0.97, op.trace.progressMs + total * ROTOR_FAIL_TRACE);
+      }
+      this.bump(agent, "mg:rotorlost");
+      this.out.toast(agent.id, r.manual ? "Prove finite: la chiave è stata ruotata e il monitor ti ha sentito." : "Prove finite: chiave ruotata. Resta il Decrypter.", "warn");
+      return { ok: true, data: { ...sc, lost: true } };
+    }
+    return { ok: true, data: sc };
   }
 
   completeTask(op: Op, agent: Agent, task: Task) {

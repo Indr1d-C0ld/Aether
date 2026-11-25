@@ -322,6 +322,7 @@ export type OpView = {
   clearance: number; // 0 nessuno · 1 impiegato · 2 operatore · 3 admin o cliente
   zones: import("./zones.ts").ZoneView[]; // i sottosistemi di questo nodo
   grid: import("./grid.ts").GridView | null; // la griglia del firewall, se aperta
+  rotor: import("./rotors.ts").RotorView | null; // i rotori del Decrypter, se c'è una chiave sul banco
 };
 
 export type SysCommand = { id: string; name: string; desc: string; needs: "none" | "handle" | "handleTone"; blocked: string | null };

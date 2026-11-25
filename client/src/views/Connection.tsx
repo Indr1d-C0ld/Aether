@@ -9,6 +9,7 @@ import { rarityColor, rarityName } from "../../../shared/depth.ts";
 import { CrackDisplay, Decode, ToolTheater, TypeOut, shoot } from "../cinema.tsx";
 import { ZonesPanel } from "./Zones.tsx";
 import { FirewallGrid } from "./FirewallGrid.tsx";
+import { Rotors } from "./Rotors.tsx";
 import { CLEARANCE } from "../../../shared/zones.ts";
 
 export function Connection({ ctx, elapsed }: { ctx: DeckCtx; elapsed: number }) {
@@ -210,6 +211,7 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
               <span className="faint">archivio {me.storage.reduce((s, f) => s + f.size, 0)}/{me.storageCap} GQ</span>
             </div>
             <div className="panel-body list">
+              {op.rotor ? <Rotors key={op.rotor.fileId} rotor={op.rotor} /> : null}
               {op.files.length ? (
                 op.files.map((f) => <FileRow key={f.id} f={f} op={op} me={me} running={running} run={run} />)
               ) : (
@@ -400,6 +402,11 @@ function FileRow({ f, op, me, running, run }: { f: FileView; op: OpView; me: Dec
         {locked ? (
           <button className="btn small" disabled={!me.tools.decrypt || (me.tools.decrypt ?? 0) < f.encryption || running("decrypt")} onClick={() => run("decrypt", { fileId: f.id })}>
             {me.tools.decrypt ? ((me.tools.decrypt ?? 0) < f.encryption ? `serve v${f.encryption}` : "Decifra") : "Serve Decrypter"}
+          </button>
+        ) : null}
+        {locked && me.tools.decrypt && f.encryption <= (me.tools.decrypt ?? 0) + 1 && op.rotor?.fileId !== f.id ? (
+          <button className="btn small" disabled={op.rotor?.state === "open"} onClick={() => void net.do("rotor", { act: "open", fileId: f.id })} title="Cerca la chiave a mano, girando i rotori">
+            {(me.tools.decrypt ?? 0) < f.encryption ? "A mano" : "Rotori"}
           </button>
         ) : null}
         <button className="btn small" disabled={locked || copyBusy || have || !op.bypass.firewall} onClick={() => void net.do("copy", { fileId: f.id })}>
