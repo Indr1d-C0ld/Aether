@@ -359,3 +359,36 @@ export function NodeMalware({ op, faction, inside }: { op: import("../../../shar
     </div>
   );
 }
+
+/** Nella Console: sei admin sul gateway di chi ha un BBS, e puoi riscriverne l'insegna. */
+export function DefacePanel({ op }: { op: import("../../../shared/types.ts").OpView }) {
+  const [text, setText] = useState("");
+  const [msg, setMsg] = useState("");
+  if (!op.bbsDeface) return null;
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <span className="label">BBS di {op.bbsDeface.owner}</span>
+        <span className="chip red">gira su questo gateway</span>
+      </div>
+      <form
+        className="panel-body list"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void net.do("bbs", { cmd: "own:deface", text }).then((r) => setMsg(r.ok ? (r.note ?? "") : (r.error ?? "")));
+        }}
+      >
+        <p className="dim" style={{ margin: 0 }}>
+          Da qui arrivi ai file di «{op.bbsDeface.name}». Puoi riscriverne l'insegna: chi chiama nelle prossime dodici ore vedrà la tua firma, finché il sysop non la ripristina.
+        </p>
+        <div className="row">
+          <input value={text} onChange={(e) => setText(e.target.value)} maxLength={60} placeholder="Cosa lasci scritto" style={{ flex: 1, minWidth: 180 }} aria-label="Testo dello sfregio" />
+          <button className="btn danger" disabled={text.trim().length < 3}>
+            Sfregia l'insegna
+          </button>
+        </div>
+        {msg ? <span className="t-amber">{msg}</span> : null}
+      </form>
+    </div>
+  );
+}

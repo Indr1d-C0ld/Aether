@@ -340,6 +340,20 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Il BBS del giocatore (0.18.0)
+
+**Dove.** Nello stesso motore dei BBS di serie (`server/bbs.ts`): la scheda del giocatore (`state.owned`, id `u-<agente>`) diventa una definizione come le altre al momento della lettura, quindi chiamata a tempo, livelli, bacheche, porte e area file non hanno codice a parte. Uno per giocatore, 4.000 CR.
+
+**Testi liberi letti da altri.** Nome 28 caratteri, sottotitolo 80, regole 300, insegna 10 righe × 64 colonne; caratteri di controllo tolti. Nome unico fra tutti i BBS. Moderazione: `admin.bbsList`, `admin.bbsReset` (azzera i testi), `admin.bbsClose` (chiude con lettera al sysop); finiscono nel registro. I messaggi singoli li rimuove lo staff dalla bacheca, come sui BBS di serie.
+
+**Area file.** Niente pacchetti del giorno (sarebbe una fonte di exploit per ogni BBS aperto): solo il materiale caricato dagli utenti (ultimi 12). Chi carica perde il file e prende credito in KB come altrove; il sysop riceve una copia a metà valore (dagli abitanti al più tre al giorno); chi scarica prende un'altra copia a metà valore, una per file. Le copie hanno un identificativo proprio, quindi il ricettatore le paga una volta per giocatore, alla metà.
+
+**Fama e abitanti.** +1 per visitatore diverso al giorno (giocatori e abitanti). Un abitante che chiama un BBS ha il 35% di provarne uno dei giocatori della sua parte, scelto in proporzione a fama + 3; lì carica un file (20%) o scrive al sysop (12%, al più due lettere al giorno, con un indirizzo nuovo o mezza password vera).
+
+**Rischi.** Calore: +4 per file caricato da un giocatore, +3 da un abitante, +35 per segnalazione di un blu (una al giorno per blu), −0,05 a battito. A 100: sigilli per 6 ore, sessioni chiuse, fama ×0,7, calore a 30. Sfregio: chi è admin sul gateway del sysop può riscrivere l'insegna per 12 ore (fama −10); il sysop la ripristina gratis.
+
+Scelte rispetto alla proposta: niente lettura della posta privata fra giocatori; le «lettere al sysop» arrivano solo dagli abitanti.
+
 ## Commissioni, ricettatore, aperture (0.17.0)
 
 **Commissioni** (`shared/jobs.ts`, `Game.postJob`). Un contratto scritto da un giocatore: obiettivo (un'impresa registrata in `Game.deed` su quel nodo) e condizioni. «Di notte» e «in orario d'ufficio» sono un campo `when` dell'obiettivo, controllato sull'ora del nodo nel momento dell'impresa (`Game.whenOk`); «senza tracce» aggiunge l'obiettivo `ghostexit`; «fretta» mette un limite di 30 minuti; «esperti» un minimo di 1.500 XP. Paga minima 800 CR × (1 + 0,35 a condizione); ricompensa e 5% di commissione in deposito come per le taglie.

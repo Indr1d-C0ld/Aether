@@ -11,7 +11,7 @@ import { ZonesPanel } from "./Zones.tsx";
 import { FirewallGrid } from "./FirewallGrid.tsx";
 import { Rotors } from "./Rotors.tsx";
 import { BioBarrier } from "./Scope.tsx";
-import { NodeMalware } from "./Lab.tsx";
+import { DefacePanel, NodeMalware } from "./Lab.tsx";
 import { PART_NAME, clockLabel, dayPart, statusLine } from "../../../shared/clock.ts";
 import { CLEARANCE } from "../../../shared/zones.ts";
 
@@ -131,6 +131,7 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
       ) : null}
       <ToolTheater op={op} elapsed={elapsed} />
       <NodeMalware op={op} faction={me.faction} inside={inside} />
+      <DefacePanel op={op} />
 
       <div className="grid2">
         {/* sicurezza e accesso */}

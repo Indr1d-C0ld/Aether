@@ -226,6 +226,7 @@ const fence = installFence(game);
 const startups = installStartups(game, orgs, citizens);
 installFronts(game, orgs);
 
+const bbsAdminAct = bbs.adminAct;
 installAdmin(game, {
   dbPath: DB_PATH,
   startedAt: STARTED_AT,
@@ -257,6 +258,16 @@ installAdmin(game, {
     return n;
   },
 });
+// la moderazione dei BBS dei giocatori passa dal pannello dell'amministratore
+{
+  const base = game.adminAct!;
+  game.adminAct = (admin, a, p) => {
+    if (!a.startsWith("bbs")) return base(admin, a, p);
+    const r = bbsAdminAct(a, p);
+    if (r.ok && a !== "bbsList") game.meta.audit = [{ at: Date.now(), by: admin.handle, action: a, detail: r.note ?? "" }, ...(game.meta.audit ?? [])].slice(0, 500);
+    return r;
+  };
+}
 setInterval(() => {
   for (const l of [badLogins, signups]) for (const k of [...l.hits.keys()]) l.recent(k);
 }, 10 * 60_000).unref();

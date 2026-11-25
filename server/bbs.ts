@@ -6,14 +6,17 @@ import { BBS, NPC_ONELINERS, NPC_REPLIES, SYSOP_PAGE, type BbsDef } from "./bbs-
 import { EXPLOITS } from "../shared/depth.ts";
 import { rankOf, fmtCr } from "../shared/rules.ts";
 import { DEVLOG } from "../shared/devlog.ts";
+import { AREA_TEMPLATES, OWN_BANNER_COLS, OWN_BANNER_LINES, OWN_COST, OWN_DEFACE_MAX, OWN_INVITES_MAX, OWN_MAX_AREAS, OWN_MOTD_MAX, OWN_NAME_MAX, OWN_SEIZE_AT, OWN_SEIZE_H, OWN_TAGLINE_MAX, type OwnedView } from "../shared/bbs.ts";
 import { BBS_LEVEL, BBS_LINE_MAX, BBS_MINUTES, BBS_POST_MAX, BBS_TITLE_MAX, type BbsArea, type BbsFiles, type BbsHome, type BbsInfo, type BbsThread, type BbsThreadRow, type BbsUserRow, type GtwState, type TradeState, type TrisState } from "../shared/bbs.ts";
 
 type R = { ok: boolean; error?: string; note?: string; data?: unknown };
 type Post = { by: string; at: number; body: string; npc?: boolean };
 type Thread = { id: string; area: string; title: string; posts: Post[]; pinned?: boolean };
-type User = { days: number; lastDay: number; lastAt: number; posts: number; uploads: number; downloads: number; kb: number; usedDay: number; usedMs: number; seen: number; packDay: number; gate?: boolean };
-type Board = { threads: Thread[]; users: Record<string, User>; callers: { handle: string; at: number; from: string }[]; oneliners: { handle: string; text: string }[]; recent: { name: string; by: string; at: number }[]; pending: { thread: string; at: number }[]; seq: number };
-type State = { boards: Record<string, Board>; trade: { best: { handle: string; score: number }[]; today: { day: number; rows: { handle: string; score: number }[] } } };
+type User = { days: number; lastDay: number; lastAt: number; posts: number; uploads: number; downloads: number; kb: number; usedDay: number; usedMs: number; seen: number; packDay: number; gate?: boolean; sysop?: boolean; took?: string[] };
+type Stash = { id: string; name: string; by: string; at: number; nodeId: string; fileId: string; size: number; value: number; rarity?: number };
+type Owned = { id: string; owner: string; name: string; tagline: string; banner: string; motd: string; number: string; access: "pubblico" | "riservato"; invited: string[]; areas: string[]; files: boolean; door: "" | "mercante" | "tris"; createdAt: number; fame: number; heat: number; seizedUntil: number; deface: { by: string; text: string; until: number } | null; famed: Record<string, number>; reports: Record<string, number>; tipDay: number; tips: number; npcCopies: number; npcCopyDay: number };
+type Board = { stash?: Stash[]; threads: Thread[]; users: Record<string, User>; callers: { handle: string; at: number; from: string }[]; oneliners: { handle: string; text: string }[]; recent: { name: string; by: string; at: number }[]; pending: { thread: string; at: number }[]; seq: number };
+type State = { owned?: Record<string, Owned>; boards: Record<string, Board>; trade: { best: { handle: string; score: number }[]; today: { day: number; rows: { handle: string; score: number }[] } } };
 type Session = { bbs: string; at: number; last: number };
 
 const now = () => Date.now();
@@ -95,11 +98,34 @@ export function installBbs(game: Game) {
     if (!b.callers.length) b.callers = ["Ohm", "Mantis", "Nyx_77"].map((handle, i) => ({ handle, at: now() - (i + 2) * 5400_000, from: ["Bologna", "Torino", "Napoli"][i]! }));
   }
 
-  const def = (id: string) => BBS.find((b) => b.id === id) ?? null;
+  // ---------------------------------------------------------------- i BBS dei giocatori
+  const owned = (state.owned ??= {});
+  const ownedOf = (a: AgentDoc) => Object.values(owned).find((o) => o.owner === a.id) ?? null;
+  const handleOf = (id: string) => game.agents.get(id)?.handle ?? "?";
+  const defaced = (o: Owned) => (o.deface && o.deface.until > now() ? o.deface : null);
+  const RULES = (o: Owned) => `REGOLE DI ${o.name.toUpperCase()}\n\n1. Il sysop è ${handleOf(o.owner)}, e legge tutto.\n2. ${o.files ? "Chi scarica, carichi." : "Qui non si scambiano file."}\n3. ${o.access === "riservato" ? "Su invito: se sei qui, qualcuno garantisce per te." : "La porta è aperta a tutti. Non fatela rimpiangere."}`;
+  function ownedDef(o: Owned): BbsDef {
+    const d = defaced(o);
+    return {
+      id: o.id,
+      name: o.name,
+      sysop: handleOf(o.owner),
+      tagline: o.tagline,
+      number: o.number,
+      speed: "14.400 · 1 linea",
+      banner: d ? `\n   ##  HACKED BY ${handleOf(d.by).toUpperCase()}  ##\n\n   ${d.text}\n` : o.banner,
+      motd: o.motd,
+      areas: o.areas.map((id) => AREA_TEMPLATES.find((t) => t.id === id)).filter(Boolean).map((t) => ({ id: t!.id, name: t!.name, desc: t!.desc, need: 0, seed: [] })),
+      philes: [{ id: "regole", name: "REGOLE.TXT", size: "1 KB", desc: "Le regole della casa, scritte dal sysop.", need: 0, body: RULES(o) }],
+      doors: o.door === "mercante" ? [{ id: "mercante", name: "Mercante di Chip", desc: "Dodici mosse al giorno fra sei città. La classifica è quella di tutto il Reticolo.", need: 0 }] : o.door === "tris" ? [{ id: "tris", name: "Tris", desc: "Contro la macchina. Non vince nessuno, di solito.", need: 0 }] : [],
+      files: o.files,
+    };
+  }
+  const def = (id: string): BbsDef | null => BBS.find((b) => b.id === id) ?? (owned[id] ? ownedDef(owned[id]!) : null);
   const board = (id: string) => state.boards[id]!;
   const userOf = (bbs: string, a: AgentDoc) => (board(bbs).users[a.id] ??= { days: 0, lastDay: 0, lastAt: 0, posts: 0, uploads: 0, downloads: 0, kb: 0, usedDay: 0, usedMs: 0, seen: 0, packDay: 0 });
   function levelOf(a: AgentDoc, u: User) {
-    if (a.staff) return 4;
+    if (a.staff || u.sysop) return 4;
     if (u.days >= 12 && u.posts >= 15 && u.uploads >= 8) return 3;
     if (u.days >= 5 && u.posts >= 5 && u.uploads >= 2) return 2;
     if (u.days >= 2 && u.posts >= 1) return 1;
@@ -116,14 +142,21 @@ export function installBbs(game: Game) {
     return `Per «${BBS_LEVEL[lv + 1]}»: ${miss.join(", ")}.`;
   }
   function lockOf(d: BbsDef, a: AgentDoc): string | null {
+    const o = owned[d.id];
+    if (o && o.seizedUntil > now()) return `sotto sequestro: la Guardia lo riapre fra ${Math.ceil((o.seizedUntil - now()) / 3600_000)} h`;
     if (a.staff) return null;
     if (d.only && d.only !== a.faction) return d.only === "red" ? "risponde solo alla cellula rossa" : "risponde solo alla cellula blu";
     return null;
   }
-  const visible = (d: BbsDef, a: AgentDoc) => a.staff || !d.wardial || (a.counters["a:wardial"] ?? 0) > 0 || Boolean(board(d.id).users[a.id]);
+  const visible = (d: BbsDef, a: AgentDoc) => {
+    const o = owned[d.id];
+    if (o) return a.staff || o.access === "pubblico" || o.owner === a.id || o.invited.includes(a.id);
+    return visibleStatic(d, a);
+  };
+  const visibleStatic = (d: BbsDef, a: AgentDoc) => a.staff || !d.wardial || (a.counters["a:wardial"] ?? 0) > 0 || Boolean(board(d.id).users[a.id]);
   const info = (d: BbsDef, a: AgentDoc): BbsInfo => {
     const u = board(d.id).users[a.id];
-    return { id: d.id, name: d.name, sysop: d.sysop, tagline: d.tagline, number: d.number, speed: d.speed, locked: lockOf(d, a), gate: Boolean(d.gate) && !u?.gate && !a.staff, days: u?.days ?? 0, level: u ? levelOf(a, u) : 0 };
+    return { id: d.id, name: d.name, sysop: d.sysop, tagline: d.tagline, number: d.number, speed: d.speed, locked: lockOf(d, a), gate: Boolean(d.gate) && !u?.gate && !a.staff, days: u?.days ?? 0, level: u ? levelOf(a, u) : 0, ...(owned[d.id] ? { owner: handleOf(owned[d.id]!.owner), mine: owned[d.id]!.owner === a.id, fame: Math.round(owned[d.id]!.fame) } : {}) };
   };
 
   // ---------------------------------------------------------------- la chiamata e il tempo
@@ -219,8 +252,10 @@ export function installBbs(game: Game) {
       packs: packsOf(d).map((p) => ({ n: p.n, name: p.e.name, desc: p.e.desc, cost: p.cost, taken: u.packDay === today(), need: p.need, open: lv >= p.need })),
       mine: uploadable(a).map((s) => ({ key: s.key, name: s.name, gain: gainOf(a, s.key) })),
       recent: board(d.id).recent.slice(0, 8),
+      ...(owned[d.id] ? { packs: [], stash: (board(d.id).stash ?? []).map((x) => ({ id: x.id, name: x.name, by: x.by, cost: stashCost(x), taken: (u.took ?? []).includes(x.id) })) } : {}),
     };
   }
+  const stashCost = (x: Stash) => 20 + x.value * 6;
 
   // ---------------------------------------------------------------- porte
   const trisView = (a: AgentDoc): TrisState => {
@@ -411,7 +446,12 @@ export function installBbs(game: Game) {
   function act(a: AgentDoc, p: Record<string, unknown>): R {
     const cmd = String(p.cmd ?? "");
     const id = String(p.bbs ?? "");
-    if (cmd === "list") return { ok: true, data: { list: BBS.filter((d) => visible(d, a)).map((d) => info(d, a)), on: sessions.get(a.id)?.bbs ?? null } };
+    if (cmd === "list") {
+      const mine = Object.values(owned).map(ownedDef);
+      const all = [...BBS, ...mine.sort((x, y) => (owned[y.id]!.fame ?? 0) - (owned[x.id]!.fame ?? 0))];
+      return { ok: true, data: { list: all.filter((d) => visible(d, a)).map((d) => info(d, a)), on: sessions.get(a.id)?.bbs ?? null } };
+    }
+    if (cmd.startsWith("own:")) return ownAct(a, cmd.slice(4), p);
     if (cmd === "bye") {
       hangup(a);
       return { ok: true, note: "NO CARRIER" };
@@ -442,6 +482,9 @@ export function installBbs(game: Game) {
         game.bump(a, "bbs:days");
       }
       sessions.set(a.id, { bbs: id, at: now(), last: now() });
+      const ob = owned[id];
+      if (ob && ob.owner === a.id) u.sysop = true;
+      if (ob && ob.owner !== a.id) visit(ob, a.id);
       const b = board(id);
       b.callers = [{ handle: a.handle, at: now(), from: game.homeCity(a) }, ...b.callers.filter((c) => c.handle !== a.handle)].slice(0, 12);
       game.bump(a, "bbs:call");
@@ -540,6 +583,10 @@ export function installBbs(game: Game) {
         return { ok: true, data: home(d, a) };
       }
       case "page":
+        if (owned[id]) {
+          const ow = game.agents.get(owned[id]!.owner);
+          return { ok: true, data: { line: ow?.id === a.id ? "Il sysop sei tu." : ow && game.online.has(ow.id) ? `${ow.handle} è in linea: scrivigli in query su ReticoloNet.` : `${ow?.handle ?? "Il sysop"} non è alla tastiera. Lascia un messaggio in bacheca.` } };
+        }
         return { ok: true, data: { line: a.staff ? "Il sysop sei tu." : SYSOP_PAGE[Math.floor(Math.random() * SYSOP_PAGE.length)] } };
       case "users": {
         const rows: BbsUserRow[] = Object.entries(b.users)
@@ -569,6 +616,12 @@ export function installBbs(game: Game) {
         u.kb += gain;
         u.uploads += 1;
         b.recent = [{ name: s.name, by: a.handle, at: now() }, ...b.recent].slice(0, 12);
+        const ob = owned[id];
+        if (ob) {
+          stashPush(ob, { id: `x${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`, name: s.name, by: a.handle, at: now(), nodeId: s.nodeId, fileId: s.fileId, size: s.size, value: game.fileValue(s), rarity: s.rarity });
+          if (ob.owner !== a.id) giveCopy(ob, s.name, s.nodeId, s.fileId, s.size, game.fileValue(s), s.rarity);
+          ob.heat += 4;
+        }
         game.touch("agent", a.id);
         game.bump(a, "bbs:up");
         game.dirty.add(a.id);
@@ -591,6 +644,38 @@ export function installBbs(game: Game) {
         dirty = true;
         return { ok: true, note: `scaricato ${pk.e.name}: è nel tuo archivio`, data: files(d, a, u) };
       }
+      case "take": {
+        const x = (b.stash ?? []).find((y) => y.id === p.id);
+        if (!x) return { ok: false, error: "file non più disponibile" };
+        if ((u.took ?? []).includes(x.id)) return { ok: false, error: "l'hai già scaricato" };
+        const cost = stashCost(x);
+        if (u.kb < cost) return { ok: false, error: `ti servono ${cost} KB di credito` };
+        if (a.storage.reduce((q, f) => q + f.size, 0) + x.size > game.storageMax(a)) return { ok: false, error: "archivio pieno" };
+        u.kb -= cost;
+        (u.took ??= []).push(x.id);
+        if (u.took.length > 60) u.took.shift();
+        u.downloads += 1;
+        // una copia vale la metà: sul mercato ce n'è già un'altra
+        a.storage.push({ key: `st_${Date.now().toString(36)}${Math.floor(Math.random() * 1e6)}`, name: x.name, nodeId: x.nodeId, fileId: `${x.fileId}~${a.id}`, size: x.size, at: now(), rarity: x.rarity, value: Math.max(1, Math.floor(x.value / 2)) });
+        game.touch("agent", a.id);
+        game.dirty.add(a.id);
+        game.bump(a, "bbs:down");
+        dirty = true;
+        return { ok: true, note: `scaricata una copia di ${x.name}`, data: files(d, a, u) };
+      }
+      case "report": {
+        const ob = owned[id];
+        if (!ob) return { ok: false, error: "questo BBS non ha un sysop da denunciare" };
+        if (a.faction !== "blue") return { ok: false, error: "denunciare è roba da blu" };
+        if (ob.owner === a.id) return { ok: false, error: "è il tuo" };
+        if ((ob.reports[a.id] ?? 0) === today()) return { ok: false, error: "l'hai già segnalato oggi" };
+        ob.reports[a.id] = today();
+        ob.heat += 35;
+        a.stats.defense += 1;
+        game.bump(a, "bbs:report");
+        dirty = true;
+        return { ok: true, note: "segnalato alla Guardia del Reticolo: se si accumulano, lo chiudono per qualche ora" };
+      }
       case "door": {
         const door = d.doors.find((x) => x.id === p.door);
         if (!door) return { ok: false, error: "porta inesistente" };
@@ -604,6 +689,193 @@ export function installBbs(game: Game) {
     }
   }
 
+  // ---------------------------------------------------------------- BBS dei giocatori: azioni del sysop
+  const cleanBanner = (t: unknown) =>
+    String(t ?? "")
+      .replace(/\r/g, "")
+      .replace(/[\u0000-\u0008\u000b-\u001f]/g, "")
+      .split("\n")
+      .slice(0, OWN_BANNER_LINES)
+      .map((l) => l.slice(0, OWN_BANNER_COLS).replace(/\s+$/, ""))
+      .join("\n");
+  function ownView(o: Owned): OwnedView {
+    const b = board(o.id);
+    return { id: o.id, name: o.name, tagline: o.tagline, banner: o.banner, motd: o.motd, number: o.number, access: o.access, invited: o.invited.map(handleOf), areas: o.areas, files: o.files, door: o.door, fame: Math.round(o.fame), heat: Math.round(o.heat), seizedUntil: o.seizedUntil, deface: defaced(o) ? { by: handleOf(o.deface!.by), text: o.deface!.text, until: o.deface!.until } : null, users: Object.keys(b.users).filter((k) => k !== o.owner).length, callsToday: Object.values(o.famed).filter((d) => d === today()).length, posts: b.threads.reduce((q, t) => q + t.posts.length, 0), stash: (b.stash ?? []).length };
+  }
+  function applyEdit(o: Owned, p: Record<string, unknown>): string | null {
+    if (p.name !== undefined) {
+      const n = clean(p.name, OWN_NAME_MAX).replace(/\n/g, " ");
+      if (n.length < 3) return "il nome vuole almeno tre caratteri";
+      if (BBS.some((x) => x.name.toLowerCase() === n.toLowerCase()) || Object.values(owned).some((x) => x !== o && x.name.toLowerCase() === n.toLowerCase())) return "c'è già un BBS con quel nome";
+      o.name = n;
+    }
+    if (p.tagline !== undefined) o.tagline = clean(p.tagline, OWN_TAGLINE_MAX).replace(/\n/g, " ");
+    if (p.banner !== undefined) o.banner = cleanBanner(p.banner);
+    if (p.motd !== undefined) o.motd = clean(p.motd, OWN_MOTD_MAX);
+    if (p.access === "pubblico" || p.access === "riservato") o.access = p.access;
+    if (Array.isArray(p.areas)) {
+      const ids = [...new Set(p.areas.map(String))].filter((x) => AREA_TEMPLATES.some((t) => t.id === x)).slice(0, OWN_MAX_AREAS);
+      if (!ids.length) return "serve almeno un'area messaggi";
+      o.areas = ids;
+    }
+    if (typeof p.files === "boolean") o.files = p.files;
+    if (p.door === "" || p.door === "mercante" || p.door === "tris") o.door = p.door;
+    if (Array.isArray(p.invited)) {
+      const ids: string[] = [];
+      for (const h of p.invited.map((x) => String(x).trim().toLowerCase()).filter(Boolean)) {
+        const ag = [...game.agents.values()].find((x) => !x.npc && x.handle.toLowerCase() === h);
+        if (!ag) return `nessun handle «${h}»`;
+        if (ag.id !== o.owner && !ids.includes(ag.id)) ids.push(ag.id);
+      }
+      o.invited = ids.slice(0, OWN_INVITES_MAX);
+    }
+    return null;
+  }
+  function ownAct(a: AgentDoc, cmd: string, p: Record<string, unknown>): R {
+    const o = ownedOf(a);
+    const done = (note: string): R => ((dirty = true), game.touch("agent", a.id), game.dirty.add(a.id), { ok: true, note, data: o || ownedOf(a) ? ownView((o ?? ownedOf(a))!) : null });
+    switch (cmd) {
+      case "view":
+        return { ok: true, data: o ? ownView(o) : null };
+      case "open": {
+        if (o) return { ok: false, error: "hai già un BBS: uno per handle" };
+        if (a.credits < OWN_COST) return { ok: false, error: `aprire un BBS costa ${fmtCr(OWN_COST)}: modem, linea dedicata, un disco grande` };
+        const id = `u-${a.id}`;
+        const fresh: Owned = { id, owner: a.id, name: "", tagline: "", banner: "", motd: "", number: `0${10 + (hash(a.id) % 89)}-${100 + (hash(a.id + "n") % 900)}-${10 + (hash(a.id + "m") % 90)}`, access: "pubblico", invited: [], areas: ["generale", a.faction === "red" ? "colpi" : "turni"], files: true, door: "", createdAt: now(), fame: 0, heat: 0, seizedUntil: 0, deface: null, famed: {}, reports: {}, tipDay: 0, tips: 0, npcCopies: 0, npcCopyDay: 0 };
+        const err = applyEdit(fresh, { name: p.name ?? `${a.handle} BBS`, tagline: p.tagline ?? "Appena aperto. Presentatevi.", banner: p.banner ?? `\n   ${String(p.name ?? `${a.handle} BBS`).toUpperCase()}\n   ${"=".repeat(Math.min(40, String(p.name ?? a.handle).length + 4))}\n   sysop: ${a.handle}\n`, motd: p.motd ?? "Benvenuti. Le regole sono in area file.", ...p });
+        if (err) return { ok: false, error: err };
+        a.credits -= OWN_COST;
+        owned[id] = fresh;
+        state.boards[id] = { threads: [], users: {}, callers: [], oneliners: [], recent: [], pending: [], seq: 0, stash: [] };
+        game.bump(a, "bbs:own");
+        game.feed(`Nuovo BBS in linea: «${fresh.name}», sysop ${a.handle}.`, a.faction);
+        return done(`«${fresh.name}» è in linea: il numero è ${fresh.number}`);
+      }
+      case "edit": {
+        if (!o) return { ok: false, error: "non hai un BBS" };
+        const err = applyEdit(o, p);
+        if (err) return { ok: false, error: err };
+        return done("modifiche salvate");
+      }
+      case "restore": {
+        if (!o) return { ok: false, error: "non hai un BBS" };
+        if (!defaced(o)) return { ok: false, error: "l'insegna è a posto" };
+        o.deface = null;
+        return done("insegna ripristinata dal backup");
+      }
+      case "close": {
+        if (!o) return { ok: false, error: "non hai un BBS" };
+        for (const [aid, s] of sessions) if (s.bbs === o.id) sessions.delete(aid);
+        delete owned[o.id];
+        delete state.boards[o.id];
+        dirty = true;
+        return { ok: true, note: "BBS chiuso: la linea è staccata", data: null };
+      }
+      case "deface": {
+        const t = defaceTarget(a);
+        if (!t) return { ok: false, error: "devi essere admin sul gateway del sysop" };
+        const text = clean(p.text, OWN_DEFACE_MAX).replace(/\n/g, " ");
+        if (text.length < 3) return { ok: false, error: "scrivi qualcosa" };
+        t.deface = { by: a.id, text, until: now() + 12 * 3600_000 };
+        t.fame = Math.max(0, t.fame - 10);
+        const victim = game.agents.get(t.owner);
+        if (victim && !victim.npc) game.mail(victim, "BBS", `Insegna sfregiata: ${t.name}`, `${a.handle} è entrato nel tuo gateway e ha riscritto l'insegna del BBS: «${text}». Puoi ripristinarla dal pannello del sysop.`);
+        game.feed(`L'insegna di «${t.name}» è stata sfregiata da ${a.handle}.`, a.faction);
+        game.bump(a, "bbs:deface");
+        game.deed(a, "bbs:deface", game.nodes.get(game.ops.get(a.id)!.chain.at(-1)!));
+        dirty = true;
+        return { ok: true, note: `insegna di «${t.name}» riscritta per dodici ore` };
+      }
+      case "dev": {
+        if (!DEV || !o) return { ok: false, error: "niente" };
+        Object.assign(o, p.set ?? {});
+        if (p.npc) (api.npcUpload(o.id, "Mantis"), api.npcTip(o.id, "Mantis", "Torino"));
+        if (p.pulse) pulseOwned();
+        return done("ok");
+      }
+    }
+    return { ok: false, error: "comando sconosciuto" };
+  }
+  /** Il BBS del giocatore sul cui gateway sei admin in questo momento. */
+  function defaceTarget(a: AgentDoc): Owned | null {
+    const op = game.ops.get(a.id);
+    if (!op || op.access !== "admin") return null;
+    const n = game.nodes.get(op.chain.at(-1)!);
+    if (!n || n.kind !== "gateway") return null;
+    const victim = game.agentByIp(n.ip);
+    if (!victim || victim.id === a.id) return null;
+    return ownedOf(victim);
+  }
+  const prevExtra = game.opExtra;
+  game.opExtra = (op, me, target) => {
+    const base = prevExtra?.(op, me, target) ?? {};
+    const t = target.kind === "gateway" && op.access === "admin" ? defaceTarget(me) : null;
+    return { ...base, bbsDeface: t ? { name: t.name, owner: handleOf(t.owner) } : null };
+  };
+
+  /** Una visita di qualcuno che non è il sysop: la fama sale una volta al giorno per visitatore. */
+  function visit(o: Owned, who: string) {
+    if (o.famed[who] === today()) return;
+    o.famed[who] = today();
+    o.fame += 1;
+    const owner = game.agents.get(o.owner);
+    if (owner) game.bump(owner, "bbs:hosted");
+    dirty = true;
+  }
+  function stashPush(o: Owned, x: Stash) {
+    const b = board(o.id);
+    b.stash = [x, ...(b.stash ?? [])].slice(0, 12);
+  }
+  /** Il sysop tiene una copia di quello che gli caricano: è il motivo per cui si apre un BBS. */
+  function giveCopy(o: Owned, name: string, nodeId: string, fileId: string, size: number, value: number, rarity?: number) {
+    const owner = game.agents.get(o.owner);
+    if (!owner || owner.storage.reduce((q, f) => q + f.size, 0) + size > game.storageMax(owner)) return;
+    owner.storage.push({ key: `st_${Date.now().toString(36)}${Math.floor(Math.random() * 1e6)}`, name, nodeId, fileId: `${fileId}~${owner.id}`, size, at: now(), rarity, value: Math.max(1, Math.floor(value / 2)) });
+    game.touch("agent", owner.id);
+    game.dirty.add(owner.id);
+  }
+  function pulseOwned() {
+    for (const o of Object.values(owned)) {
+      o.heat = Math.max(0, o.heat - 0.05);
+      if (o.heat >= OWN_SEIZE_AT && o.seizedUntil < now()) {
+        o.seizedUntil = now() + OWN_SEIZE_H * 3600_000;
+        o.heat = 30;
+        o.fame = Math.max(0, o.fame * 0.7);
+        for (const [aid, s] of sessions) if (s.bbs === o.id) sessions.delete(aid);
+        const owner = game.agents.get(o.owner);
+        if (owner && !owner.npc) game.mail(owner, "GUARDIA DEL RETICOLO", `Sequestro: ${o.name}`, `Il BBS «${o.name}» è sotto sequestro per ${OWN_SEIZE_H} ore: troppe segnalazioni e troppo materiale rubato in area file. Gli utenti lo sanno.`);
+        game.feed(`La Guardia del Reticolo ha messo i sigilli al BBS «${o.name}».`, "blue");
+        dirty = true;
+      }
+    }
+  }
+  game.onPulse.push(pulseOwned);
+
+  /** Moderazione (pannello dell'amministratore). */
+  function adminAct(a: string, p: Record<string, unknown>): R {
+    if (a === "bbsList") return { ok: true, data: Object.values(owned).map((o) => ({ ...ownView(o), owner: handleOf(o.owner) })) };
+    const o = owned[String(p.id ?? "")];
+    if (!o) return { ok: false, error: "BBS sconosciuto" };
+    if (a === "bbsReset") {
+      o.banner = `\n   ${o.name.toUpperCase()}\n`;
+      o.motd = "";
+      o.tagline = "";
+      o.deface = null;
+      dirty = true;
+      return { ok: true, note: `testi di «${o.name}» azzerati` };
+    }
+    if (a === "bbsClose") {
+      for (const [aid, s] of sessions) if (s.bbs === o.id) sessions.delete(aid);
+      const owner = game.agents.get(o.owner);
+      if (owner && !owner.npc) game.mail(owner, "AMMINISTRAZIONE", `BBS chiuso: ${o.name}`, String(p.reason ?? "Il tuo BBS è stato chiuso dall'amministrazione."));
+      delete owned[o.id];
+      delete state.boards[o.id];
+      dirty = true;
+      return { ok: true, note: `«${o.name}» chiuso` };
+    }
+    return { ok: false, error: "azione sconosciuta" };
+  }
+
   const prev = game.socialAct;
   game.socialAct = (agent, a, p) => (a === "bbs" ? act(agent, p) : (prev?.(agent, a, p) ?? null));
 
@@ -613,6 +885,48 @@ export function installBbs(game: Game) {
     game.store.put("bbs", "state", state);
   }
   const api = {
+    adminAct,
+    /** I BBS dei giocatori che un abitante può chiamare. */
+    playerBbs: () => Object.values(owned).filter((o) => o.access === "pubblico" && o.seizedUntil < now()).map((o) => ({ id: o.id, side: game.agents.get(o.owner)?.faction ?? "red", fame: o.fame, areas: o.areas })),
+    /** Un abitante chiama un BBS di giocatore: conta come visita. */
+    npcVisit: (bbs: string, handle: string) => {
+      const o = owned[bbs];
+      if (o) visit(o, `npc:${handle}`);
+    },
+    /** Un abitante carica qualcosa: il sysop ne tiene copia (tre al giorno al massimo). */
+    npcUpload: (bbs: string, handle: string) => {
+      const o = owned[bbs];
+      if (!o || !o.files) return false;
+      const pool = [...game.nodes.values()].filter((n) => !n.hidden && !n.inner && n.files.length && !["relay", "gateway", "home"].includes(n.kind));
+      const n = pool[Math.floor(Math.random() * pool.length)];
+      const f = n?.files[Math.floor(Math.random() * n.files.length)];
+      if (!n || !f) return false;
+      stashPush(o, { id: `x${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}`, name: f.name, by: handle, at: now(), nodeId: n.id, fileId: f.id, size: f.size, value: f.value ?? 2 });
+      board(o.id).recent = [{ name: f.name, by: handle, at: now() }, ...board(o.id).recent].slice(0, 12);
+      if (o.npcCopyDay !== today()) (o.npcCopyDay = today()), (o.npcCopies = 0);
+      if (o.npcCopies < 3) (o.npcCopies += 1), giveCopy(o, f.name, n.id, f.id, f.size, f.value ?? 2);
+      o.heat += 3;
+      dirty = true;
+      return true;
+    },
+    /** Una lettera al sysop: chi frequenta un BBS ogni tanto racconta cose vere a chi lo gestisce (due al giorno). */
+    npcTip: (bbs: string, handle: string, city: string) => {
+      const o = owned[bbs];
+      const owner = o ? game.agents.get(o.owner) : null;
+      if (!o || !owner || owner.npc) return false;
+      if (o.tipDay !== today()) (o.tipDay = today()), (o.tips = 0);
+      if (o.tips >= 2) return false;
+      o.tips += 1;
+      const pool = [...game.nodes.values()].filter((n) => !n.hidden && !n.inner && game.tierOf(n) <= 2 && !["relay", "gateway", "home"].includes(n.kind));
+      const n = pool[Math.floor(Math.random() * pool.length)];
+      if (!n) return false;
+      const known = owner.knownNodes.includes(n.id);
+      if (!known) game.reveal(owner, n.id);
+      game.mail(owner, handle, `Per il sysop di ${o.name}`, `${known ? `Su ${n.org}: la password di root comincia per «${n.password.slice(0, Math.ceil(n.password.length / 2))}».` : `Un numero per te: ${n.ip}, ${n.org}. L'ho messo sulla tua mappa.`} Lo dico a te perché il tuo BBS è casa mia.\n\n${handle}, da ${city}`);
+      game.bump(owner, "bbs:tip");
+      dirty = true;
+      return true;
+    },
     /** Il BBS a cui l'agente è collegato in questo momento, o null. */
     sessionOf: (a: AgentDoc) => {
       const s = sessions.get(a.id);

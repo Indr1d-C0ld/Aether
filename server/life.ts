@@ -21,7 +21,7 @@ const GANGS: { id: string; name: string; side: "red" | "blue"; motto: string; me
   { id: "carrier", name: "Legione del Carrier", side: "red", motto: "NO CARRIER, no party", members: ["Ohm", "Kestrel", "Ratchet", "Ferro", "Quanta", "Baud"] },
 ];
 type State = { souls: Record<string, Soul>; day: number };
-type BbsApi = { ids: () => string[]; areasOf: (bbs: string) => string[]; npcCall: (bbs: string, handle: string, from: string) => void; npcLine: (bbs: string, handle: string, text: string) => void; npcPost: (bbs: string, area: string, by: string, title: string, body: string) => boolean; npcReply: (bbs: string, by: string, body: string) => boolean };
+type BbsApi = { ids: () => string[]; areasOf: (bbs: string) => string[]; npcCall: (bbs: string, handle: string, from: string) => void; npcLine: (bbs: string, handle: string, text: string) => void; npcPost: (bbs: string, area: string, by: string, title: string, body: string) => boolean; npcReply: (bbs: string, by: string, body: string) => boolean; playerBbs: () => { id: string; side: string; fame: number }[]; npcVisit: (bbs: string, handle: string) => void; npcUpload: (bbs: string, handle: string) => boolean; npcTip: (bbs: string, handle: string, city: string) => boolean };
 export type WhoRow = { handle: string; city: string; clock: string; status: Status; side: Persona["side"]; about: string; last: string; lastAt: number };
 
 const DAY = 86400_000;
@@ -302,9 +302,22 @@ export function installLife(game: Game, bbs: BbsApi) {
   }
   /** Una chiamata a un BBS: resta fra gli ultimi chiamanti, e ogni tanto scrive. */
   function callBbs(p: Persona) {
-    const id = pick(p.bbs);
-    if (!bbs.ids().includes(id)) return;
+    let id = pick(p.bbs);
+    // ogni tanto prova uno dei BBS aperti dai giocatori della sua parte, e i più famosi li prova più volentieri
+    const theirs = bbs.playerBbs().filter((x) => p.side === "any" || x.side === p.side);
+    let player = false;
+    if (theirs.length && Math.random() < 0.35) {
+      let k = Math.random() * theirs.reduce((q, x) => q + x.fame + 3, 0);
+      for (const x of theirs) if ((k -= x.fame + 3) <= 0) (id = x.id), (player = true);
+      if (!player) (id = theirs.at(-1)!.id), (player = true);
+    }
+    if (!player && !bbs.ids().includes(id)) return;
     bbs.npcCall(id, p.handle, p.city);
+    if (player) {
+      bbs.npcVisit(id, p.handle);
+      if (Math.random() < 0.2) bbs.npcUpload(id, p.handle);
+      if (Math.random() < 0.12) bbs.npcTip(id, p.handle, p.city);
+    }
     const r = Math.random();
     const s = soul(p);
     if (r < 0.2) bbs.npcLine(id, p.handle, fill(pick(WALL), p));

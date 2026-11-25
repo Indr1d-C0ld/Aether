@@ -9,8 +9,8 @@ import type { MissionType } from "../../../shared/types.ts";
 import { net } from "../net.ts";
 import type { DeckCtx } from "./Deck.tsx";
 
-type Tab = "panoramica" | "regolazioni" | "account" | "connessioni" | "messaggi" | "manutenzione" | "registro";
-const TABS: Tab[] = ["panoramica", "regolazioni", "account", "connessioni", "messaggi", "manutenzione", "registro"];
+type Tab = "panoramica" | "regolazioni" | "account" | "connessioni" | "messaggi" | "bbs" | "manutenzione" | "registro";
+const TABS: Tab[] = ["panoramica", "regolazioni", "account", "connessioni", "messaggi", "bbs", "manutenzione", "registro"];
 
 const fmt = (n: number) => Math.round(n).toLocaleString("it-IT");
 const when = (t: number) => (t ? new Date(t).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) : "—");
@@ -72,6 +72,7 @@ export function AdminView({ ctx }: { ctx: DeckCtx }) {
       {tab === "account" && <Accounts ctx={ctx} focus={focus} setFocus={setFocus} />}
       {tab === "connessioni" && <Sessions ctx={ctx} open={open} />}
       {tab === "messaggi" && <Messages ctx={ctx} />}
+      {tab === "bbs" && <PlayerBbs />}
       {tab === "manutenzione" && <Maintenance />}
       {tab === "registro" && <Audit />}
     </div>
@@ -922,5 +923,54 @@ function AuditRows({ rows, now }: { rows: AuditRow[]; now: number }) {
         </div>
       ))}
     </>
+  );
+}
+
+/** I BBS aperti dai giocatori: testi liberi letti da altri, quindi da tenere d'occhio. */
+function PlayerBbs() {
+  type Row = import("../../../shared/bbs.ts").OwnedView & { owner: string };
+  const [rows, setRows] = useState<Row[]>([]);
+  const [msg, setMsg] = useState("");
+  const load = useCallback(async () => {
+    const r = await net.do("admin.bbsList", {}, true);
+    if (r.ok) setRows(r.data as Row[]);
+  }, []);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  const run = async (a: string, id: string, ask: string, p: Record<string, unknown> = {}) => {
+    if (!confirm(ask)) return;
+    const r = await net.do(`admin.${a}`, { id, ...p });
+    setMsg(r.ok ? (r.note ?? "fatto") : (r.error ?? "errore"));
+    void load();
+  };
+  return (
+    <div className="list" style={{ gap: 14 }}>
+      {msg ? <div className="t-amber">{msg}</div> : null}
+      {rows.map((b) => (
+        <div key={b.id} className="panel">
+          <div className="panel-head">
+            <span className="label">{b.name}</span>
+            <span className="faint">sysop {b.owner} · {b.access} · fama {b.fame} · {b.users} utenti · {b.posts} messaggi</span>
+          </div>
+          <div className="panel-body list">
+            {b.tagline ? <div className="dim">{b.tagline}</div> : null}
+            <pre className="bbs-pre" style={{ background: "#020403", padding: 8, overflowX: "auto" }}>{b.banner}</pre>
+            {b.motd ? <div style={{ fontSize: 13 }}>{b.motd}</div> : null}
+            {b.deface ? <div className="t-red">Insegna sfregiata da {b.deface.by}: «{b.deface.text}»</div> : null}
+            <div className="row">
+              <button className="btn small" onClick={() => void run("bbsReset", b.id, `Azzerare insegna, sottotitolo e regole di «${b.name}»?`)}>
+                Azzera i testi
+              </button>
+              <button className="btn small danger" onClick={() => void run("bbsClose", b.id, `Chiudere «${b.name}»? Bacheche e utenti spariscono.`, { reason: `Il tuo BBS «${b.name}» è stato chiuso dall'amministrazione per i contenuti.` })}>
+                Chiudi
+              </button>
+            </div>
+            <p className="faint" style={{ margin: 0, fontSize: 12 }}>I singoli messaggi si rimuovono chiamando il BBS: sulla bacheca l'admin ha il tasto «rimuovi».</p>
+          </div>
+        </div>
+      ))}
+      {!rows.length ? <p className="dim">Nessun BBS aperto dai giocatori.</p> : null}
+    </div>
   );
 }

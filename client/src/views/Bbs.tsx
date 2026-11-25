@@ -7,6 +7,7 @@ import { net } from "../net.ts";
 import { sfx } from "../audio.ts";
 import type { DeckCtx } from "./Deck.tsx";
 import type { WarezRow } from "../../../shared/malware.ts";
+import { SysopPanel } from "./Sysop.tsx";
 
 type WhoRow = { handle: string; city: string; clock: string; status: "sveglio" | "dorme" | "custodia"; about: string; last: string; lastAt: number };
 type WarezData = { rows: WarezRow[]; kb: number; builds?: { id: string; name: string; up: boolean }[] };
@@ -181,7 +182,7 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
                     </div>
                     <div className="dim" style={{ fontSize: 13 }}>{b.tagline}</div>
                     <div className="faint" style={{ fontSize: 12 }}>
-                      sysop {b.sysop} · {b.days ? `ci hai chiamato in ${b.days} giorn${b.days === 1 ? "o" : "i"} · sei «${BBS_LEVEL[b.level]}»` : "mai chiamato"}
+                      {b.owner ? <span className="chip fac">{b.mine ? "il tuo" : `di ${b.owner}`} · fama {b.fame ?? 0}</span> : null} sysop {b.sysop} · {b.days ? `ci hai chiamato in ${b.days} giorn${b.days === 1 ? "o" : "i"} · sei «${BBS_LEVEL[b.level]}»` : "mai chiamato"}
                     </div>
                   </div>
                   <button className="btn" disabled={Boolean(b.locked) || Boolean(ctx.state.op)} onClick={() => void call(b)} title={b.locked ?? undefined}>
@@ -196,6 +197,15 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
             </div>
           </div>
         )}
+        {!dialing && !gate ? (
+          <SysopPanel
+            ctx={ctx}
+            onCall={(id) => {
+              const b = (list ?? []).find((x) => x.id === id);
+              if (b) void call(b);
+            }}
+          />
+        ) : null}
       </div>
     );
   }
@@ -286,6 +296,7 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
               } />
             <Key c="B" label="Bollettini" on={() => setScreen({ k: "bulletin", n: 0 })} />
             <Key c="S" label="Chiama il sysop" on={() => void cmd("page").then((d) => d && setMsg((d as { line: string }).line))} />
+            {home.info.owner && !home.info.mine && ctx.state.me.faction === "blue" ? <Key c="D" label="Segnala alla Guardia" on={() => void cmd("report")} /> : null}
             <Key c="G" label="Riattacca" on={() => void bye()} />
           </div>
         </>
@@ -381,7 +392,19 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
               <span>{p.open ? p.size : `solo «${BBS_LEVEL[p.need]}»`}</span>
             </button>
           ))}
-          <div className="bbs-h">Pacchetti di oggi (uno al giorno)</div>
+          {screen.f.stash ? (
+            <>
+              <div className="bbs-h">Caricati dagli utenti (si scarica una copia, che vale la metà)</div>
+              {screen.f.stash.map((x) => (
+                <button key={x.id} className="bbs-row" disabled={x.taken || screen.f.kb < x.cost} onClick={() => void cmd("take", { id: x.id }).then((d) => d && void openFiles())}>
+                  <b>↓</b> {x.name} <i>da {x.by}</i>
+                  <span>{x.taken ? "già tuo" : `${x.cost} KB`}</span>
+                </button>
+              ))}
+              {!screen.f.stash.length ? <div className="bbs-line">Ancora niente: sii il primo a caricare.</div> : null}
+            </>
+          ) : null}
+          {screen.f.packs.length ? <div className="bbs-h">Pacchetti di oggi (uno al giorno)</div> : null}
           {screen.f.packs.map((p) => (
             <button key={p.n} className="bbs-row" disabled={!p.open || p.taken || screen.f.kb < p.cost} onClick={() => void cmd("download", { n: p.n }).then((d) => d && void openFiles())} title={p.desc}>
               <b>#{p.n}</b> {p.name}

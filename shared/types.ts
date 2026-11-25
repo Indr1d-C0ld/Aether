@@ -326,7 +326,9 @@ export type OpView = {
   zones: import("./zones.ts").ZoneView[]; // i sottosistemi di questo nodo
   grid: import("./grid.ts").GridView | null; // la griglia del firewall, se aperta
   bio: import("./bio.ts").BioView | null; // la barriera biometrica del bersaglio, se c'è
-  infections: import("./malware.ts").NodeInfection[]; // malware sul bersaglio: i tuoi, e quelli che una scansione ha trovato
+  infections: import("./malware.ts").NodeInfection[];
+  /** connesso da admin al gateway di chi ha un BBS: puoi sfregiarne l'insegna */
+  bbsDeface?: { name: string; owner: string } | null; // malware sul bersaglio: i tuoi, e quelli che una scansione ha trovato
   rotor: import("./rotors.ts").RotorView | null; // i rotori del Decrypter, se c'è una chiave sul banco
 };
 

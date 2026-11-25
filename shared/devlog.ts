@@ -6,6 +6,21 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.18.0",
+    date: "2026-11-25",
+    title: "Il tuo BBS",
+    tags: ["BBS", "sandbox", "sociale"],
+    items: [
+      "Dalla voce BBS puoi aprire un BBS tutto tuo, sul tuo gateway: nome, sottotitolo, insegna disegnata a mano (dieci righe da sessantaquattro colonne), regole della casa, fino a cinque aree messaggi, area file sì o no, una porta (Mercante di Chip o tris), accesso pubblico o su invito.",
+      "Gli abitanti della tua parte lo chiamano, e i BBS più famosi li chiamano più volentieri: scrivono nelle bacheche, caricano file (di cui ti resta una copia, a metà valore, fino a tre al giorno) e ogni tanto scrivono al sysop una cosa vera, un indirizzo o mezza password.",
+      "Ogni visitatore diverso, una volta al giorno, fa salire la fama del BBS. Chi lo frequenta trova in area file quello che caricano gli altri e ne scarica una copia con il credito in KB.",
+      "I rischi: se ci gira troppo materiale rubato, o i blu lo segnalano, la Guardia del Reticolo mette i sigilli per sei ore. E chi entra da admin nel tuo gateway può sfregiarti l'insegna con una frase sua per dodici ore, finché non la ripristini dal backup.",
+      "Per i blu: segnalare alla Guardia i BBS dei rossi, una volta al giorno per BBS.",
+      "Per l'amministrazione: una scheda nuova nel pannello per vedere, azzerare e chiudere i BBS dei giocatori.",
+      "4 traguardi nuovi: 664 in tutto.",
+    ],
+  },
+  {
     v: "0.17.0",
     date: "2026-11-25",
     title: "Commissioni, il mercato del ricettatore e aziende che nascono",

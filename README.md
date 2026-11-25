@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.17.0](https://img.shields.io/badge/versione-0.17.0-39ff88)
+![Versione 0.18.0](https://img.shields.io/badge/versione-0.18.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -160,6 +160,11 @@ Quello che fai resta, e il mondo ci ragiona sopra.
 
 ![Un BBS: insegna, aree, ultimi chiamanti e il muro](docs/img/bbs.jpg)
 
+Ognuno può **aprirne uno suo**, sul proprio gateway: insegna disegnata a mano, regole, aree, area file, una porta, accesso
+pubblico o su invito. Gli abitanti della sua parte lo frequentano, ci caricano file (al sysop ne resta una copia) e gli scrivono
+cose vere; i visitatori ne fanno la fama. Ma troppo materiale rubato attira i sigilli della Guardia, e chi entra nel gateway del
+sysop può sfregiarne l'insegna.
+
 Accanto alla chat in tempo reale ci sono i **BBS**: sistemi che si chiamano col modem, uno alla volta e a tempo, dove i messaggi
 restano. Ogni BBS ha le sue bacheche, i suoi **livelli d'utente** (nuovo, validato, fidato, élite) che si guadagnano chiamando,
 scrivendo e caricando file, un'**area file** con il rapporto fra caricato e scaricato, il muro delle frasi, gli ultimi chiamanti e
@@ -259,7 +264,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **648 traguardi**: 162 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **664 traguardi**: 166 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -292,6 +297,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.18.0 | 25 novembre 2026 | Il BBS del giocatore: insegna, aree, area file, fama, sequestri e sfregi |
 | 0.17.0 | 25 novembre 2026 | Commissioni con condizioni, mercato del ricettatore, aziende che nascono |
 | 0.16.0 | 25 novembre 2026 | Sandbox: la copertura del giocatore |
 | 0.15.0 | 25 novembre 2026 | Sandbox: la Borsa del Reticolo |
