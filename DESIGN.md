@@ -340,6 +340,29 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Leggi e contrappesi (0.20.0)
+
+**Fiducia nella Guardia** (`server/law.ts`, regole in `shared/law.ts`). Un numero da 0 a 100, 60 all'inizio, che torna verso 60 di 1,5 punti l'ora. Si muove con fatti veri; i sistemi governativi (`gov`) contano la metà di quelli della Guardia (`law`):
+
+| Fatto | Fiducia |
+|---|---|
+| furto in un sistema della Guardia (gesta «furto» di giocatori e abitanti, `Game.orgEvent`) | −4 |
+| sabotaggio | −8 |
+| infezione | −2 |
+| intrusione | −1 |
+| difesa (patch, ronde, presidi) | +1 |
+| handle arrestato (`Game.arrest`) | +3 |
+| abitante finito in custodia | +1 |
+| fascicolo di polizia venduto al ricettatore (`Game.fenceSold`, che ora riceve anche chi vende) | −3 |
+| soffiata alla Guardia | +2 |
+| azienda avvisata delle sue password | +1 |
+
+Effetti su `Game.num`: da 80 in su indagini più rapide del 10% (`sweepMult` × 0,9); fino a 35 più lente del 15%; sotto 25 scoppia lo **scandalo**: 12 ore con indagini × 1,5, custodia × 0,7, cauzione × 0,7, stato d'emergenza chiuso e bloccato, fiducia ferma; finito lo scandalo riparte da 45. Chi ha fatto scendere la fiducia nelle 24 ore prima riceve una lettera e il traguardo. Tutti gli eventi delle organizzazioni, anche quelli dei giocatori, ora passano da `Game.orgEvent` perché altri moduli possano ascoltarli.
+
+**Aiuto da fuori.** Ogni ora il modulo fotografa i punti guerra (`meta.war`); confronta gli ultimi con quelli di 24 ore prima. Se una parte ne ha fatti almeno 40 e l'altra meno del 60% di quelli, la seconda riceve aiuto per 6 ore, rinnovato a ogni controllo finché la condizione resta: contratti generati pagati il 20% in più (`Game.priced`), abitanti della parte 1,6 volte più attivi (`Game.lifeRally`); in più ai blu indagini più rapide (`sweepMult` × 0,85), ai rossi 0,25 punti di calore in meno a battito (circa 20 l'ora, oltre ai 120 normali). Notizia in Cronaca e lettera ai giocatori della parte. Con pochi giocatori conta soprattutto per gli abitanti: quando i rossi dominano, la Guardia indaga più in fretta anche se nessun blu è collegato.
+
+Le due bilance si parlano: lo scandalo arriva più facilmente quando i rossi colpiscono la Guardia, e l'aiuto ai blu arriva quando i rossi dominano; entrambe tornano al normale da sole.
+
 ## Informazioni come merce (0.19.0)
 
 **Che cosa si vende** (`server/intel.ts`, regole in `shared/intel.ts`). Cinque tipi, tutti verificati dal server, che conosce il contenuto vero: nessuna truffa possibile, ma informazioni che scadono.

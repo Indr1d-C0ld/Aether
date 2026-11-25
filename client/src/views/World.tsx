@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { NewsKind, OrgView, WorldView } from "../../../shared/orgs.ts";
 import { EMERGENCY_AT, NEWS_LABEL } from "../../../shared/orgs.ts";
 import { KIND_LABEL, fmtCr } from "../../../shared/rules.ts";
+import type { LawView } from "../../../shared/law.ts";
+import { MOOD_LABEL, RALLY_RATIO, SCANDAL_AT, TRUST_HIGH, TRUST_LOW } from "../../../shared/law.ts";
 import { net } from "../net.ts";
 import type { DeckCtx } from "./Deck.tsx";
 
@@ -55,6 +57,7 @@ export function WorldPanel({ ctx }: { ctx: DeckCtx }) {
           Stato d'emergenza: indagini più rapide e custodie più lunghe ancora per {Math.ceil((w.emergencyUntil - ctx.serverNow) / 3600_000)} h
         </div>
       ) : null}
+      {w.law ? <LawPanel law={w.law} now={ctx.serverNow} /> : null}
       <div className="grid2">
         <div className="panel">
           <div className="panel-head">
@@ -184,6 +187,68 @@ export function WorldPanel({ ctx }: { ctx: DeckCtx }) {
               {!w.wars.length && !w.crisis.length && !w.hit.length && !w.alerts.length ? <p className="dim" style={{ margin: 0 }}>Tutto tranquillo. Per ora.</p> : null}
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Leggi e contrappesi: la fiducia nella Guardia e l'aiuto da fuori. */
+function LawPanel({ law, now }: { law: LawView; now: number }) {
+  const tone = law.mood === "scandalo" ? "red" : law.mood === "bassa" ? "amber" : law.mood === "alta" ? "green" : "cyan";
+  const tot = law.war24.red + law.war24.blue;
+  const ys = law.hist;
+  const lo = Math.max(0, Math.min(...ys) - 5);
+  const hi = Math.min(100, Math.max(...ys) + 5);
+  const path = ys.length > 1 ? ys.map((v, i) => `${i ? "L" : "M"}${((i / (ys.length - 1)) * 300).toFixed(1)},${(34 - ((v - lo) / (hi - lo || 1)) * 32).toFixed(1)}`).join(" ") : "";
+  const hours = (t: number) => Math.max(1, Math.ceil((t - now) / 3600_000));
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <span className="label">Legge e contrappesi</span>
+        <span className="row" style={{ gap: 6 }}>
+          <span className={`chip ${tone}`}>{MOOD_LABEL[law.mood]}</span>
+          {law.rally ? <span className={`chip ${law.rally.side === "red" ? "red" : "cyan"}`}>aiuto da fuori ai {law.rally.side === "red" ? "rossi" : "blu"} · {hours(law.rally.until)} h</span> : null}
+        </span>
+      </div>
+      <div className="panel-body law-grid">
+        <div className="list" style={{ gap: 6 }}>
+          <div className="spread">
+            <span>Fiducia nella Guardia del Reticolo</span>
+            <b className="px" style={{ fontSize: 26, color: `var(--${tone})` }}>
+              {law.trust}
+            </b>
+          </div>
+          <div className="law-meter" role="img" aria-label={`fiducia ${law.trust} su 100`}>
+            <i style={{ width: `${law.trust}%`, background: `var(--${tone})` }} />
+            <b style={{ left: `${SCANDAL_AT}%` }} title="scandalo" />
+            <b style={{ left: `${TRUST_LOW}%` }} title="fiducia bassa" />
+            <b style={{ left: `${TRUST_HIGH}%` }} title="fiducia alta" />
+          </div>
+          {path ? (
+            <svg className="law-spark" viewBox="0 0 300 36" preserveAspectRatio="none" role="img" aria-label="andamento della fiducia nelle ultime ore">
+              <path d={path} fill="none" stroke={`var(--${tone})`} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+            </svg>
+          ) : null}
+          {law.mood === "scandalo" ? <span className="t-red">Scandalo: poteri speciali sospesi ancora per {hours(law.scandalUntil)} h.</span> : null}
+          <span className="faint" style={{ fontSize: 12 }}>
+            {law.effects.length ? law.effects.join(" · ") : "nessun effetto: la Guardia lavora come sempre"}
+          </span>
+        </div>
+        <div className="list" style={{ gap: 6 }}>
+          <div className="spread">
+            <span>Guerra nelle ultime 24 ore</span>
+            <span>
+              <b style={{ color: "var(--red)" }}>{law.war24.red}</b> · <b style={{ color: "var(--cyan)" }}>{law.war24.blue}</b>
+            </span>
+          </div>
+          <div className="law-meter split">
+            <i style={{ width: `${tot ? (law.war24.red / tot) * 100 : 50}%`, background: "var(--red)" }} />
+            <i style={{ width: `${tot ? (law.war24.blue / tot) * 100 : 50}%`, background: "var(--cyan)" }} />
+          </div>
+          <span className="faint" style={{ fontSize: 12 }}>
+            {law.rally ? law.rally.text : `Se una parte resta sotto il ${Math.round(RALLY_RATIO * 100)}% dei punti dell'altra, riceve aiuto da fuori.`}
+          </span>
         </div>
       </div>
     </div>

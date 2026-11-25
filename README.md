@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.19.0](https://img.shields.io/badge/versione-0.19.0-39ff88)
+![Versione 0.20.0](https://img.shields.io/badge/versione-0.20.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -150,8 +150,13 @@ Quello che fai resta, e il mondo ci ragiona sopra.
   un'organizzazione viene comprata, metà del personale resta a casa.
 - **Soglie di mondo.** Troppe intrusioni in un giorno e scatta lo stato d'emergenza; troppi sistemi infetti in una regione e gli
   antivirus si irrigidiscono.
+- **Leggi e contrappesi.** La Guardia del Reticolo ha una fiducia pubblica: sale con gli arresti e le soffiate, scende con i
+  furti e i sabotaggi ai suoi sistemi e con i suoi fascicoli venduti al ricettatore. Alta, la Guardia indaga prima; bassa, dopo;
+  sotto 25 scoppia lo scandalo e per dodici ore perde i poteri speciali. E se una parte perde nettamente la guerra delle ultime
+  24 ore, riceve aiuto da fuori: contratti pagati di più, abitanti più attivi, e per i blu indagini più rapide, per i rossi un
+  calore che scende prima.
 
-![La Cronaca: aperture, guerre commerciali, sabotaggi, e la scheda di un poliambulatorio appena nato](docs/img/cronaca.jpg)
+![La Cronaca: la fiducia nella Guardia, la guerra delle ultime 24 ore e le notizie vere](docs/img/cronaca.jpg)
 
 ![Persone: la rubrica di chi conosci e le crew degli abitanti](docs/img/persone.jpg)
 
@@ -275,7 +280,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **684 traguardi**: 171 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **692 traguardi**: 173 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -308,6 +313,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.20.0 | 25 novembre 2026 | Leggi e contrappesi: fiducia nella Guardia, scandali, aiuto da fuori a chi perde |
 | 0.19.0 | 25 novembre 2026 | Le informazioni come merce: Mediatore, bancarella, segnalazioni, soffiate alla Guardia |
 | 0.18.1 | 25 novembre 2026 | Contratti ripagati quando il bersaglio si rafforza; tutte le immagini rifatte |
 | 0.18.0 | 25 novembre 2026 | Il BBS del giocatore: insegna, aree, area file, fama, sequestri e sfregi |
@@ -424,6 +430,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/scenarios.ts` | I copioni delle operazioni a tappe |
 | `server/orgs.ts`, `server/citizens.ts`, `server/stocks.ts`, `server/fronts.ts` | Sandbox: organizzazioni e cronaca, persone, Borsa, coperture |
 | `server/intel.ts`, `shared/intel.ts`, `client/src/views/Intel.tsx` | Informazioni come merce: Mediatore, bancarella, segnalazioni |
+| `server/law.ts`, `shared/law.ts` | Leggi e contrappesi: fiducia nella Guardia, scandalo, aiuto da fuori |
 | `server/life.ts`, `server/life-text.ts`, `shared/clock.ts` | Orologio del mondo, regole di giorno e di notte, popolazione autonoma e i suoi testi |
 | `server/malware.ts`, `shared/malware.ts`, `client/src/views/Lab.tsx` | Warez, infezioni del deck, laboratorio, antivirus e firme |
 | `server/bbs.ts`, `server/bbs-text.ts`, `shared/bbs.ts`, `client/src/views/Bbs.tsx` | I BBS: stato, testi, tipi, interfaccia |

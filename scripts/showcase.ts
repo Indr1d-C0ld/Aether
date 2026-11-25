@@ -192,6 +192,7 @@ await js(`(() => { const st = document.createElement("style"); st.textContent = 
 
 await click("Mappa");
 await shot("notte");
+await slow("law", { dev: true, trust: 33, hist: [61, 60, 58, 59, 55, 52, 53, 49, 47, 48, 44, 41, 42, 39, 37, 38, 36, 34], war: { red: 190, blue: 70 } });
 await click("Cronaca");
 await sleep(1200);
 await js(`[...document.querySelectorAll(".linklike")].find((x) => x.textContent.trim() === "scheda")?.click(); true`);

@@ -111,7 +111,8 @@ export function installOrgs(game: Game) {
   game.deed = (agent, d, node) => {
     origDeed(agent, d, node);
     const k = DEED_KIND[d];
-    if (k && node && !agent.npc) event(node, k, agent.handle);
+    // passa da game.orgEvent, così chi ascolta (server/law.ts) vede anche i colpi dei giocatori
+    if (k && node && !agent.npc) game.orgEvent?.(node, k, agent.handle);
   };
   game.orgStrike = (n) => (state.orgs[n.id]?.strikeUntil ?? 0) > now();
   // chi ha tagliato il turno di notte, di notte guarda ancora meno
@@ -264,7 +265,7 @@ export function installOrgs(game: Game) {
     state.wars = state.wars.filter((w) => w.lastJob >= 0);
     // soglie di mondo
     state.intrusions = state.intrusions.filter((x) => t - x < 24 * H);
-    if (state.emergencyUntil < t && state.intrusions.length >= EMERGENCY_AT) {
+    if (state.emergencyUntil < t && state.intrusions.length >= EMERGENCY_AT && !game.lawScandal?.()) {
       state.emergencyUntil = t + 12 * H;
       state.intrusions = [];
       news("legge", `Stato d'emergenza: dopo ${EMERGENCY_AT} intrusioni in un giorno la Guardia del Reticolo ottiene poteri speciali per dodici ore. Indagini più rapide, custodie più lunghe.`, null);
@@ -303,6 +304,7 @@ export function installOrgs(game: Game) {
       crisis: live.filter((x) => x.o.crisisSince || x.o.cash < 0).sort((x, y) => x.o.cash - y.o.cash).slice(0, 8).map((x) => ({ id: x.id, name: x.n.org, cash: Math.round(x.o.cash) })),
       hit: live.filter((x) => x.o.fear >= 20).sort((x, y) => y.o.fear - x.o.fear).slice(0, 8).map((x) => ({ id: x.id, name: x.n.org, fear: Math.round(x.o.fear) })),
       intrusions24h: state.intrusions.length,
+      law: game.lawView?.() ?? null,
     };
   }
 
@@ -318,7 +320,7 @@ export function installOrgs(game: Game) {
       const n = game.nodes.get(String(p.id));
       if (n) {
         Object.assign(org(n), p.set ?? {});
-        if (typeof p.event === "string") for (let i = 0; i < Number(p.times ?? 1); i += 1) event(n, p.event as Kind, "test");
+        if (typeof p.event === "string") for (let i = 0; i < Number(p.times ?? 1); i += 1) (game.orgEvent ?? event)(n, p.event as Kind, "test");
       }
       if (typeof p.intrusions === "number") state.intrusions = Array.from({ length: p.intrusions }, () => now());
       for (let i = 0; i < Number(p.pulses ?? 0); i += 1) pulse();
@@ -341,6 +343,11 @@ export function installOrgs(game: Game) {
 
   return {
     news,
+    /** Lo scandalo (server/law.ts) chiude lo stato d'emergenza. */
+    endEmergency() {
+      state.emergencyUntil = 0;
+      dirty = true;
+    },
     org: (n: NodeDoc) => org(n),
     isOrg,
     statusOf: (n: NodeDoc) => statusOf(n, org(n)),

@@ -35,7 +35,7 @@ export function installFence(game: Game) {
     return demandMult(state.supply[c] ?? supplyTarget(c, Math.floor(now() / 86400_000))) * (c === wanted() ? WANTED_BONUS : 1);
   };
   game.fenceDemand = (st) => multOf(catOf(st));
-  game.fenceSold = (st, n = 1) => {
+  game.fenceSold = (st, n = 1, _by) => {
     decay();
     const c = catOf(st);
     state.supply[c] = (state.supply[c] ?? supplyTarget(c, Math.floor(now() / 86400_000))) + n;

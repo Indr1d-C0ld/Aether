@@ -6,6 +6,7 @@ import type { Game, AgentDoc, NodeDoc } from "./game.ts";
 import { PEOPLE } from "./people.ts";
 import { fmtCr } from "../shared/rules.ts";
 import { warrantLevel } from "../shared/depth.ts";
+import { TRUST_DELTA } from "../shared/law.ts";
 import {
   BROKER_DAILY,
   BROKER_HEAT,
@@ -361,6 +362,7 @@ export function installIntel(game: Game, orgs: Orgs, citizens: Citizens) {
         game.react(n, null);
         burn(key, `${n.org} ha cambiato le password`);
         orgs.news("difesa", `${n.org} ringrazia una segnalazione anonima: «Qualcuno vendeva le nostre credenziali». Le password di root sono state cambiate nella notte.`, n);
+        game.lawTrust?.(TRUST_DELTA.disclose, null);
         game.bump(a, "intel:disclose");
         game.bump(a, "intel:cr", raw.disclose);
         note(a, `segnalazione a ${n.org} · +${fmtCr(raw.disclose)}`);
@@ -379,6 +381,7 @@ export function installIntel(game: Game, orgs: Orgs, citizens: Citizens) {
         game.mail(t, "Un amico", "Ti hanno venduto", `Il tuo indirizzo gira fra i blu: qualcuno l'ha venduto alla Guardia.${named ? ` Il nome che si fa è ${a.handle}.` : ""}\n\nSe fossi in te cambierei gateway.`);
         game.dirty.add(t.id);
         orgs.news("legge", `La Guardia del Reticolo riceve una soffiata: l'indirizzo di ${t.handle} ora è sulle scrivanie degli agenti.`, null);
+        game.lawTrust?.(TRUST_DELTA.snitch, null);
         game.bump(a, "intel:snitch");
         game.bump(a, "intel:cr", raw.snitch);
         note(a, `soffiata alla Guardia su ${t.handle} · +${fmtCr(raw.snitch)}`);

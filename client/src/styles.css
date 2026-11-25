@@ -3071,3 +3071,33 @@ table.board tr.you td {
   gap: 14px;
   align-items: start;
 }
+
+/* Cronaca: leggi e contrappesi */
+.law-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 18px;
+}
+.law-meter {
+  position: relative;
+  display: flex;
+  height: 10px;
+  background: var(--deep);
+  border: 1px solid var(--line);
+}
+.law-meter > i {
+  display: block;
+  height: 100%;
+}
+.law-meter > b {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: var(--dim);
+}
+.law-spark {
+  display: block;
+  width: 100%;
+  height: 36px;
+}

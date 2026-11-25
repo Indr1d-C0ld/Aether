@@ -5,6 +5,7 @@
 //    e raccontano in chat, in bacheca e sui giornali quello che hanno fatto.
 import type { Game, NodeDoc } from "./game.ts";
 import { REGION_NAME, regionAt, type Region } from "../shared/rules.ts";
+import { TRUST_DELTA } from "../shared/law.ts";
 import { clockLabel, dayPart, hoursOf, isWeekend, localHour, opensIn, staffed, type DayPart } from "../shared/clock.ts";
 import { CHAT_BY_PART, CHAT_VIRUS, CHAT_WEEKEND, MAIL_TIMES, NEWS_BY_PART, NEWS_VIRUS, PERSONAS, REPLIES, THREADS, WALL, type Persona } from "./life-text.ts";
 
@@ -288,6 +289,7 @@ export function installLife(game: Game, bbs: BbsApi) {
       s.busts += 1;
       s.credits = Math.max(0, s.credits - 600);
       did(p, "è stato arrestato");
+      game.lawTrust?.(TRUST_DELTA.bust, null);
       game.feed(`La Guardia del Reticolo ha fermato ${p.handle}, a ${p.city}. «Risaliamo sempre all'origine.»`, "blue");
       for (const b of p.bbs) if (b !== "falken") bbs.npcLine(b, pick(PERSONAS.filter((q) => q !== p && q.bbs.includes(b)) ?? [p]).handle, `free ${p.handle}`);
     }
@@ -391,8 +393,9 @@ export function installLife(game: Game, bbs: BbsApi) {
       // chi è al verde lavora il doppio
       const hunger = s.credits < 300 ? 2 : 1;
       const r = Math.random();
-      if (r < 0.012 * hunger) (p.side === "blue" ? blueAct : p.side === "red" ? redAct : Math.random() < 0.5 ? redAct : callBbs)(p);
-      else if (r < 0.012 * hunger + 0.02) callBbs(p);
+      const rally = game.lifeRally?.(p.side) ?? 1;
+      if (r < 0.012 * hunger * rally) (p.side === "blue" ? blueAct : p.side === "red" ? redAct : Math.random() < 0.5 ? redAct : callBbs)(p);
+      else if (r < 0.012 * hunger * rally + 0.02) callBbs(p);
       s.heat = Math.max(0, s.heat - 0.4);
     }
     // le notizie d'agenzia seguono l'ora del posto di cui parlano

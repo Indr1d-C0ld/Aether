@@ -3272,7 +3272,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket", "intel"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket", "intel", "law"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3315,11 +3315,18 @@ export class Game {
   lifeBuyers: (() => { handle: string; side: "red" | "blue" | "any"; city: string; credits: number }[]) | null = null;
   /** Un abitante paga; se compra una password di root, la usa subito su quel nodo. */
   lifeBuy: ((handle: string, price: number, nodeId: string | null) => boolean) | null = null;
+  // leggi e contrappesi (server/law.ts)
+  /** La fiducia nella Guardia si muove: chi la fa scendere viene ricordato. */
+  lawTrust: ((delta: number, who: Agent | null) => void) | null = null;
+  lawScandal: (() => boolean) | null = null;
+  lawView: (() => import("../shared/law.ts").LawView) | null = null;
+  /** Gli abitanti della parte che riceve aiuto da fuori si danno da fare di più. */
+  lifeRally: ((side: string) => number) | null = null;
   /** Datore di lavoro attuale di un cittadino (server/citizens.ts): tiene conto di licenziamenti e assunzioni. */
   employerOf: ((pid: string) => string | null) | null = null;
   // il mercato del ricettatore (server/fence.ts)
   fenceDemand: ((st: StoredFile) => number) | null = null;
-  fenceSold: ((st: StoredFile, n?: number) => void) | null = null;
+  fenceSold: ((st: StoredFile, n?: number, by?: Agent) => void) | null = null;
   fenceFlood: ((n: WNode, amount?: number) => void) | null = null;
   fenceMarket: (() => import("../shared/fence.ts").FenceMarket) | null = null;
   // organizzazioni vive, cronaca, eventi di mondo (server/orgs.ts)
@@ -4754,7 +4761,7 @@ export class Game {
     const repeat = !st.item && now() - (agent.fenced[fkey] ?? 0) < FENCE_MEMORY;
     const demand = this.fenceDemand?.(st) ?? 1;
     const price = Math.round(this.priceOf(st) * demand * (repeat ? FENCE_REPEAT : 1) * this.num("fenceMult") * (1 + this.chip(agent, "fence") / 100));
-    if (!repeat) this.fenceSold?.(st);
+    if (!repeat) this.fenceSold?.(st, 1, agent);
     if (!st.item) agent.fenced[fkey] = now();
     agent.storage = agent.storage.filter((x) => x !== st);
     agent.credits += price;

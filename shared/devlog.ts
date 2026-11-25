@@ -6,6 +6,18 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.20.0",
+    date: "2026-11-25",
+    title: "Leggi e contrappesi",
+    tags: ["giustizia", "sandbox", "guerra"],
+    items: [
+      "La Guardia del Reticolo ha una fiducia pubblica, che trovi in Cronaca. Sale con gli arresti, con le soffiate e con le aziende che avvisano delle loro password. Scende quando qualcuno ruba nei sistemi della Guardia, li sabota o li infetta, o vende i suoi fascicoli al ricettatore. I sistemi governativi contano la metà.",
+      "Con la fiducia alta le indagini partono prima, con la fiducia bassa dopo. Sotto 25 scoppia lo scandalo: per dodici ore la Guardia perde i poteri speciali, le indagini vanno più piano della metà, custodie e cauzioni scendono del 30% e lo stato d'emergenza non può scattare. Chi ha contribuito riceve una lettera.",
+      "Aiuto da fuori: se nelle ultime 24 ore una parte ha fatto meno del 60% dei punti guerra dell'altra, riceve rinforzi per sei ore. Ai blu arrivano indagini più rapide, ai rossi un calore che scende prima. Per tutti e due i contratti nuovi pagano il 20% in più e gli abitanti della propria parte diventano più attivi.",
+      "2 serie di traguardi nuove: 692 traguardi in tutto.",
+    ],
+  },
+  {
     v: "0.19.0",
     date: "2026-11-25",
     title: "Le informazioni si vendono",

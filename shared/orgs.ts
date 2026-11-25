@@ -30,6 +30,7 @@ export type WorldView = {
   crisis: { id: string; name: string; cash: number }[];
   hit: { id: string; name: string; fear: number }[];
   intrusions24h: number;
+  law: import("./law.ts").LawView | null;
 };
 export const NEWS_LABEL: Record<NewsKind, string> = { sabotaggio: "Sabotaggi", intrusione: "Intrusioni", difesa: "Sicurezza", economia: "Economia", guerra: "Guerre commerciali", legge: "Legge e ordine", virus: "Virus", gente: "Gente" };
 /** Intrusioni in 24 ore oltre le quali scatta lo stato d'emergenza. */

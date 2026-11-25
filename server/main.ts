@@ -21,6 +21,7 @@ import { installFence } from "./fence.ts";
 import { installStartups } from "./startups.ts";
 import { installFronts } from "./fronts.ts";
 import { installIntel } from "./intel.ts";
+import { installLaw } from "./law.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -227,6 +228,7 @@ const fence = installFence(game);
 const startups = installStartups(game, orgs, citizens);
 installFronts(game, orgs);
 const intel = installIntel(game, orgs, citizens);
+const law = installLaw(game, orgs);
 
 const bbsAdminAct = bbs.adminAct;
 installAdmin(game, {
@@ -440,6 +442,7 @@ setInterval(() => {
   stocks.save();
   fence.save();
   intel.save();
+  law.save();
   startups.save();
     game.flush();
   }
@@ -455,6 +458,7 @@ process.on("SIGINT", () => {
   stocks.save();
   fence.save();
   intel.save();
+  law.save();
   startups.save();
   game.flush();
   process.exit(0);
@@ -469,6 +473,7 @@ process.on("SIGTERM", () => {
   stocks.save();
   fence.save();
   intel.save();
+  law.save();
   startups.save();
   game.flush();
   process.exit(0);
