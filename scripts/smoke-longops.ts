@@ -69,7 +69,7 @@ check("un dipendente indebitato di cui hai il fascicolo può diventare una talpa
 const c0 = red.state().me.credits;
 const st = await red.op("mole", { pid: emp.id });
 await sleep(700);
-check("la talpa costa, e l'operazione parte", st.ok && red.state().me.credits === c0 - 2000 && (st.data as LongOpsView).ops.length === 1);
+check("la talpa costa, e l'operazione parte", st.ok && red.state().me.credits === c0 - 1500 && (st.data as LongOpsView).ops.length === 1);
 const m0 = red.state().mail.length;
 v = await red.tick(0.2);
 check("primo esito: la password dell'operatore, per posta", red.state().mail.length > m0 && /l'operatore/.test(red.state().mail[0]!.subject));
@@ -85,7 +85,7 @@ await sleep(600);
 check("e con il badge entri da operatore", red.state().op?.clearance === 2);
 await red.act("disconnect");
 const h0 = red.state().me.heat;
-v = await red.tick(0.05);
+v = await red.tick(0.01);
 check("finché non la scoprono: licenziata, operazione chiusa, calore in più", v.ops.length === 0 && red.state().me.heat >= h0 + 15 && ((await red.act("world")).data as WorldView).news.some((n) => n.text.includes(`licenzia ${emp.name}`)));
 check("e senza lavoro non è più una candidata", !((await red.op("view")).data as LongOpsView).moles.some((m) => m.pid === emp.id));
 

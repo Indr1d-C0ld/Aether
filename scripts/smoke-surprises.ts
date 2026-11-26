@@ -140,6 +140,8 @@ check("tracciato: l'indirizzo del rosso finisce nella rubrica del blu", blue.sta
 await blue.act("disconnect");
 
 // ---- controllo a campione, linea disturbata, segnalatore
+// il blu ha appena accelerato il trace del rosso: se nel frattempo l'ha preso, si ricollega
+if (!red.state().op) await connect(red);
 await red.force("patrol", 0.99);
 await red.choose("wait");
 check("controllo a campione: fermarsi ferma anche il trace", red.state().op!.frozenUntil > Date.now() + 8000);

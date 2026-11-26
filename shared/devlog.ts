@@ -6,6 +6,15 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.27.1",
+    date: "2026-11-26",
+    title: "Talpe più robuste",
+    tags: ["persone", "bilanciamento"],
+    items: [
+      "Misurate su qualche giorno simulato, le talpe venivano scoperte troppo presto e rendevano meno di quanto costavano. Ora rischiano la metà a ogni giro (5%, più la paura dell'azienda fino a un altro 10%) e costano 1.500 CR invece di 2.000.",
+    ],
+  },
+  {
     v: "0.27.0",
     date: "2026-11-26",
     title: "Operazioni lunghe",

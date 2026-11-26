@@ -78,6 +78,9 @@ const dial = async (ip: string) => {
   await sleep(300);
 };
 const crack = async () => {
+  // qui si provano i sistemi, non il trace: i bersagli sono scelti a caso e uno militare, lento da forzare,
+  // ogni tanto faceva cadere la connessione a metà. Il trace resta attivo, ma non avanza durante lo scasso.
+  await red.do("devGrant", { freeze: 120_000 });
   // lo stesso rimbalzo usato venti volte si consuma: il Monitor Bypass tiene il test lontano dal trace
   if (red.state!.op && red.state!.op.target.sec.monitor > 0) await red.do("run", { tool: "monbypass" });
   if (!red.state!.op!.bypass.proxy) await red.do("run", { tool: "proxy" });

@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.27.0](https://img.shields.io/badge/versione-0.27.0-39ff88)
+![Versione 0.27.1](https://img.shields.io/badge/versione-0.27.1-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -347,6 +347,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.27.1 | 26 novembre 2026 | Talpe più robuste e meno care, dopo una misura su giorni simulati |
 | 0.27.0 | 26 novembre 2026 | Operazioni lunghe: talpe e infiltrazioni sotto copertura |
 | 0.26.0 | 26 novembre 2026 | Bottino con un contenuto: progetti alla concorrenza, scandali ai giornali, ricatti |
 | 0.25.0 | 26 novembre 2026 | Territori delle crew e delle bande, pedaggi, livello «Territori» sulla mappa |

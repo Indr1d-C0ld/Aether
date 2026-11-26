@@ -5,7 +5,7 @@
 //   finisce dentro. Ogni volta possono scoprirti.
 
 export type LongOpKind = "mole" | "cover";
-export const MOLE_COST = 2000;
+export const MOLE_COST = 1500;
 export const MOLE_DAYS = 5;
 export const MOLE_DEBT = 3000;
 export const COVER_COST = 1500;
@@ -13,7 +13,7 @@ export const COVER_DAYS = 3;
 /** Ogni quante ore un'operazione dà qualcosa (e rischia di saltare). */
 export const LONGOP_TICK_H = 6;
 /** Probabilità di essere scoperti a ogni giro: la talpa di più se l'azienda ha paura. */
-export const moleRisk = (fear: number) => 0.1 + Math.min(0.2, fear / 500);
+export const moleRisk = (fear: number) => 0.05 + Math.min(0.1, fear / 1000);
 export const COVER_RISK = 0.08;
 /** Al più tante operazioni in corso. */
 export const LONGOP_MAX = 2;

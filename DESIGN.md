@@ -343,7 +343,7 @@ Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compati
 ## Operazioni lunghe (0.27.0)
 
 `server/longops.ts`, regole in `shared/longops.ts`. Al più 2 operazioni per giocatore; ogni 6 ore (sul battito del mondo) ciascuna dà un esito e rischia di saltare.
-- *Talpa* (rossi, 2.000 CR, 5 giorni): un dipendente con fascicolo aperto e debiti oltre 3.000 CR. Esiti: password dell'operatore (30%), mezza password di root (25%), copia di un file in chiaro del datore di lavoro, con contenuto al 35% (25%), il suo badge da operatore per 24 ore (20%). Scoperta con probabilità 0,1 + paura/500 (al più 0,3): licenziamento (`citizens.fire`), Cronaca, calore +15. Se nel frattempo cambia lavoro l'operazione si chiude.
+- *Talpa* (rossi, 1.500 CR, 5 giorni): un dipendente con fascicolo aperto e debiti oltre 3.000 CR. Esiti: password dell'operatore (30%), mezza password di root (25%), copia di un file in chiaro del datore di lavoro, con contenuto al 35% (25%), il suo badge da operatore per 24 ore (20%). Scoperta con probabilità 0,05 + paura/1000 (al più 0,15; con 0,1 + paura/500 la simulazione ne scopriva 6 su 8 in cinque giorni, e una talpa rendeva meno di quanto costa): licenziamento (`citizens.fire`), Cronaca, calore +15. Se nel frattempo cambia lavoro l'operazione si chiude.
 - *Sotto copertura* (blu, 1.500 CR, 3 giorni, in una banda rossa di abitanti): a ogni giro un membro, un bersaglio (in allerta 4 ore, sulla mappa del blu), al 25% il nome alla Guardia (`Game.lifeHeat` +60); scoperto all'8%: favore −20 con tutta la banda, calore +10.
 
 ## Bottino con un contenuto (0.26.0)
@@ -381,6 +381,9 @@ Favori: abitanti svegli della tua parte con favore ≥ 20, 3% a battito, al più
 | Informazioni, un giorno al massimo | stima 12.000 CR | misurato fra 6.900 e 8.500 CR (Mediatore 8 password, bancarella 5) |
 | Territori delle bande, 7 giorni | nessuna città tenuta (colpi sparsi su 69 città) | 5 città tenute da 3 bande, 10 cambi di mano: le bande tornano di preferenza (60%) nelle loro tre città più forti (`Game.lifeTarget`) |
 | Effetti domino, 7 giorni | — | 2, dai sabotaggi degli abitanti |
+| Bottino con un contenuto, file di valore 6 | — | ricettatore circa 810 CR; usarlo rende 1.050-2.400 CR alla concorrenza (grado 1-4), 1.015-2.170 attesi con un ricatto, 350-650 più fama da un giornale |
+| Talpe, 4 giocatori con 2 talpe ciascuno, 5 giorni | 6 scoperte su 8, file per 5.600 CR contro 16.000 spesi | rischio abbassato: 5 scoperte su 8, 11 file per 6.700 CR (4 con un contenuto), 131 lettere fra password, badge e avvisi; prezzo da 2.000 a 1.500 CR |
+| Favori, stessi giocatori con 3 abitanti amici | — | 25 chiesti in 5 giorni (circa uno al giorno a testa), paga media 925 CR più il regalo |
 
 ## Imprevisti (0.22.0)
 

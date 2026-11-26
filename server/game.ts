@@ -3525,6 +3525,11 @@ export class Game {
           }
           if (typeof p.charge === "number") this.charge(agent, "accusa di prova", p.charge, "test");
           if (p.bio) (agent as Agent & { bioDev?: boolean }).bioDev = true;
+          // «freeze»: ferma il trace della connessione in corso per tanti millisecondi (i test che non provano il trace)
+          if (typeof p.freeze === "number") {
+            const op = this.ops.get(agent.id);
+            if (op) op.frozenUntil = now() + p.freeze;
+          }
           // «clock»: ferma il mondo di giorno o di notte, o null per tornare all'ora vera
           if (p.clock === null || p.clock === "giorno" || p.clock === "notte") this.clockForce = p.clock;
           if (p.cool) {
