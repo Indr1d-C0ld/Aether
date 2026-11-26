@@ -6,6 +6,16 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.28.0",
+    date: "2026-11-26",
+    title: "L'app Android",
+    tags: ["android"],
+    items: [
+      "AETHER ora ha un'app per Android: un'icona sul telefono che apre il gioco a tutto schermo, senza la barra del browser. Dentro c'è lo stesso gioco del sito, quindi è sempre aggiornata e il tuo handle è lo stesso.",
+      "Si scarica dalla pagina d'ingresso («scarica l'APK») e si installa a mano, permettendo l'installazione da origini sconosciute. Serve Android 7 o più recente, e Chrome.",
+    ],
+  },
+  {
     v: "0.27.1",
     date: "2026-11-26",
     title: "Talpe più robuste",

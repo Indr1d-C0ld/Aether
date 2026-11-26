@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.27.1](https://img.shields.io/badge/versione-0.27.1-39ff88)
+![Versione 0.28.0](https://img.shields.io/badge/versione-0.28.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -347,6 +347,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.28.0 | 26 novembre 2026 | L'app Android |
 | 0.27.1 | 26 novembre 2026 | Talpe più robuste e meno care, dopo una misura su giorni simulati |
 | 0.27.0 | 26 novembre 2026 | Operazioni lunghe: talpe e infiltrazioni sotto copertura |
 | 0.26.0 | 26 novembre 2026 | Bottino con un contenuto: progetti alla concorrenza, scandali ai giornali, ricatti |
@@ -478,6 +479,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/law.ts`, `shared/law.ts` | Leggi e contrappesi: fiducia nella Guardia, scandalo, aiuto da fuori |
 | `server/blackmarket.ts`, `server/scars.ts`, `shared/blackmarket.ts`, `shared/scars.ts` | 0-day che invecchiano e retate; cicatrici, città al buio, traslochi |
 | `server/surprises.ts`, `shared/surprises.ts` | Imprevisti durante le intrusioni |
+| `android/` | L'app Android: configurazione, generazione e firma (la chiave sta fuori dal repository) |
 | `server/domino.ts`, `server/nemesis.ts`, `server/turf.ts`, `server/leaks.ts`, `server/longops.ts` | Effetto domino, nemesi e favori, territori, bottino con un contenuto, operazioni lunghe (regole nei file omonimi di `shared/`) |
 | `server/life.ts`, `server/life-text.ts`, `shared/clock.ts` | Orologio del mondo, regole di giorno e di notte, popolazione autonoma e i suoi testi |
 | `server/malware.ts`, `shared/malware.ts`, `client/src/views/Lab.tsx` | Warez, infezioni del deck, laboratorio, antivirus e firme |
@@ -523,8 +525,14 @@ il browser sblocca l'audio al primo clic o tasto.
 
 ## PWA e Android
 
-Il client è una PWA (manifest + service worker, icone PNG 192 e 512). Per un APK con Bubblewrap serve
-ancora un URL HTTPS pubblico del server: vedi `DESIGN.md`, sezione Prossimi passi.
+Il client è una PWA (manifest + service worker, icone PNG 192 e 512), e c'è un'**app Android**:
+[scarica l'APK](https://github.com/Indr1d-C0ld/Aether/releases/latest/download/aether.apk) (Android 7 o più recente,
+con Chrome; si installa permettendo le origini sconosciute).
+
+L'app è una Trusted Web Activity generata con Bubblewrap: un guscio di pochi MB che apre il gioco in linea a tutto
+schermo, quindi è sempre aggiornata senza ripubblicarla. Il dominio la riconosce con
+`https://timrouter.dns.army/.well-known/assetlinks.json`, servito dalla configurazione Apache di AETHER.
+Come rigenerarla, compilarla e firmarla: [android/README.md](android/README.md).
 
 ## Licenza
 

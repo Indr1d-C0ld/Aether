@@ -76,6 +76,8 @@ STAGE="$PREFIX/app.new"
 rm -rf "$STAGE"; install -d -m 0755 "$STAGE"
 cp -a "$REPO/server" "$REPO/shared" "$REPO/dist" "$REPO/package.json" "$REPO/package-lock.json" "$REPO/LICENSE" "$STAGE/"
 install -d "$STAGE/scripts" && cp -a "$REPO/scripts/admin-account.ts" "$STAGE/scripts/"
+# l'app Android: il file che dichiara al telefono che il dominio riconosce l'app (servito da aether.conf)
+install -d "$STAGE/android" && cp -a "$REPO/android/assetlinks.json" "$STAGE/android/"
 (cd "$STAGE" && env PATH="$NODE_DIR/bin:/usr/bin:/bin" HOME=/root "$NPM" ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error)
 chown -R root:root "$STAGE"; chmod -R go-w "$STAGE"
 rm -rf "$PREFIX/app.old"; [[ -d $APP ]] && mv "$APP" "$PREFIX/app.old"

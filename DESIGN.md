@@ -632,6 +632,6 @@ Aggiornato al 26 novembre 2026 (0.27.0).
 4. ~~Mercato fra giocatori~~ (fatto: mercato nero, ricettatore con offerta e richiesta, taglie, commissioni, informazioni). ~~Exploit con usura~~ (fatto: 0-day che invecchiano, 0.21).
 5. **Stagioni ed eventi a copione**: messi da parte su richiesta (17 novembre). Al loro posto ci sono eventi che nascono da soglie: guerre commerciali, stato d'emergenza, scandali, retate, aiuto da fuori, allerte virali (0.12-0.21).
 6. ~~Mini-giochi opzionali~~ (fatti: griglia del firewall 0.5, rotori del Decrypter 0.6, toni della Blue Box 0.7, oscilloscopio delle barriere biometriche 0.8).
-7. **APK Android**: messo da parte su richiesta (17 novembre). Il dominio HTTPS ora c'è; resterebbero l'icona PNG 512 e `bubblewrap init --manifest https://…/manifest.webmanifest`.
+7. ~~APK Android~~ (fatto, 0.28: Trusted Web Activity con Bubblewrap, `android/`; APK allegato alle release su GitHub, `assetlinks.json` servito da `aether.conf`).
 8. **Sicurezza di rete**: ~~HTTPS/WSS dietro un proxy~~ (Apache su Balthasar), ~~limite di frequenza~~ (30 messaggi al secondo per connessione, tetti su accessi sbagliati e iscrizioni). ~~Scadenza dei token~~ (0.21.1: 30 giorni dall'ultimo uso, rinnovata a ogni accesso, `AETHER_SESSION_DAYS`; le sessioni scadute si cancellano a ogni nuovo accesso e all'avvio).
 9. **Proposta sandbox** del 25 novembre: completa (0.12-0.21). Seconda proposta del 26 novembre (imprevisti, effetto domino, nemesi e favori, territori, bottino con un contenuto, operazioni lunghe): completa (0.22-0.27).

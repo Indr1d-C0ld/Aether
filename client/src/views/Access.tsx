@@ -6,6 +6,9 @@ import { sfx } from "../audio.ts";
 import { music } from "../music.ts";
 import { AudioToggles } from "./AudioToggles.tsx";
 import { art } from "../art.tsx";
+
+/** L'APK dell'app Android, allegato all'ultima release su GitHub (android/README.md). */
+const ANDROID_APK = "https://github.com/Indr1d-C0ld/Aether/releases/latest/download/aether.apk";
 import { DevLog } from "./DevLog.tsx";
 
 export function Access({ snap }: { snap: Snapshot }) {
@@ -154,6 +157,16 @@ export function Access({ snap }: { snap: Snapshot }) {
             <p className="faint" style={{ margin: 0, fontSize: 12 }}>
               L'handle è pubblico e compare in classifica. La chiave resta sul server, cifrata.
             </p>
+            {/* dentro l'app Android il link non serve: la riconosce dal referrer con cui la apre */}
+            {document.referrer.startsWith("android-app://") ? null : (
+              <p className="faint" style={{ margin: 0, fontSize: 12 }}>
+                Su Android c'è anche l'app:{" "}
+                <a href={ANDROID_APK} className="t-fac">
+                  scarica l'APK
+                </a>{" "}
+                (si installa a mano, permettendo le app da origini sconosciute).
+              </p>
+            )}
           </div>
         </form>
         <div className="access-wide">

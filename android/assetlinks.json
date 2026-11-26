@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "army.dns.timrouter.aether",
+      "sha256_cert_fingerprints": ["73:16:D2:9C:77:85:9B:09:81:4E:30:25:1B:62:97:7D:C7:53:20:52:21:C0:51:99:F3:36:CC:74:1C:00:65:D9"]
+    }
+  }
+]
