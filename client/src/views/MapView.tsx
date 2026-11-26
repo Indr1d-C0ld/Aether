@@ -242,7 +242,9 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
             </span>
           </div>
           <div className="map-filter">
-            <span className="faint">Mostra</span>
+            <span className="faint" title="Tasti da 1 a 9; Maiusc+clic su un tipo della legenda mostra solo quello">
+              Mostra
+            </span>
             {MAP_PRESETS.map((p) => (
               <button key={p.key} className={`btn small ${sameSet(hide, p.hide) ? "primary" : ""}`} onClick={() => setHide(p.hide)} title={`${p.hint} · tasto ${p.key}`}>
                 {p.label} <kbd>{p.key}</kbd>
@@ -260,7 +262,13 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
                 const off = hide.includes(k);
                 const n = state.nodes.filter((x) => filterKey(x.kind) === k).length;
                 return (
-                  <button key={k} className={`map-kind ${off ? "off" : ""}`} aria-pressed={!off} onClick={() => setHide(off ? hide.filter((x) => x !== k) : [...hide, k])} title={off ? "Mostra" : "Nascondi"}>
+                  <button
+                    key={k}
+                    className={`map-kind ${off ? "off" : ""}`}
+                    aria-pressed={!off}
+                    onClick={(e) => setHide(e.shiftKey ? FILTER_KINDS.filter((x) => x !== k) : off ? hide.filter((x) => x !== k) : [...hide, k])}
+                    title={`${off ? "Mostra" : "Nascondi"} · Maiusc+clic: solo questo`}
+                  >
                     <span style={{ color: k === "other" ? KIND_COLOR.registry : KIND_COLOR[k as NodeKind] }}>{k === "relay" ? "✚" : "■"}</span> {k === "other" ? "Altro" : k === "relay" ? "Relay" : KIND_LABEL[k as NodeKind]} <span className="faint">{n}</span>
                   </button>
                 );
@@ -673,12 +681,18 @@ function NodePanel({ ctx, node }: { ctx: DeckCtx; node: NodeView }) {
 /** I tipi che si possono nascondere sulla mappa; registro, mercato e trasporti stanno sotto «altro». */
 const FILTER_KINDS = ["relay", "bank", "corp", "shop", "gov", "law", "edu", "lab", "med", "news", "util", "telco", "home", "mil", "other"] as const;
 const filterKey = (k: NodeKind): string => ((FILTER_KINDS as readonly string[]).includes(k) ? k : "other");
-const ALL_BUT = (...keep: string[]) => FILTER_KINDS.filter((k) => !keep.includes(k));
+/** Nasconde tutto tranne i tipi indicati. */
+const ONLY = (...keep: string[]): string[] => FILTER_KINDS.filter((k) => !keep.includes(k));
 /** Filtri rapidi, con il loro tasto. */
 const MAP_PRESETS: { key: string; label: string; hint: string; hide: string[] }[] = [
   { key: "1", label: "Tutti", hint: "ogni nodo che conosci", hide: [] },
-  { key: "2", label: "Solo relay", hint: "per costruire il rimbalzo", hide: ALL_BUT("relay") },
+  { key: "2", label: "Solo relay", hint: "per costruire il rimbalzo", hide: ONLY("relay") },
   { key: "3", label: "Bersagli", hint: "tutto tranne relay e PC privati", hide: ["relay", "home"] },
   { key: "4", label: "Senza PC privati", hint: "le case dei cittadini sono tante", hide: ["home"] },
+  { key: "5", label: "Solo PC privati", hint: "le case dei cittadini", hide: ONLY("home") },
+  { key: "6", label: "Imprese", hint: "corporazioni, negozi e banche", hide: ONLY("corp", "shop", "bank") },
+  { key: "7", label: "Istituzioni", hint: "uffici pubblici, forze dell'ordine, militari", hide: ONLY("gov", "law", "mil") },
+  { key: "8", label: "Servizi", hint: "reti elettriche e idriche, telefonia, sanità", hide: ONLY("util", "telco", "med") },
+  { key: "9", label: "Ricerca e stampa", hint: "università, laboratori, testate", hide: ONLY("edu", "lab", "news") },
 ];
 const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));

@@ -255,6 +255,14 @@ export function installLife(game: Game, bbs: BbsApi) {
     }
     busted(p);
   }
+  /** Un abitante segnalato o chiuso fuori da un giocatore (server/surprises.ts): prende calore, e può finire dentro. */
+  game.lifeHeat = (handle, n) => {
+    const p = PERSONAS.find((x) => x.handle === handle);
+    if (!p) return;
+    soul(p).heat += n;
+    dirty = true;
+    busted(p);
+  };
   /** Il mercato delle informazioni (server/intel.ts): chi è sveglio vende e compra. */
   game.lifeBuyers = () => PERSONAS.filter((p) => awake(p) === "sveglio").map((p) => ({ handle: p.handle, side: p.side, city: p.city, credits: soul(p).credits }));
   game.lifeBuy = (handle, price, nodeId) => {

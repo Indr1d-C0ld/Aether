@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.21.1](https://img.shields.io/badge/versione-0.21.1-39ff88)
+![Versione 0.22.0](https://img.shields.io/badge/versione-0.22.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -108,6 +108,19 @@ dell'**operatore** gira nella posta. Dietro i sistemi più protetti ci sono 66 m
 I blu, dalle stesse stanze, rivedono i nastri, revocano i badge e mettono in allerta il personale.
 
 ![I sottosistemi di un'azienda, con la posta interna aperta](docs/img/sottosistemi.jpg)
+
+### Imprevisti
+
+Nessuna intrusione va due volte nello stesso modo. Mentre sei dentro può succedere qualcosa, secondo lo stato vero del sistema,
+e hai pochi secondi per scegliere:
+
+- **l'amministratore si collega** (solo in orario d'ufficio): fingerti un collega, staccare, restare zitto;
+- **riavvio programmato**: finire in fretta, rimandarlo da admin, staccare;
+- **non sei solo**: un altro intruso, giocatore o abitante, da seguire, chiudere fuori o ignorare (i blu lo tracciano);
+- **controllo a campione** di notte, **linea disturbata** con un blackout o un rimbalzo troppo lungo;
+- **il file chiama casa**: un segnalatore in un file copiato da un'azienda spaventata.
+
+![Un imprevisto nella Console: l'amministratore chiede chi è collegato](docs/img/imprevisto.jpg)
 
 ## Un mondo che vive
 
@@ -262,7 +275,8 @@ il login dopo pochi tentativi e ferma i bonifici oltre il tetto dell'antifrode. 
 allerta più rapida, e un blackout acceca un'intera regione.
 
 Il planisfero si ingrandisce per continente e si trascina col mouse o col dito; sotto ci sono i filtri per tipo di nodo,
-con quattro filtri rapidi sui tasti da 1 a 4 (tutti, solo relay, bersagli, senza PC privati). Si può vedere in cinque stili:
+con nove filtri rapidi sui tasti da 1 a 9 (tutti, solo relay, bersagli, senza o solo PC privati, imprese, istituzioni,
+servizi, ricerca e stampa); Maiusc+clic su un tipo della legenda mostra solo quello. Si può vedere in cinque stili:
 
 ![I cinque stili della mappa: Reticolo, Uplink, NORAD, Neon, Notte](docs/img/mappe.png)
 
@@ -288,7 +302,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **712 traguardi**: 178 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **728 traguardi**: 182 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -321,6 +335,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.22.0 | 26 novembre 2026 | Imprevisti durante le intrusioni: amministratori, riavvii, altri intrusi, segnalatori; nove filtri rapidi sulla mappa |
 | 0.21.1 | 25 novembre 2026 | Le sessioni scadono 30 giorni dopo l'ultimo uso |
 | 0.21.0 | 25 novembre 2026 | Cicatrici sulla mappa, traslochi, 0-day che invecchiano, retate; mappa trascinabile e filtri per tipo |
 | 0.20.0 | 25 novembre 2026 | Leggi e contrappesi: fiducia nella Guardia, scandali, aiuto da fuori a chi perde |
@@ -381,7 +396,7 @@ node scripts/smoke-gateway.ts 7099  # assalto a un gateway e rivalsa (server con
 node scripts/smoke-market.ts 7099   # mercato nero, ricettatore e taglie (server con AETHER_DEV=1)
 node scripts/smoke-depth.ts 7099    # archivi, banca, oggetti, giustizia, War Dialer (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/smoke-blue.ts 7099     # lato blu completo: 7 tipi di contratto (AETHER_DEV=1 AETHER_FAST=1)
-scripts/test-all.sh                 # tutti i 26 test smoke (scripts/smoke-*.ts), ognuno su un mondo pulito: più di dieci minuti
+scripts/test-all.sh                 # tutti i 27 test smoke (scripts/smoke-*.ts), ognuno su un mondo pulito: più di dieci minuti
 node scripts/smoke-world.ts 7099    # mondo vivo: esplorazione, reazioni dei nodi, comandi di sistema (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/smoke-soc.ts 7099      # sala operativa blu: presidi, sensori come prova, analista (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/economy.ts             # economia: ricompense per grado, CR/ora, ore per salire di livello (senza server)
@@ -443,6 +458,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/intel.ts`, `shared/intel.ts`, `client/src/views/Intel.tsx` | Informazioni come merce: Mediatore, bancarella, segnalazioni |
 | `server/law.ts`, `shared/law.ts` | Leggi e contrappesi: fiducia nella Guardia, scandalo, aiuto da fuori |
 | `server/blackmarket.ts`, `server/scars.ts`, `shared/blackmarket.ts`, `shared/scars.ts` | 0-day che invecchiano e retate; cicatrici, città al buio, traslochi |
+| `server/surprises.ts`, `shared/surprises.ts` | Imprevisti durante le intrusioni |
 | `server/life.ts`, `server/life-text.ts`, `shared/clock.ts` | Orologio del mondo, regole di giorno e di notte, popolazione autonoma e i suoi testi |
 | `server/malware.ts`, `shared/malware.ts`, `client/src/views/Lab.tsx` | Warez, infezioni del deck, laboratorio, antivirus e firme |
 | `server/bbs.ts`, `server/bbs-text.ts`, `shared/bbs.ts`, `client/src/views/Bbs.tsx` | I BBS: stato, testi, tipi, interfaccia |

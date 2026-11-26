@@ -3033,15 +3033,16 @@ export class Game {
     rate *= WARRANT_TRACE[warrantLevel(agent.charges)]! * op.guard * (1 + this.chip(agent, "trace") / 100);
     // la fama ha un prezzo: i monitor conoscono la firma dei nomi noti
     if (agent.faction === "red") rate *= 1 + fameTier(agent.fame).index * 0.02;
-    return (rate * (1 - this.spec(agent, "furtivita") * 0.01) * (this.mwTrace?.(agent) ?? 1)) / this.num("traceMult");
+    return (rate * (1 - this.spec(agent, "furtivita") * 0.01) * (this.mwTrace?.(agent) ?? 1) * (this.twistTrace?.(op) ?? 1)) / this.num("traceMult");
   }
 
   taskRate(op: Op, agent: Agent, task: Task) {
     if (task.state !== "run") return 0;
     const t = now();
-    if (task.usesModem) return modemSpeed(agent.hw.modem) * (1 + this.chip(agent, "modem") / 100) * this.num("toolSpeed") * ((agent.buffs?.modem ?? 0) > t ? 3 : 1) * (1 + this.spec(agent, "dati") * 0.02);
+    const twist = this.twistSpeed?.(op, Boolean(task.usesModem)) ?? 1;
+    if (task.usesModem) return modemSpeed(agent.hw.modem) * (1 + this.chip(agent, "modem") / 100) * this.num("toolSpeed") * ((agent.buffs?.modem ?? 0) > t ? 3 : 1) * (1 + this.spec(agent, "dati") * 0.02) * twist;
     const cpuTasks = op.tasks.filter((k) => k.state === "run" && !k.usesModem).length || 1;
-    return ((cpuPower(agent.hw.cpu) * (1 + this.chip(agent, "cpu") / 100) * (agent.overloadUntil > t ? 0.5 : 1) * ((agent.buffs?.cpu ?? 0) > t ? 1.5 : 1) * (1 + this.spec(agent, "intrusione") * 0.01)) / cpuTasks) * this.num("toolSpeed") * (this.mwSpeed?.(agent) ?? 1);
+    return ((cpuPower(agent.hw.cpu) * (1 + this.chip(agent, "cpu") / 100) * (agent.overloadUntil > t ? 0.5 : 1) * ((agent.buffs?.cpu ?? 0) > t ? 1.5 : 1) * (1 + this.spec(agent, "intrusione") * 0.01)) / cpuTasks) * this.num("toolSpeed") * (this.mwSpeed?.(agent) ?? 1) * twist;
   }
 
   tick(dtMs: number) {
@@ -3288,7 +3289,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket", "intel", "law", "black", "scars"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket", "intel", "law", "black", "scars", "surprise"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3350,6 +3351,11 @@ export class Game {
   /** È appena scattato lo stato d'emergenza (server/orgs.ts). */
   onEmergency: (() => void) | null = null;
   nodeMarks: ((n: WNode) => import("../shared/scars.ts").NodeMarks) | null = null;
+  // imprevisti durante le intrusioni (server/surprises.ts)
+  twistTrace: ((op: Op) => number) | null = null;
+  twistSpeed: ((op: Op, usesModem: boolean) => number) | null = null;
+  /** Un abitante prende calore (segnalato, chiuso fuori): può finire in custodia. */
+  lifeHeat: ((handle: string, n: number) => void) | null = null;
   /** Datore di lavoro attuale di un cittadino (server/citizens.ts): tiene conto di licenziamenti e assunzioni. */
   employerOf: ((pid: string) => string | null) | null = null;
   // il mercato del ricettatore (server/fence.ts)

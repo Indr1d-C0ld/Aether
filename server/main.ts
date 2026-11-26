@@ -24,6 +24,7 @@ import { installIntel } from "./intel.ts";
 import { installLaw } from "./law.ts";
 import { installBlackMarket } from "./blackmarket.ts";
 import { installScars } from "./scars.ts";
+import { installSurprises } from "./surprises.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -233,6 +234,7 @@ const intel = installIntel(game, orgs, citizens);
 const law = installLaw(game, orgs);
 const black = installBlackMarket(game, orgs);
 const scars = installScars(game, orgs);
+installSurprises(game, orgs);
 
 const bbsAdminAct = bbs.adminAct;
 installAdmin(game, {

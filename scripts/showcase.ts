@@ -376,6 +376,15 @@ await shot("password", ".sec-grid", undefined, 600);
 await click("cine");
 await act("devGrant", { hw: { cpu: 5 } });
 await idle();
+
+log("un imprevisto: l'amministratore è in linea");
+if (!state!.op) await enter([...relays.slice(0, 2), "meridia-pd"]);
+await act("devGrant", { cool: true });
+await act("surprise", { dev: true, force: "admin" });
+await click("Console");
+await sleep(1500);
+await js(`window.scrollTo(0, 0); document.querySelector("main")?.scrollTo?.(0, 0); true`);
+await shot("imprevisto", undefined, undefined, 400);
 await act("disconnect");
 
 log("anagrafe");

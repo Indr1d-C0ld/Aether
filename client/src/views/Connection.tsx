@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FileView, LogView, OpView, ToolId } from "../../../shared/types.ts";
 import { KIND_LABEL, MISSION_LABEL, clockShort, toolDef } from "../../../shared/rules.ts";
 import { net } from "../net.ts";
@@ -14,6 +14,7 @@ import { BioBarrier } from "./Scope.tsx";
 import { DefacePanel, NodeMalware } from "./Lab.tsx";
 import { PART_NAME, clockLabel, dayPart, statusLine } from "../../../shared/clock.ts";
 import { CLEARANCE } from "../../../shared/zones.ts";
+import type { SurpriseView } from "../../../shared/surprises.ts";
 
 export function Connection({ ctx, elapsed }: { ctx: DeckCtx; elapsed: number }) {
   const { state } = ctx;
@@ -61,6 +62,7 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
 
   return (
     <div className="list" style={{ gap: 14 }}>
+      {op.surprise ? <SurpriseCard s={op.surprise} now={ctx.serverNow} /> : null}
       <div className="view-title">
         <div>
           <div className="label">
@@ -638,6 +640,56 @@ function Logs({ op, ctx, running }: { op: OpView; ctx: DeckCtx; running: (t: str
           </p>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+/** Un imprevisto: cosa succede, quanto tempo hai per scegliere, e le scelte possibili. */
+function SurpriseCard({ s, now }: { s: SurpriseView; now: number }) {
+  useEffect(() => {
+    sfx.alarm();
+  }, [s.id]);
+  const left = Math.max(0, s.until - now);
+  const total = s.kind === "canary" ? 12_000 : 20_000;
+  const tone = s.result ? (s.result.tone === "ok" ? "green" : s.result.tone === "bad" ? "red" : "amber") : "amber";
+  return (
+    <div className={`surprise ${tone}`} role="alert">
+      <div className="spread">
+        <span className="px" style={{ fontSize: 24, color: `var(--${tone})` }}>
+          ! {s.title}
+        </span>
+        {s.deadline && s.deadline > now ? <span className="chip red">riavvio fra {Math.ceil((s.deadline - now) / 1000)} s</span> : null}
+      </div>
+      <p style={{ margin: "6px 0" }}>{s.text}</p>
+      {s.result ? <p className={`t-${tone}`} style={{ margin: "6px 0" }}>{s.result.text}</p> : null}
+      {s.choices.length ? (
+        <>
+          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+            {s.choices.map((c) => (
+              <button key={c.id} className="btn" disabled={Boolean(c.why)} title={c.why ?? c.hint} onClick={() => void net.do("surprise", { choice: c.id })}>
+                {c.label}
+              </button>
+            ))}
+          </div>
+          {!s.result && left > 0 ? (
+            <div className="list" style={{ gap: 4, marginTop: 8 }}>
+              <div className="meter">
+                <i style={{ width: `${Math.min(100, (left / total) * 100)}%`, background: "var(--amber)" }} />
+              </div>
+              <span className="faint" style={{ fontSize: 12 }}>
+                {Math.ceil(left / 1000)} s per scegliere · se non scegli, {s.fallback}
+              </span>
+            </div>
+          ) : null}
+          <div className="faint" style={{ fontSize: 12, marginTop: 6 }}>
+            {s.choices.map((c) => (
+              <div key={c.id}>
+                <b>{c.label}</b>: {c.why ? <span className="t-red">{c.why}</span> : c.hint}
+              </div>
+            ))}
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

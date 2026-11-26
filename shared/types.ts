@@ -329,7 +329,9 @@ export type OpView = {
   bio: import("./bio.ts").BioView | null; // la barriera biometrica del bersaglio, se c'è
   infections: import("./malware.ts").NodeInfection[];
   /** connesso da admin al gateway di chi ha un BBS: puoi sfregiarne l'insegna */
-  bbsDeface?: { name: string; owner: string } | null; // malware sul bersaglio: i tuoi, e quelli che una scansione ha trovato
+  bbsDeface?: { name: string; owner: string } | null;
+  /** un imprevisto in corso (server/surprises.ts) */
+  surprise?: import("./surprises.ts").SurpriseView | null;
   rotor: import("./rotors.ts").RotorView | null; // i rotori del Decrypter, se c'è una chiave sul banco
 };
 

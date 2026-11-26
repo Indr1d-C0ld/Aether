@@ -340,6 +340,29 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Imprevisti (0.22.0)
+
+**Quando** (`server/surprises.ts`, regole in `shared/surprises.ts`). Ogni sessione viva di un giocatore, dopo 12 secondi dal collegamento, ogni 8 secondi ha il 6% di probabilità di un imprevisto, al più uno per sessione (circa una sessione su tre lunga un minuto, una su due lunga due minuti). Si sceglie fra quelli possibili in quel momento, con un peso:
+
+| Imprevisto | Possibile se | Peso |
+|---|---|---|
+| L'amministratore è in linea | rossi, organizzazione con amministratore, in orario d'ufficio (ora del nodo) | 3 |
+| Controllo a campione | rossi, organizzazione, notte nel fuso del nodo | 3 |
+| Non sei solo | organizzazione; con un giocatore sullo stesso nodo, oppure un abitante rosso sveglio | 4 se c'è un giocatore, altrimenti 2 |
+| Riavvio programmato | qualunque nodo che non sia gateway o relay | 1 |
+| Linea disturbata | blackout nella regione, città al buio o rimbalzo di 6 nodi o più | 2 |
+| Il file chiama casa | copia di un file da un'organizzazione con paura ≥ 20: 25% a copia, anche dopo un altro imprevisto | — |
+
+**Scelte ed esiti.** 20 secondi per scegliere (12 per il segnalatore), poi decide il caso con la scelta indicata.
+- *Amministratore*: bluff con probabilità 0,45 + 0,25 se conosci l'amministratore (è fra i tuoi contatti) + 0,15 da operatore + 0,15 se è in ferie (risponde il sostituto) − calore/200, fra 0,1 e 0,9; riuscito, trace fermo 15 secondi; fallito, trace +25% del totale, allerta 30 minuti, riga nel log. Restare zitti: metà delle volte se ne va, metà chiude la sessione (allerta, calore +8).
+- *Riavvio*: dopo 30 secondi la linea cade. «Finisci in fretta»: strumenti × 1,4 fino ad allora. «Rimanda» (solo admin): riga «shutdown -c» nel log, 30% di allerta.
+- *Altro intruso*: «Seguilo» insegna il gateway di un giocatore, o il prossimo bersaglio di un abitante (30% che se ne accorga: favore −5); «Chiudigli la porta» (admin) butta fuori il giocatore (calore +5), o costa all'abitante favore e calore; ignorarlo vale trace × 1,2 per un minuto. I blu possono tracciarlo: indirizzo in rubrica e contro-trace × 1,5 per 20 secondi, o calore +40 all'abitante (`Game.lifeHeat`).
+- *Controllo a campione*: fermarsi ferma strumenti e trace 12 secondi; continuare ha il 40% di trace × 1,5 per 20 secondi; con un Log Deleter v2 il trace va × 0,9 per 30 secondi.
+- *Linea disturbata*: rallentare dimezza copie e caricamenti per 40 secondi; tenere duro fa cadere la linea una volta su tre.
+- *Segnalatore*: staccare lo ferma al 70%; rimbalzarlo serve le chiavi di un relay del rimbalzo; lasciarlo correre vale calore +15 e il gateway nella rubrica di tutti i blu.
+
+Effetti sugli strumenti e sul trace con due hook (`Game.twistTrace`, `Game.twistSpeed`). Nei test veloci (`AETHER_FAST`) gli imprevisti spontanei sono spenti, perché un amministratore a caso renderebbe instabili gli altri test; il test `smoke-surprises` li accende.
+
 ## Cicatrici e mercato nero (0.21.0)
 
 **0-day che invecchiano** (`server/blackmarket.ts`, regole in `shared/blackmarket.ts`). Otto exploit tecnici (0-day Proxy, Firewall e Monitor, Loop di telecamera, Scrubber, Chiave scheletro, Rompighiaccio, Scatola nera) hanno una notorietà: +1 a ogni uso riuscito e a ogni tentativo fallito, mezza vita 72 ore. Freschezza = 1 / (1 + usi/6). Prima dell'uso, su un sistema di grado *g*, la falla è già chiusa con probabilità (1 − freschezza) × (0,4 + 0,15 *g*), al più 85%: l'exploit si consuma senza effetto e lascia nel log una riga «exploit attempt blocked» con l'origine (`Game.exploitTry`). Il ricettatore paga un exploit × (0,4 + 0,6 × freschezza). Gli abitanti ne usano uno a caso con probabilità 0,3% a battito (circa uno al giorno ciascuno, a regime freschezza intorno a 0,65).

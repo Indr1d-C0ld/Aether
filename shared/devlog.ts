@@ -6,6 +6,22 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.22.0",
+    date: "2026-11-26",
+    title: "Imprevisti",
+    tags: ["intrusione", "sandbox"],
+    items: [
+      "Durante un'intrusione può succedere qualcosa, secondo lo stato vero del sistema. Nella Console compare un riquadro con le scelte possibili e pochi secondi per decidere; se non scegli, decide il caso.",
+      "L'amministratore si collega, solo in orario d'ufficio: puoi fingerti un collega, staccare o restare zitto. Il bluff riesce meglio se conosci chi scrive, se sei dentro da operatore, o se l'amministratore è in ferie e risponde il sostituto.",
+      "Riavvio programmato: puoi finire in fretta, rimandare il riavvio se sei admin (resta una riga nel log) o staccare. Altrimenti, dopo trenta secondi la linea cade.",
+      "Non sei solo: c'è un altro intruso, un giocatore o un abitante. Puoi seguirlo per imparare qualcosa, chiudergli la porta se sei admin, o ignorarlo pagando un trace più rapido. I blu possono tracciarlo.",
+      "Controllo a campione, solo di notte: fermarsi, continuare, o confondere le righe con un buon Log Deleter. Linea disturbata, solo con un blackout, una città al buio o un rimbalzo lunghissimo: rallentare o tenere duro.",
+      "Il file chiama casa: un file copiato da un'organizzazione spaventata può avere un segnalatore. Puoi tagliare la linea, rimbalzare il segnale su un relay di cui hai le chiavi o lasciar correre.",
+      "Mappa: i filtri rapidi passano da quattro a nove, sui tasti da 1 a 9. Oltre a tutti, solo relay, bersagli e senza PC privati ci sono solo PC privati, imprese (corporazioni, negozi, banche), istituzioni (uffici pubblici, forze dell'ordine, militari), servizi (reti, telefonia, sanità), ricerca e stampa (università, laboratori, testate). Maiusc+clic su un tipo della legenda mostra solo quello.",
+      "4 serie di traguardi nuove: 728 traguardi in tutto.",
+    ],
+  },
+  {
     v: "0.21.1",
     date: "2026-11-25",
     title: "Sessioni che scadono",
