@@ -25,6 +25,11 @@ import { installLaw } from "./law.ts";
 import { installBlackMarket } from "./blackmarket.ts";
 import { installScars } from "./scars.ts";
 import { installSurprises } from "./surprises.ts";
+import { installDomino } from "./domino.ts";
+import { installNemesis } from "./nemesis.ts";
+import { installTurf } from "./turf.ts";
+import { installLeaks } from "./leaks.ts";
+import { installLongOps } from "./longops.ts";
 import type { AdminSession } from "../shared/admin.ts";
 import type { ClientMsg, Faction, ServerMsg } from "../shared/types.ts";
 
@@ -235,6 +240,11 @@ const law = installLaw(game, orgs);
 const black = installBlackMarket(game, orgs);
 const scars = installScars(game, orgs);
 installSurprises(game, orgs);
+const domino = installDomino(game, orgs);
+const nemesis = installNemesis(game, orgs);
+const turf = installTurf(game, orgs, social);
+installLeaks(game, orgs);
+const longops = installLongOps(game, orgs, zones, citizens);
 
 const bbsAdminAct = bbs.adminAct;
 installAdmin(game, {
@@ -451,6 +461,10 @@ setInterval(() => {
   law.save();
   black.save();
   scars.save();
+  domino.save();
+  nemesis.save();
+  turf.save();
+  longops.save();
   startups.save();
     game.flush();
   }
@@ -469,6 +483,10 @@ process.on("SIGINT", () => {
   law.save();
   black.save();
   scars.save();
+  domino.save();
+  nemesis.save();
+  turf.save();
+  longops.save();
   startups.save();
   game.flush();
   process.exit(0);
@@ -486,6 +504,10 @@ process.on("SIGTERM", () => {
   law.save();
   black.save();
   scars.save();
+  domino.save();
+  nemesis.save();
+  turf.save();
+  longops.save();
   startups.save();
   game.flush();
   process.exit(0);

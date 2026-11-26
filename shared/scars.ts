@@ -25,4 +25,7 @@ export type NodeMarks = {
   scarAt?: number;
   dark?: boolean;
   moved?: { x: number; y: number; city: string; at: number } | null;
+  /** effetto domino (server/domino.ts): disservizio in corso e fornitori */
+  outage?: import("./domino.ts").OutageMark | null;
+  suppliers?: string[];
 };

@@ -185,6 +185,13 @@ export function installLife(game: Game, bbs: BbsApi) {
     const p = PERSONAS.find((x) => x.handle === handle);
     if (p) favor(p, a.id, delta * ((game.agents.get(a.id) as unknown as { gang?: string }).gang === gangOf(handle)?.id ? 1.5 : 1));
   };
+  game.lifeGangs = () => GANGS.map((g) => ({ id: g.id, name: g.name, side: g.side, members: g.members }));
+  /** Nemesi e favori (server/nemesis.ts): il rapporto con un giocatore, e chi c'è. */
+  game.lifeFavorOf = (a, handle) => {
+    const p = PERSONAS.find((x) => x.handle === handle);
+    return p ? favorOf(p, a.id) : 0;
+  };
+  game.lifePeople = () => PERSONAS.map((p) => ({ handle: p.handle, side: p.side, city: p.city, awake: awake(p) === "sveglio" }));
   /** Chi ti è amico ogni tanto ti scrive: un indirizzo, mezza password, un avvertimento. Cose vere. */
   function tips(p: Persona) {
     const s = soul(p);
@@ -218,7 +225,8 @@ export function installLife(game: Game, bbs: BbsApi) {
   function redAct(p: Persona) {
     const s = soul(p);
     const targets = orgs().filter((n) => dark(n.x) && game.tierOf(n) <= 2 && (n.offlineUntil ?? 0) < now());
-    const n = targets.length ? pick(targets) : null;
+    // le bande lavorano di preferenza nelle città dove sono già forti (server/turf.ts)
+    const n = targets.length ? (game.lifeTarget?.(p.handle, targets) ?? pick(targets)) : null;
     if (!n) return;
     const ip = `${10 + (hash(p.handle) % 200)}.${hash(p.handle + "b") % 255}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
     const skill = 0.55 + (hash(p.handle) % 30) / 100 + (open(n) ? -0.15 : 0.1);
@@ -241,6 +249,14 @@ export function installLife(game: Game, bbs: BbsApi) {
       s.heat += 8 + game.tierOf(n) * 6;
       game.log(n, "LOGIN admin from {FROM}", { fromIp: ip });
       if (Math.random() < 0.6) game.log(n, "LOG entries removed by admin", {});
+      // ogni tanto un abitante sabota: più spesso chi cerca vendetta o vuole finire sui giornali
+      if (Math.random() < (s.ambition === "vendetta" || s.ambition === "fama" ? 0.05 : 0.015)) {
+        s.heat += 15;
+        game.orgEvent?.(n, "sabotaggio", p.handle);
+        did(p, `ha sabotato ${n.org}`);
+        say(p, pick([`${n.org} stanotte è al buio. non chiedetemi perché.`, `spento ${n.org}. ci metteranno un giorno a riaccendere tutto.`, `${n.org} se lo meritava.`]));
+        return busted(p);
+      }
       const stole = Math.random() < 0.5;
       game.orgEvent?.(n, stole ? "furto" : "intrusione", p.handle);
       // quello che ruba lo porta al ricettatore: il mercato di quella merce si satura un po'
@@ -326,7 +342,7 @@ export function installLife(game: Game, bbs: BbsApi) {
       }
     }
     const pool = orgs().filter((n) => dark(n.x) && !(n.patch && n.patch.until > now()) && game.tierOf(n) >= 1);
-    const n = pool.length ? pick(pool) : null;
+    const n = pool.length ? (game.lifeTarget?.(p.handle, pool) ?? pick(pool)) : null;
     if (!n) return;
     n.alertUntil = Math.max(n.alertUntil ?? 0, now() + 10 * 60_000);
     game.touch("node", n.id);
@@ -405,7 +421,7 @@ export function installLife(game: Game, bbs: BbsApi) {
       const rally = game.lifeRally?.(p.side) ?? 1;
       if (r < 0.012 * hunger * rally) (p.side === "blue" ? blueAct : p.side === "red" ? redAct : Math.random() < 0.5 ? redAct : callBbs)(p);
       else if (r < 0.012 * hunger * rally + 0.02) callBbs(p);
-      s.heat = Math.max(0, s.heat - 0.4);
+      s.heat = Math.max(0, s.heat - 0.15);
     }
     // le notizie d'agenzia seguono l'ora del posto di cui parlano
     if (Math.random() < 0.045) {

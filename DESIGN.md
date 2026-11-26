@@ -340,6 +340,48 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Operazioni lunghe (0.27.0)
+
+`server/longops.ts`, regole in `shared/longops.ts`. Al più 2 operazioni per giocatore; ogni 6 ore (sul battito del mondo) ciascuna dà un esito e rischia di saltare.
+- *Talpa* (rossi, 2.000 CR, 5 giorni): un dipendente con fascicolo aperto e debiti oltre 3.000 CR. Esiti: password dell'operatore (30%), mezza password di root (25%), copia di un file in chiaro del datore di lavoro, con contenuto al 35% (25%), il suo badge da operatore per 24 ore (20%). Scoperta con probabilità 0,1 + paura/500 (al più 0,3): licenziamento (`citizens.fire`), Cronaca, calore +15. Se nel frattempo cambia lavoro l'operazione si chiude.
+- *Sotto copertura* (blu, 1.500 CR, 3 giorni, in una banda rossa di abitanti): a ogni giro un membro, un bersaglio (in allerta 4 ore, sulla mappa del blu), al 25% il nome alla Guardia (`Game.lifeHeat` +60); scoperto all'8%: favore −20 con tutta la banda, calore +10.
+
+## Bottino con un contenuto (0.26.0)
+
+`server/leaks.ts`, regole in `shared/leaks.ts`. Quando un file entra nell'archivio (`t:copy`, `z:dossier`) può ricevere un contenuto, che viaggia con il file (anche al mercato nero): *progetto* (laboratori, aziende, militari, valore ≥ 4, 50%) o *prova di scandalo* (uffici pubblici, polizia, banche, aziende, cliniche, valore ≥ 4, 35%; gli allegati compromettenti della posta interna sempre).
+- Progetto al concorrente (il primo della lista dei concorrenti): 600 + 450 × grado CR; vittima −(800 + 300 × grado) di cassa e −5 di reputazione, concorrente +3; la vittima sospetta del concorrente (`orgs.blame`, alla quinta volta guerra commerciale).
+- Scandalo a un giornale (la testata più vicina): 250 + 100 × grado CR, fama +8, etica +4; vittima reputazione −15, paura +10; se è polizia o ufficio pubblico, fiducia nella Guardia −6.
+- Ricatto: 900 + 550 × grado CR pagati dalla vittima, etica −8; al 30% va alla polizia (calore +20, capo d'accusa).
+
+## Territori (0.25.0)
+
+`server/turf.ts`, regole in `shared/turf.ts`. Punti di presenza per città: dalle imprese dei giocatori (accesso admin 2, copia 1, bonifico e libro mastro 1, spegnimento, blackout e sabotaggio da malware 3, presidio e patch 2, bonifica antivirus e allerta 1) alla loro crew; da ogni evento di un abitante di una banda (`Game.orgEvent`: le bande rosse per i colpi, quella blu per le difese) 2 alla sua banda. Mezza vita 72 ore. Una città è di chi ha almeno 10 punti e almeno 1,25 volte la seconda; se la seconda ha almeno 5 punti ed è più vicina, è contesa. Cambi di mano e contese in Cronaca (al più una notizia ogni 6 ore per città).
+Gli abitanti di una banda scelgono il bersaglio fra quelli possibili in una delle tre città più forti della banda con probabilità 0,6, così le città si tengono anche senza giocatori. Vantaggi: rossi della crew trace × 0,9 sui sistemi della città (`Game.turfTrace`); blu (solo crew di giocatori) indagini × 0,85 (`Game.lifeSweep`); pedaggio di 40 CR per relay attraversato in una città di un'altra crew di giocatori, alla cassa di quella crew (`Game.onConnect`). Le bande degli abitanti tengono città ma non incassano.
+
+## Nemesi e favori (0.24.0)
+
+`server/nemesis.ts`, regole in `shared/nemesis.ts`. Ogni indagine aperta su una sessione di un rosso che ha toccato qualcosa (`Game.registerIncident`) dà 1 traccia (2 se grave) a un abitante blu (quello che lo segue già, o uno a caso); a 5 diventa nemesi. Mosse ogni 3-6 ore, solo da sveglio: livello 1 allerta di 3 ore su tutti i nodi dell'organizzazione più colpita; 2 un'esca in bacheca (contratto personale che paga una volta e mezza più 600 CR: entrarci da admin vale calore +20 e l'indirizzo a tutti i blu); 3 una segnalazione (capo d'accusa, calore +10); dal livello 3 una mossa a caso. Fine: calore sotto 15 per 24 ore (si stufa), arresto (chiude il caso), depistaggio (1.200 CR, 60%: mossa rimandata di 12 ore, livello −1), corruzione (4.000 CR, 40%: caso chiuso, etica −5; altrimenti calore +20 e capo d'accusa).
+Favori: abitanti svegli della tua parte con favore ≥ 20, 3% a battito, al più uno ogni 12 ore; contratto personale (`ownerId`) di 12 ore. Fatto: favore +12 e un numero nascosto (o 800 CR); mancato: favore −8.
+
+## Effetto domino (0.23.0)
+
+`server/domino.ts`, regole in `shared/domino.ts`. Ogni organizzazione ha per fornitore la più vicina di ogni tipo che le serve (nella sua regione, se c'è): banche telefonia e reti; aziende telefonia, banche e reti; negozi banche e aziende; laboratori reti e banche; cliniche reti e laboratori; testate e polizia telefonia; uffici pubblici telefonia e reti; università reti; telefonia reti. Si ricalcola ogni ora (i traslochi la cambiano). Un sabotaggio a un fornitore (o un'infezione su una rete o una compagnia telefonica, al 40%) mette in disservizio per 6 ore i clienti: cassa −(200 + 150 × grado), morale −5, reputazione −2, trace × 1,15 sui loro sistemi; un cliente che è a sua volta fornitore propaga al 50% (un anello in più). Una notizia in Cronaca, un contratto rosso sul cliente (paga +600 + 250 × grado, scade con il disservizio) e uno blu sul fornitore (presidio e patch).
+
+### Misura del mondo da solo (26 novembre 2026)
+
+`scripts/world-sim.ts`: tutto il server in memoria, nessun giocatore, orologio accelerato (un battito ogni 45 secondi simulati).
+
+| Cosa | Prima delle correzioni | Dopo |
+|---|---|---|
+| Abitanti finiti in custodia | 0 in più giorni (il calore scendeva di 32 punti l'ora) | circa uno ogni giorno e mezzo (raffreddamento a 0,15 a battito) |
+| Retate | quasi sempre in corso, a regime (contavano gli arresti degli handle di sfondo) | solo per arresti di giocatori e abitanti in custodia, con 48 ore di pausa |
+| Sabotaggi degli abitanti | mai | uno ogni due giorni circa (5% per chi cerca vendetta o fama, 1,5% gli altri) |
+| Fiducia nella Guardia | 56-64, nessuno scandalo | uguale: senza giocatori non si muove, ed è voluto |
+| Aiuto da fuori | — | qualche ora ogni tanto, quando il rapporto dei punti guerra delle 24 ore scende sotto 0,6 |
+| Informazioni, un giorno al massimo | stima 12.000 CR | misurato fra 6.900 e 8.500 CR (Mediatore 8 password, bancarella 5) |
+| Territori delle bande, 7 giorni | nessuna città tenuta (colpi sparsi su 69 città) | 5 città tenute da 3 bande, 10 cambi di mano: le bande tornano di preferenza (60%) nelle loro tre città più forti (`Game.lifeTarget`) |
+| Effetti domino, 7 giorni | — | 2, dai sabotaggi degli abitanti |
+
 ## Imprevisti (0.22.0)
 
 **Quando** (`server/surprises.ts`, regole in `shared/surprises.ts`). Ogni sessione viva di un giocatore, dopo 12 secondi dal collegamento, ogni 8 secondi ha il 6% di probabilità di un imprevisto, al più uno per sessione (circa una sessione su tre lunga un minuto, una su due lunga due minuti). Si sceglie fra quelli possibili in quel momento, con un peso:
@@ -579,7 +621,7 @@ Scelta di fondo: **niente riga di comando**. La libertà dentro un nodo si dà c
 
 ## Prossimi passi proposti
 
-Aggiornato al 25 novembre 2026 (0.21.1).
+Aggiornato al 26 novembre 2026 (0.27.0).
 
 1. **Grafica PixelLab**: sfondi di città per la schermata d'accesso, ritratti degli handle NPC, icone dei software in 32×32 a palette VGA, splash per le schede dei nodi.
 2. ~~Audio~~ (fatto, sintetizzato nel browser). La musica e gli effetti di PixelLab richiedono un abbonamento Tier 2: con quello si potrebbero aggiungere brani registrati da alternare a quelli generativi.
@@ -589,4 +631,4 @@ Aggiornato al 25 novembre 2026 (0.21.1).
 6. ~~Mini-giochi opzionali~~ (fatti: griglia del firewall 0.5, rotori del Decrypter 0.6, toni della Blue Box 0.7, oscilloscopio delle barriere biometriche 0.8).
 7. **APK Android**: messo da parte su richiesta (17 novembre). Il dominio HTTPS ora c'è; resterebbero l'icona PNG 512 e `bubblewrap init --manifest https://…/manifest.webmanifest`.
 8. **Sicurezza di rete**: ~~HTTPS/WSS dietro un proxy~~ (Apache su Balthasar), ~~limite di frequenza~~ (30 messaggi al secondo per connessione, tetti su accessi sbagliati e iscrizioni). ~~Scadenza dei token~~ (0.21.1: 30 giorni dall'ultimo uso, rinnovata a ogni accesso, `AETHER_SESSION_DAYS`; le sessioni scadute si cancellano a ogni nuovo accesso e all'avvio).
-9. **Proposta sandbox** del 25 novembre: completa (0.12-0.21).
+9. **Proposta sandbox** del 25 novembre: completa (0.12-0.21). Seconda proposta del 26 novembre (imprevisti, effetto domino, nemesi e favori, territori, bottino con un contenuto, operazioni lunghe): completa (0.22-0.27).

@@ -152,6 +152,7 @@ export type StoredFile = {
   cargo?: string; // contratto di trasporto a cui appartiene
   value?: number; // valore proprio (allegati e libri mastri: non esistono come file del nodo)
   fresh?: number; // exploit tecnici: quanto sono ancora freschi (1 = nessuno li conosce)
+  content?: import("./leaks.ts").LeakContent; // un progetto o la prova di uno scandalo (server/leaks.ts)
 };
 
 export type NodeView = {

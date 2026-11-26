@@ -22,8 +22,11 @@ export const NPC_EXPLOIT_CHANCE = 0.003;
 
 /** Quanto dura una retata, e quanto pesa all'inizio (poi cala fino a zero). */
 export const RAID_H = 72;
-/** Punti arresto in 24 ore che fanno scattare una retata: un giocatore vale 2, un abitante 1. */
+/** Punti arresto in 24 ore che fanno scattare una retata: un giocatore vale 2, un abitante in custodia 1.
+ * Gli arresti degli handle di sfondo non contano: cadono ogni giorno e terrebbero la retata sempre accesa. */
 export const RAID_AT = 4;
+/** Dopo una retata, almeno tanto prima della prossima. */
+export const RAID_COOLDOWN_H = 48;
 export const raidK = (start: number, now: number) => (start ? Math.max(0, 1 - (now - start) / (RAID_H * 3600_000)) : 0);
 export const raidModMult = (k: number) => 1 + 2 * k; // moduli del Laboratorio: fino al triplo
 export const raidFenceMult = (k: number) => 1 + 0.6 * k; // exploit, chip e gadget dal ricettatore

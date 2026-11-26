@@ -143,6 +143,26 @@ export function WorldPanel({ ctx }: { ctx: DeckCtx }) {
                     <span className={r.war ? "t-red" : "faint"}>{r.war ? "in guerra" : r.heat >= 3 ? "accuse pubbliche" : r.heat ? "sospetti" : "rapporti freddi"}</span>
                   </div>
                 ))}
+                {org.supply?.outage ? (
+                  <div className="t-amber" style={{ fontSize: 13, marginTop: 6 }}>
+                    In disservizio: senza {org.supply.outage.what} da quando {org.supply.outage.by} è giù, ancora per {Math.max(1, Math.ceil((org.supply.outage.until - ctx.serverNow) / 3600_000))} h.
+                  </div>
+                ) : null}
+                {org.supply?.suppliers.length ? <div className="label" style={{ marginTop: 6 }}>Fornitori</div> : null}
+                {org.supply?.suppliers.map((r) => (
+                  <div key={r.id} className="spread" style={{ fontSize: 13 }}>
+                    <button className="linklike" onClick={() => void open(r.id)}>
+                      {r.name}
+                    </button>
+                    <span className={r.down ? "t-red" : "faint"}>{r.what}{r.down ? " · giù" : ""}</span>
+                  </div>
+                ))}
+                {org.supply?.clients.length ? (
+                  <div className="faint" style={{ fontSize: 12, marginTop: 4 }}>
+                    Clienti: {org.supply.clients.slice(0, 8).map((c) => c.name).join(", ")}
+                    {org.supply.clients.length > 8 ? ` e altri ${org.supply.clients.length - 8}` : ""}. Se cade, cadono anche loro.
+                  </div>
+                ) : null}
                 {org.history.length ? <div className="label" style={{ marginTop: 6 }}>Ultimi fatti</div> : null}
                 {org.history.map((h, i) => (
                   <div key={i} className="dim" style={{ fontSize: 12 }}>

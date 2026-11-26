@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FenceMarket } from "../../../shared/fence.ts";
 import type { BlackView } from "../../../shared/blackmarket.ts";
 import { freshLabel } from "../../../shared/blackmarket.ts";
+import { LEAK_NAME } from "../../../shared/leaks.ts";
 import { JOB_CONDS, JOB_GOALS, jobMin } from "../../../shared/jobs.ts";
 import type { MissionType } from "../../../shared/types.ts";
 import { BOUNTY_FEE, BOUNTY_MAX, BOUNTY_MIN, MARKET_FEE, MISSION_LABEL, clockShort, fmtCr } from "../../../shared/rules.ts";
@@ -116,6 +117,7 @@ export function BlackMarket({ ctx }: { ctx: DeckCtx }) {
                       {f.item ? `${f.item.kind === "chip" ? "chip" : "exploit"} · ${rarityName(f.item.rarity)}` : `${f.size} GQ · da ${ctx.state.nodes.find((n) => n.id === f.nodeId)?.org ?? "?"}`}
                     </span>
                     {f.fresh !== undefined ? <span className={f.fresh >= 0.55 ? "t-green" : f.fresh >= 0.3 ? "t-amber" : "t-red"}> · {freshLabel(f.fresh)}</span> : null}
+                    {f.content ? <span className="chip amber" style={{ marginLeft: 6 }}>{LEAK_NAME[f.content.kind]} · {f.content.org}</span> : null}
                   </div>
                   <div className="row" style={{ justifyContent: "flex-end" }}>
                     <input
@@ -130,6 +132,21 @@ export function BlackMarket({ ctx }: { ctx: DeckCtx }) {
                     <button className="btn small" onClick={() => void net.do("fence", { key: f.key })}>
                       Ricettatore · {fmtCr(fence)}
                     </button>
+                    {f.content?.kind === "research" ? (
+                      <button className="btn small primary" onClick={() => void net.do("leak", { key: f.key, use: "rival" })} title="Lo compra il concorrente diretto: la vittima perde, e comincia a sospettare di lui">
+                        Alla concorrenza
+                      </button>
+                    ) : null}
+                    {f.content?.kind === "scandal" ? (
+                      <>
+                        <button className="btn small primary" onClick={() => void net.do("leak", { key: f.key, use: "press" })} title="Un giornale lo pubblica: poco denaro, molta fama, e la vittima perde reputazione">
+                          A un giornale
+                        </button>
+                        <button className="btn small danger" onClick={() => void net.do("leak", { key: f.key, use: "blackmail" })} title="L'azienda paga perché resti nel cassetto. A volte va alla polizia">
+                          Ricatta
+                        </button>
+                      </>
+                    ) : null}
                   </div>
                 </div>
               );

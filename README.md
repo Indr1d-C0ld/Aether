@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.22.0](https://img.shields.io/badge/versione-0.22.0-39ff88)
+![Versione 0.27.0](https://img.shields.io/badge/versione-0.27.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -173,10 +173,20 @@ Quello che fai resta, e il mondo ci ragiona sopra.
   svuota il mercato per tre giorni: moduli fino al triplo, exploit e chip pagati di più dal ricettatore.
 - **Cicatrici sulla mappa.** I sistemi sabotati restano segnati e in allerta; un sabotaggio a una rete lascia al buio la sua
   città per ore; un'organizzazione colpita troppe volte trasloca in un'altra città, con indirizzo e password nuovi.
+- **Effetto domino.** Le organizzazioni si riforniscono le une dalle altre: sabota una compagnia telefonica o una rete e i suoi
+  clienti restano in disservizio, con i sistemi distratti, i conti in rosso e contratti per approfittarne o per rimediare.
+- **Nemesi e favori.** Un abitante blu che trova troppe volte le tue righe nei log prende il tuo caso: sorveglia i tuoi
+  bersagli preferiti, ti prepara esche, ti segnala. Gli abitanti che ti stimano, invece, ti chiedono favori e ti ripagano.
+- **Territori.** Crew di giocatori e bande di abitanti si contendono le città: chi ne tiene una ci lavora meglio e incassa un
+  pedaggio da chi rimbalza sui suoi relay. Sulla mappa c'è il livello «Territori».
+- **Bottino con un contenuto.** Un progetto rubato si vende al concorrente della vittima; la prova di uno scandalo si porta a
+  un giornale, o si usa per un ricatto.
+- **Operazioni lunghe.** Una talpa in un'azienda, o un blu sotto copertura in una banda: lavorano per giorni, anche quando
+  sei scollegato.
 
 ![La Cronaca: la fiducia nella Guardia, la guerra delle ultime 24 ore e le notizie vere](docs/img/cronaca.jpg)
 
-![Persone: la rubrica di chi conosci e le crew degli abitanti](docs/img/persone.jpg)
+![Persone: la tua nemesi, una talpa al lavoro, la rubrica di chi conosci e le crew degli abitanti](docs/img/persone.jpg)
 
 ![Affari: la copertura e il listino di Borsa](docs/img/affari.jpg)
 
@@ -187,6 +197,8 @@ Quello che fai resta, e il mondo ci ragiona sopra.
 ![Informazioni: quello che sai, il Mediatore e la bancarella](docs/img/informazioni.jpg)
 
 ![Cicatrici sull'Europa: Amsterdam al buio, sistemi sabotati, una sede che ha traslocato da Vienna a Lisbona](docs/img/cicatrici.jpg)
+
+![Territori sull'Europa: le città della tua crew, quelle delle bande degli abitanti, e Amsterdam contesa](docs/img/territori.jpg)
 
 ## BBS
 
@@ -302,7 +314,7 @@ Sono loro la materia dei contratti sui profili: rintracciare una persona, cambia
 
 Venti ranghi, livelli da 1 a 99 e sette **specializzazioni** (intrusione, furtività, dati, finanza, sabotaggio, esplorazione,
 difesa) che crescono con quello che fai davvero e danno fino al 10% nel loro campo. La scheda **Carriera** tiene le
-statistiche personali e **728 traguardi**: 182 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
+statistiche personali e **768 traguardi**: 192 serie in quattro gradi (bronzo, argento, oro, platino), più 18 imprese speciali.
 
 ![Carriera: livello, specializzazioni e traguardi](docs/img/carriera.jpg)
 
@@ -335,6 +347,11 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.27.0 | 26 novembre 2026 | Operazioni lunghe: talpe e infiltrazioni sotto copertura |
+| 0.26.0 | 26 novembre 2026 | Bottino con un contenuto: progetti alla concorrenza, scandali ai giornali, ricatti |
+| 0.25.0 | 26 novembre 2026 | Territori delle crew e delle bande, pedaggi, livello «Territori» sulla mappa |
+| 0.24.0 | 26 novembre 2026 | Nemesi e favori degli abitanti |
+| 0.23.0 | 26 novembre 2026 | Effetto domino fra organizzazioni; il mondo misurato da solo e corretto |
 | 0.22.0 | 26 novembre 2026 | Imprevisti durante le intrusioni: amministratori, riavvii, altri intrusi, segnalatori; nove filtri rapidi sulla mappa |
 | 0.21.1 | 25 novembre 2026 | Le sessioni scadono 30 giorni dopo l'ultimo uso |
 | 0.21.0 | 25 novembre 2026 | Cicatrici sulla mappa, traslochi, 0-day che invecchiano, retate; mappa trascinabile e filtri per tipo |
@@ -396,10 +413,11 @@ node scripts/smoke-gateway.ts 7099  # assalto a un gateway e rivalsa (server con
 node scripts/smoke-market.ts 7099   # mercato nero, ricettatore e taglie (server con AETHER_DEV=1)
 node scripts/smoke-depth.ts 7099    # archivi, banca, oggetti, giustizia, War Dialer (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/smoke-blue.ts 7099     # lato blu completo: 7 tipi di contratto (AETHER_DEV=1 AETHER_FAST=1)
-scripts/test-all.sh                 # tutti i 27 test smoke (scripts/smoke-*.ts), ognuno su un mondo pulito: più di dieci minuti
+scripts/test-all.sh                 # tutti i 32 test smoke (scripts/smoke-*.ts), ognuno su un mondo pulito: più di dieci minuti
 node scripts/smoke-world.ts 7099    # mondo vivo: esplorazione, reazioni dei nodi, comandi di sistema (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/smoke-soc.ts 7099      # sala operativa blu: presidi, sensori come prova, analista (AETHER_DEV=1 AETHER_FAST=1)
 node scripts/economy.ts             # economia: ricompense per grado, CR/ora, ore per salire di livello (senza server)
+node scripts/world-sim.ts 7          # il mondo da solo per 7 giorni simulati: retate, scandali, aiuti, territori, effetti domino
 node scripts/playtest.ts 7099       # bilanciamento: un bot gioca a 5 livelli di equipaggiamento (AETHER_DEV=1, ~2 minuti)
 ```
 
@@ -459,6 +477,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/law.ts`, `shared/law.ts` | Leggi e contrappesi: fiducia nella Guardia, scandalo, aiuto da fuori |
 | `server/blackmarket.ts`, `server/scars.ts`, `shared/blackmarket.ts`, `shared/scars.ts` | 0-day che invecchiano e retate; cicatrici, città al buio, traslochi |
 | `server/surprises.ts`, `shared/surprises.ts` | Imprevisti durante le intrusioni |
+| `server/domino.ts`, `server/nemesis.ts`, `server/turf.ts`, `server/leaks.ts`, `server/longops.ts` | Effetto domino, nemesi e favori, territori, bottino con un contenuto, operazioni lunghe (regole nei file omonimi di `shared/`) |
 | `server/life.ts`, `server/life-text.ts`, `shared/clock.ts` | Orologio del mondo, regole di giorno e di notte, popolazione autonoma e i suoi testi |
 | `server/malware.ts`, `shared/malware.ts`, `client/src/views/Lab.tsx` | Warez, infezioni del deck, laboratorio, antivirus e firme |
 | `server/bbs.ts`, `server/bbs-text.ts`, `shared/bbs.ts`, `client/src/views/Bbs.tsx` | I BBS: stato, testi, tipi, interfaccia |

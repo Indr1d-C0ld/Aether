@@ -3033,7 +3033,7 @@ export class Game {
     rate *= WARRANT_TRACE[warrantLevel(agent.charges)]! * op.guard * (1 + this.chip(agent, "trace") / 100);
     // la fama ha un prezzo: i monitor conoscono la firma dei nomi noti
     if (agent.faction === "red") rate *= 1 + fameTier(agent.fame).index * 0.02;
-    return (rate * (1 - this.spec(agent, "furtivita") * 0.01) * (this.mwTrace?.(agent) ?? 1) * (this.twistTrace?.(op) ?? 1)) / this.num("traceMult");
+    return (rate * (1 - this.spec(agent, "furtivita") * 0.01) * (this.mwTrace?.(agent) ?? 1) * (this.twistTrace?.(op) ?? 1) * (this.turfTrace?.(op, agent) ?? 1)) / this.num("traceMult");
   }
 
   taskRate(op: Op, agent: Agent, task: Task) {
@@ -3289,7 +3289,7 @@ export class Game {
       else if (a === "wardial") this.deed(agent, "wardial", null);
       else if (a === "preside") this.deed(agent, "preside", this.node(String(p.nodeId)));
       else if (a === "deploySensor") this.deed(agent, "sensor", this.node(String(p.nodeId)));
-      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket", "intel", "law", "black", "scars", "surprise"].includes(a)) this.bump(agent, `a:${a}`);
+      if (!["readMail", "dropFile", "take", "abandon", "irc", "ircSync", "grid", "rotor", "tone", "scope", "bbs", "mw", "life", "world", "cit", "stock", "front", "fenceMarket", "intel", "law", "black", "scars", "surprise", "domino", "nemesis", "turf", "longop", "leak"].includes(a)) this.bump(agent, `a:${a}`);
       if (a === "sys") this.bump(agent, `sys:${String(p.cmd)}`);
       if (a === "connect") {
         const op = this.ops.get(agent.id);
@@ -3356,6 +3356,16 @@ export class Game {
   twistSpeed: ((op: Op, usesModem: boolean) => number) | null = null;
   /** Un abitante prende calore (segnalato, chiuso fuori): può finire in custodia. */
   lifeHeat: ((handle: string, n: number) => void) | null = null;
+  /** Fornitori, clienti e disservizio di un'organizzazione (server/domino.ts). */
+  orgSupply: ((n: WNode) => import("../shared/domino.ts").SupplyView) | null = null;
+  lifeFavorOf: ((a: Agent, handle: string) => number) | null = null;
+  lifePeople: (() => { handle: string; side: "red" | "blue" | "any"; city: string; awake: boolean }[]) | null = null;
+  /** Le bande degli abitanti (server/life.ts), per i territori. */
+  lifeGangs: (() => { id: string; name: string; side: "red" | "blue"; members: string[] }[]) | null = null;
+  /** Territori (server/turf.ts): un abitante di una banda sceglie di preferenza un bersaglio nelle città della banda. */
+  lifeTarget: ((handle: string, candidates: WNode[]) => WNode | null) | null = null;
+  /** Territori (server/turf.ts): chi lavora nella città della sua crew ha il trace più lento. */
+  turfTrace: ((op: Op, agent: Agent) => number) | null = null;
   /** Datore di lavoro attuale di un cittadino (server/citizens.ts): tiene conto di licenziamenti e assunzioni. */
   employerOf: ((pid: string) => string | null) | null = null;
   // il mercato del ricettatore (server/fence.ts)

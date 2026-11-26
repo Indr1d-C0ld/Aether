@@ -233,6 +233,8 @@ export type MapScene = {
   t: number;
   /** ora del server: da qui l'ombra della notte */
   now?: number;
+  /** territori: un alone per città, del colore di chi la tiene */
+  turf?: { x: number; y: number; color: string; tag: string; contested: boolean }[];
 };
 
 export function drawMap(g: CanvasRenderingContext2D, base: HTMLCanvasElement, s: MapScene) {
@@ -278,6 +280,23 @@ export function drawMap(g: CanvasRenderingContext2D, base: HTMLCanvasElement, s:
   const zoom = MAP_W / v.w;
   const byId = new Map(s.nodes.map((n) => [n.id, n]));
   const inView = (p: { x: number; y: number }) => p.x >= v.x - 2 && p.x <= v.x + v.w + 2 && p.y >= v.y - 2 && p.y <= v.y + v.h + 2;
+  // territori: un anello per città, del colore di chi la tiene; tratteggiato ambra se è contesa
+  for (const c of s.turf ?? []) {
+    if (!inView(c)) continue;
+    const p = T(c);
+    const r = Math.max(4, Math.round(3.5 * zoom));
+    for (let k = 0; k < 48; k += 1) {
+      if (c.contested && k % 3 === 0) continue;
+      const a = (k / 48) * Math.PI * 2;
+      g.fillStyle = c.color;
+      g.fillRect(Math.round(p.x + Math.cos(a) * r), Math.round(p.y + Math.sin(a) * r), 1, 1);
+    }
+    if (zoom >= 1.5 || c.contested) {
+      g.fillStyle = c.color;
+      g.font = "6px monospace";
+      g.fillText(c.tag, p.x - 6, p.y + r + 7);
+    }
+  }
   // città al buio dopo un sabotaggio a una rete: un alone velato con un anello che pulsa piano, e la scritta
   const darkCities = new Map<string, { x: number; y: number }>();
   for (const n of s.nodes) if (n.dark && n.city && !darkCities.has(n.city)) darkCities.set(n.city, { x: n.x, y: n.y });
@@ -376,6 +395,30 @@ export function drawMap(g: CanvasRenderingContext2D, base: HTMLCanvasElement, s:
     const p = byId.get(id);
     if (p) ring(p, "#2ef2ff");
   }
+  // effetto domino: i fornitori del nodo selezionato (azzurro) e i suoi clienti (ambra); un anello sui nodi in disservizio
+  if (sel) {
+    const a = T(sel);
+    for (const id of sel.suppliers ?? []) {
+      const p = byId.get(id);
+      if (p) {
+        const b = T(p);
+        line(g, b.x, b.y, a.x, a.y, "rgba(46, 242, 255, 0.6)", 3);
+      }
+    }
+    for (const n of s.nodes) {
+      if (!n.suppliers?.includes(sel.id)) continue;
+      const b = T(n);
+      line(g, a.x, a.y, b.x, b.y, "rgba(255, 176, 0, 0.55)", 2);
+    }
+  }
+  if (Math.floor(s.t / 600) % 2 === 0)
+    for (const n of s.nodes) {
+      if (!n.outage || !inView(n)) continue;
+      const c = T(n);
+      g.strokeStyle = "rgba(255, 176, 0, 0.85)";
+      g.lineWidth = 1;
+      g.strokeRect(c.x - 5.5, c.y - 5.5, 12, 12);
+    }
   // i tuoi sensori: una tacca verde sul nodo
   for (const n of s.nodes) {
     if (!n.mySensor) continue;

@@ -18,6 +18,7 @@ export type OrgView = {
   sec: { proxy: number; firewall: number; monitor: number };
   base: { proxy: number; firewall: number; monitor: number };
   rivals: { id: string; name: string; heat: number; war: boolean }[];
+  supply?: import("./domino.ts").SupplyView | null;
   history: { at: number; text: string }[];
 };
 export type NewsKind = "sabotaggio" | "intrusione" | "difesa" | "economia" | "guerra" | "legge" | "virus" | "gente";

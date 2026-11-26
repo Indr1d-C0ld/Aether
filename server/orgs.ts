@@ -95,8 +95,12 @@ export function installOrgs(game: Game) {
   function suspect(n: NodeDoc, o: Org) {
     const ids = Object.keys(o.rivals).filter((id) => game.nodes.get(id));
     if (!ids.length || Math.random() > 0.4) return;
-    const id = pick(ids);
-    const r = game.nodes.get(id)!;
+    blameOn(n, o, pick(ids));
+  }
+  /** Un'organizzazione sospetta di un concorrente preciso; alla quinta volta gli dichiara guerra. */
+  function blameOn(n: NodeDoc, o: Org, id: string) {
+    const r = game.nodes.get(id);
+    if (!r) return;
     o.rivals[id] = (o.rivals[id] ?? 0) + 1;
     if (o.rivals[id] === 3) news("guerra", `${n.org} accusa ${r.org} di spionaggio industriale. ${r.org}: «Illazioni».`, n);
     if (o.rivals[id]! >= 5 && !inWar(n.id) && !inWar(id)) {
@@ -290,7 +294,7 @@ export function installOrgs(game: Game) {
   const name = (id: string | null) => (id ? (game.nodes.get(id)?.org ?? null) : null);
   function orgView(n: NodeDoc): OrgView {
     const o = org(n);
-    return { id: n.id, name: n.org, kind: n.kind, city: n.city ?? "", status: statusOf(n, o), group: o.group, cash: Math.round(o.cash), rep: Math.round(o.rep), morale: Math.round(o.morale), fear: Math.round(o.fear), cuts: o.cuts, sec: { proxy: n.proxy, firewall: n.firewall, monitor: n.monitor }, base: o.base, rivals: Object.entries(o.rivals).filter(([id]) => game.nodes.get(id)).map(([id, heat]) => ({ id, name: game.nodes.get(id)!.org, heat, war: Boolean(inWar(n.id) && (inWar(n.id)!.a === id || inWar(n.id)!.b === id)) })), history: [...o.hist].reverse() };
+    return { id: n.id, name: n.org, kind: n.kind, city: n.city ?? "", status: statusOf(n, o), group: o.group, cash: Math.round(o.cash), rep: Math.round(o.rep), morale: Math.round(o.morale), fear: Math.round(o.fear), cuts: o.cuts, sec: { proxy: n.proxy, firewall: n.firewall, monitor: n.monitor }, base: o.base, rivals: Object.entries(o.rivals).filter(([id]) => game.nodes.get(id)).map(([id, heat]) => ({ id, name: game.nodes.get(id)!.org, heat, war: Boolean(inWar(n.id) && (inWar(n.id)!.a === id || inWar(n.id)!.b === id)) })), history: [...o.hist].reverse(), supply: game.orgSupply?.(n) ?? null };
   }
   function world(a: AgentDoc): WorldView {
     const known = new Set(a.knownNodes);
@@ -344,6 +348,13 @@ export function installOrgs(game: Game) {
 
   return {
     news,
+    /** I concorrenti di un'organizzazione. */
+    rivalsOf: (n: NodeDoc) => Object.keys(org(n).rivals).filter((id) => game.nodes.get(id)),
+    /** La vittima sospetta di quel concorrente (server/leaks.ts: i segreti venduti alla concorrenza). */
+    blame: (n: NodeDoc, rivalId: string) => {
+      blameOn(n, org(n), rivalId);
+      dirty = true;
+    },
     /** Lo scandalo (server/law.ts) chiude lo stato d'emergenza. */
     endEmergency() {
       state.emergencyUntil = 0;

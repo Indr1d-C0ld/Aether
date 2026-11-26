@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { NodeKind, NodeView } from "../../../shared/types.ts";
+import type { TurfView } from "../../../shared/turf.ts";
 import { KIND_LABEL, KIND_PROFILE, MISSION_LABEL, SCAN_COST, SENSOR_COST, scanFinds, socPresidia, socSensors, REGION_NAME, RELAY_CLASS, WARDIAL_COST, fmtCr, heatTraceFactor, regionAt, routeTrace, type HopInput } from "../../../shared/rules.ts";
 import { DialLog } from "../cinema.tsx";
 import { PART_NAME, clockLabel, dayPart, statusLine } from "../../../shared/clock.ts";
@@ -95,8 +96,34 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   const drawNodes = op && op.target.kind === "gateway" ? [...visible, op.target] : visible;
-  const sceneRef = useRef({ nodes: drawNodes, route: activeRoute, live: Boolean(op), trace, selected, presiding: me.presiding.map((x) => x.nodeId), view, now: ctx.serverNow });
-  sceneRef.current = { nodes: drawNodes, route: activeRoute, live: Boolean(op), trace, selected, presiding: me.presiding.map((x) => x.nodeId), view, now: ctx.serverNow };
+  // territori: il livello si accende e si spegne, e si ricorda
+  const [turfOn, setTurfOn] = useState(() => {
+    try {
+      return localStorage.getItem("aether.mapTurf") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [turf, setTurf] = useState<TurfView | null>(null);
+  useEffect(() => {
+    try {
+      localStorage.setItem("aether.mapTurf", turfOn ? "1" : "0");
+    } catch {
+      /* ignora */
+    }
+    if (!turfOn) return;
+    const load = () => void net.do("turf", {}, true).then((r) => r.ok && setTurf(r.data as TurfView));
+    load();
+    const t = window.setInterval(load, 30_000);
+    return () => window.clearInterval(t);
+  }, [turfOn]);
+  const turfMarks = turfOn
+    ? (turf?.cities ?? [])
+        .filter((c) => c.holder || c.contested)
+        .map((c) => ({ x: c.x, y: c.y, contested: c.contested, tag: c.holder?.tag ?? "?", color: c.contested ? "#ffb000" : c.holder!.mine ? "#39ff88" : c.holder!.side === "red" ? (c.holder!.npc ? "#ff7a90" : "#ff3355") : c.holder!.npc ? "#8af7ff" : "#2ef2ff" }))
+    : [];
+  const sceneRef = useRef({ nodes: drawNodes, route: activeRoute, live: Boolean(op), trace, selected, presiding: me.presiding.map((x) => x.nodeId), view, now: ctx.serverNow, turf: turfMarks });
+  sceneRef.current = { nodes: drawNodes, route: activeRoute, live: Boolean(op), trace, selected, presiding: me.presiding.map((x) => x.nodeId), view, now: ctx.serverNow, turf: turfMarks };
 
   useEffect(() => {
     const c = canvas.current;
@@ -105,7 +132,7 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
     let raf = 0;
     const loop = (t: number) => {
       const s = sceneRef.current;
-      drawMap(g, base, { nodes: s.nodes, gateway: gw, route: s.route, live: s.live, traceFrac: s.trace, selected: s.selected, presiding: s.presiding, view: s.view, t, now: s.now });
+      drawMap(g, base, { nodes: s.nodes, gateway: gw, route: s.route, live: s.live, traceFrac: s.trace, selected: s.selected, presiding: s.presiding, view: s.view, t, now: s.now, turf: s.turf });
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -250,7 +277,18 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
                 {p.label} <kbd>{p.key}</kbd>
               </button>
             ))}
+            <button className={`btn small ${turfOn ? "primary" : ""}`} onClick={() => setTurfOn(!turfOn)} title="Chi tiene le città: crew dei giocatori e bande degli abitanti">
+              Territori
+            </button>
           </div>
+          {turfOn && turf ? (
+            <div className="faint" style={{ fontSize: 12, marginTop: 4 }}>
+              {turf.mine ? (turf.held.length ? `La tua crew tiene ${turf.held.join(", ")}. ` : "La tua crew non tiene ancora nessuna città. ") : "Non sei in una crew: le città le tengono gli altri. "}
+              {turf.cities.filter((c) => c.holder).length} città tenute, {turf.cities.filter((c) => c.contested).length} contese.{" "}
+              <span style={{ color: "#39ff88" }}>■</span> tua <span style={{ color: "#ff3355" }}>■</span> rossi <span style={{ color: "#2ef2ff" }}>■</span> blu{" "}
+              <span style={{ color: "#ffb000" }}>■</span> contesa · più chiari: bande degli abitanti
+            </div>
+          ) : null}
           <div className="map-legend">
             {(Object.keys(RELAY_CLASS) as (keyof typeof RELAY_CLASS)[]).map((k) => (
               <span key={k} style={{ marginRight: 10 }} title={RELAY_CLASS[k].blurb}>
@@ -585,6 +623,7 @@ function NodePanel({ ctx, node }: { ctx: DeckCtx; node: NodeView }) {
               {node.scar ? <span className="chip red">sabotato {Math.max(1, Math.round((ctx.serverNow - (node.scarAt ?? 0)) / 3600_000))} h fa</span> : null}
               {node.dark ? <span className="chip amber">{node.city} al buio: trace più lento del 30%</span> : null}
               {node.moved ? <span className="chip">trasferito da {node.moved.city}</span> : null}
+              {node.outage ? <span className="chip amber">senza {node.outage.what}: {node.outage.by} è giù</span> : null}
             </div>
           </div>
         )}

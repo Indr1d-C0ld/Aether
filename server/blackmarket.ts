@@ -6,6 +6,7 @@ import {
   EXPLOIT_HALF_H,
   NPC_EXPLOIT_CHANCE,
   RAID_AT,
+  RAID_COOLDOWN_H,
   RAID_H,
   ZERO_DAYS,
   freshLabel,
@@ -19,7 +20,7 @@ import {
   type BlackView,
 } from "../shared/blackmarket.ts";
 
-type State = { uses: Record<string, number>; at: number; raid: { start: number; why: string } | null; arrests: { at: number; w: number }[] };
+type State = { uses: Record<string, number>; at: number; raid: { start: number; why: string } | null; arrests: { at: number; w: number }[]; lastEnd?: number };
 type Orgs = { news: (kind: "legge" | "gente", text: string, n: NodeDoc | null, feed?: boolean) => void };
 
 const H = 3600_000;
@@ -71,8 +72,8 @@ export function installBlackMarket(game: Game, orgs: Orgs) {
     state.arrests = state.arrests.filter((a) => now() - a.at < 24 * H);
     return state.arrests.reduce((s, a) => s + a.w, 0);
   }
-  function startRaid(why: string) {
-    if (k() > 0) return;
+  function startRaid(why: string, force = false) {
+    if (k() > 0 || (!force && now() - (state.lastEnd ?? 0) < RAID_COOLDOWN_H * H)) return;
     state.raid = { start: now(), why };
     state.arrests = [];
     dirty = true;
@@ -91,7 +92,7 @@ export function installBlackMarket(game: Game, orgs: Orgs) {
   const prevArrest = game.arrest.bind(game);
   game.arrest = (agent, reason) => {
     prevArrest(agent, reason);
-    arrestPoint(agent.npc ? 1 : 2, "dopo una serie di arresti");
+    if (!agent.npc) arrestPoint(2, "dopo una serie di arresti");
   };
   game.lifeBust = () => arrestPoint(1, "dopo una serie di arresti");
   game.onEmergency = () => startRaid("con lo stato d'emergenza");
@@ -120,6 +121,7 @@ export function installBlackMarket(game: Game, orgs: Orgs) {
     if (Math.random() < NPC_EXPLOIT_CHANCE * raidNpcMult(k())) used(pick(ZERO_DAYS));
     if (state.raid && k() <= 0) {
       state.raid = null;
+      state.lastEnd = now();
       orgs.news("legge", "Il mercato nero torna a respirare: la retata è finita, i ricettatori riaprono, i prezzi scendono.", null, false);
     }
     dirty = true;
@@ -144,8 +146,8 @@ export function installBlackMarket(game: Game, orgs: Orgs) {
     if (p.dev && dev()) {
       if (p.uses && typeof p.uses === "object") for (const [c, n] of Object.entries(p.uses as Record<string, number>)) state.uses[c] = Number(n);
       if (p.roll !== undefined) forceRoll = p.roll === null ? null : Number(p.roll);
-      if (typeof p.raid === "string") (state.raid = null), startRaid(p.raid);
-      if (p.raidOff) state.raid = null;
+      if (typeof p.raid === "string") (state.raid = null), startRaid(p.raid, true);
+      if (p.raidOff) (state.raid = null), (state.lastEnd = 0);
       if (typeof p.age === "number" && state.raid) state.raid.start -= p.age * H;
       if (p.arrests) arrestPoint(Number(p.arrests), "dopo una serie di arresti");
       dirty = true;

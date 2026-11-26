@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.." || exit 1
 PORT="${1:-7090}"
 TMP="$(mktemp -d)"
 fail=0
-for t in smoke smoke-gateway smoke-market smoke-depth smoke-blue smoke-soc smoke-world smoke-admin smoke-net smoke-zones smoke-grid smoke-rotors smoke-tones smoke-bio smoke-bbs smoke-malware smoke-life smoke-orgs smoke-citizens smoke-stocks smoke-jobs smoke-ownbbs smoke-intel smoke-law smoke-aftermath smoke-session smoke-surprises; do
+for t in smoke smoke-gateway smoke-market smoke-depth smoke-blue smoke-soc smoke-world smoke-admin smoke-net smoke-zones smoke-grid smoke-rotors smoke-tones smoke-bio smoke-bbs smoke-malware smoke-life smoke-orgs smoke-citizens smoke-stocks smoke-jobs smoke-ownbbs smoke-intel smoke-law smoke-aftermath smoke-session smoke-surprises smoke-domino smoke-nemesis smoke-turf smoke-leaks smoke-longops; do
   rm -f "$TMP"/w.db*
   AETHER_DEV=1 AETHER_FAST=1 AETHER_DB="$TMP/w.db" AETHER_PORT="$PORT" node server/main.ts > "$TMP/$t.server.log" 2>&1 &
   pid=$!

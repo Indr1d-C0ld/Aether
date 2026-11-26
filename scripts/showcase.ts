@@ -123,6 +123,13 @@ const people = WORLD.nodes.filter((n) => n.kind === "corp" && n.adminId).slice(0
 for (const [i, pid] of people.entries()) await slow("cit", { cmd: "dev", id: pid, meet: true, set: { debt: [6200, 300, 9100, 1200, 4400, 800][i], fired: i === 3 ? WORLD.nodes.find((n) => n.adminId === pid)!.id : null, firedAt: Date.now() } });
 await slow("cit", { cmd: "investigate", id: people[0] });
 await slow("cit", { cmd: "investigate", id: people[2] });
+await slow("nemesis", { cmd: "dev", start: "Sentinel" });
+await slow("nemesis", { cmd: "dev", move: true });
+await slow("nemesis", { cmd: "dev", move: true });
+const moleCand = (((await slow("longop", { cmd: "view" })).data as { moles: { pid: string }[] }).moles[0] ?? { pid: people[2] }).pid;
+await slow("longop", { cmd: "mole", pid: moleCand });
+for (const roll of [0.35, 0.7, 0.9]) await slow("longop", { cmd: "dev", roll, tick: true });
+await slow("longop", { cmd: "dev", roll: null });
 await slow("life", { cmd: "join", gang: "k2600" });
 for (const h of ["Mantis", "Nyx_77", "Corax"]) await slow("life", { cmd: "gift", handle: h });
 await slow("life", { cmd: "favor", handle: "Ohm", value: 64 });
@@ -324,6 +331,17 @@ void palStore;
 await click("Crew");
 await sleep(1200);
 await shot("crew");
+
+log("territori: le città della crew e delle bande");
+for (const [city, key, pts] of [["Londra", "crew:ZDY", 26], ["Parigi", "crew:ZDY", 18], ["Amsterdam", "crew:ZDY", 17], ["Amsterdam", "gang:corvi", 16], ["Berlino", "gang:k2600", 22], ["Madrid", "gang:notte", 15], ["Roma", "gang:carrier", 19], ["Vienna", "gang:corvi", 12]] as const) await slow("turf", { dev: true, city, key, pts });
+await click("Mappa");
+await sleep(800);
+await click("Europa");
+await click("Territori");
+await sleep(1500);
+await shot("territori");
+await click("Territori");
+await click("Mondo");
 
 log("informazioni: quello che sai, il Mediatore, la bancarella");
 await palAct("intel", { cmd: "dev", heat: 62 });

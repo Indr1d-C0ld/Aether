@@ -6,6 +6,71 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.27.0",
+    date: "2026-11-26",
+    title: "Operazioni lunghe",
+    tags: ["sandbox", "persone"],
+    items: [
+      "Operazioni che lavorano anche mentre sei scollegato, dalla voce Persone; al più due alla volta.",
+      "Rossi: una talpa. Un dipendente indebitato (debiti oltre 3.000 CR) di cui hai aperto il fascicolo, per 2.000 CR, per cinque giorni. Ogni sei ore ti passa qualcosa: la password dell'operatore, mezza password di root, la copia di un file (a volte con un progetto o uno scandalo dentro), il suo badge per un giorno. Ogni volta possono scoprirla: la licenziano, finisce in Cronaca, e il tuo calore sale. Più l'azienda ha paura, più è facile.",
+      "Blu: sotto copertura. Ti infiltri in una banda di abitanti rossi, per 1.500 CR e tre giorni. Ogni sei ore sai chi colpirà e dove, il sistema va in allerta, e a volte il suo nome finisce alla Guardia. Se ti scoprono, per quella banda diventi un nemico.",
+      "3 serie di traguardi nuove: 768 traguardi in tutto.",
+    ],
+  },
+  {
+    v: "0.26.0",
+    date: "2026-11-26",
+    title: "Bottino con un contenuto",
+    tags: ["mercato", "sandbox"],
+    items: [
+      "Alcuni file rubati non sono solo merce per il ricettatore. Quando copi qualcosa di valore da un laboratorio, un'azienda o un sito militare può essere un progetto riservato. Da banche, uffici pubblici, polizia, aziende e cliniche può essere la prova di uno scandalo; gli allegati compromettenti della posta interna lo sono sempre.",
+      "Un progetto si vende al concorrente diretto della vittima: lui ci guadagna, la vittima perde soldi e reputazione e comincia a sospettare di lui. A forza di sospetti, scoppia una guerra commerciale.",
+      "Uno scandalo si porta a un giornale, che lo pubblica: poco denaro, molta fama, e la vittima perde reputazione (e se è la Guardia, la fiducia del pubblico). Oppure lo usi per ricattare l'azienda: paga di più, ma tre volte su dieci va alla polizia.",
+      "I pulsanti sono nel tuo archivio, nel Mercato nero. Il contenuto viaggia con il file: si vende e si compra al mercato come gli altri.",
+      "3 serie di traguardi nuove: 756 traguardi in tutto.",
+    ],
+  },
+  {
+    v: "0.25.0",
+    date: "2026-11-26",
+    title: "Territori",
+    tags: ["sandbox", "crew", "mappa"],
+    items: [
+      "Crew dei giocatori e bande degli abitanti si contendono le città. Ogni impresa in una città dà punti di presenza: accessi admin, copie, sabotaggi per i rossi, presidi e rinforzi per i blu. I punti si dimezzano in tre giorni.",
+      "Una città è di chi ha almeno 10 punti e un vantaggio netto sulla seconda; se due sono vicine, la città è contesa. Conquiste e guerre di territorio finiscono in Cronaca.",
+      "Tenere una città conta. I rossi della crew ci lavorano con un trace più lento del 10%, i blu ci indagano più in fretta. Chi rimbalza sui relay di una città tenuta da un'altra crew di giocatori paga 40 CR di pedaggio a relay, nella cassa di quella crew.",
+      "Sulla mappa c'è il pulsante «Territori»: un anello del colore di chi tiene ogni città (verde la tua crew, rosso e azzurro le altre, più chiari le bande degli abitanti, ambra tratteggiato le città contese).",
+      "1 serie di traguardi nuova: 744 traguardi in tutto.",
+    ],
+  },
+  {
+    v: "0.24.0",
+    date: "2026-11-26",
+    title: "Nemesi e favori",
+    tags: ["sandbox", "abitanti"],
+    items: [
+      "Gli abitanti blu leggono i log. Ogni sessione in cui hai toccato qualcosa lascia tracce, e qualcuno della Guardia di Notte comincia a seguirle: alla quinta prende il tuo caso e diventa la tua nemesi. Te lo scrive lui.",
+      "La nemesi fa una mossa ogni tre-sei ore, quando è sveglia, sempre più dura. Prima mette in allerta l'organizzazione che colpisci di più, poi ti prepara un'esca in bacheca, un lavoro troppo facile che, se ci entri da admin, ti costa calore e manda il tuo indirizzo ai blu. Alla fine ti segnala alla Guardia.",
+      "Come liberartene: resta tranquillo, con il calore sotto 15, per un giorno intero, e si stufa. Oppure depistala (1.200 CR: più di metà delle volte ci casca e per dodici ore cerca altrove), oppure comprala (4.000 CR: accetta meno di metà delle volte, e se rifiuta lo mette a verbale). Se ti arrestano chiude il caso. Tutto nella voce Persone.",
+      "Favori: un abitante della tua parte che ti stima abbastanza ogni tanto ti chiede un lavoro, con dodici ore di tempo. È un contratto personale nella tua bacheca. Se lo fai ti stima di più e ti ripaga con un numero nascosto, o con dei soldi; se lo lasci scadere, se lo ricorda.",
+      "2 serie di traguardi nuove: 740 traguardi in tutto.",
+    ],
+  },
+  {
+    v: "0.23.0",
+    date: "2026-11-26",
+    title: "Effetto domino",
+    tags: ["sandbox", "organizzazioni", "mappa"],
+    items: [
+      "Le organizzazioni dipendono le une dalle altre. Una banca ha bisogno delle linee di una compagnia telefonica e della corrente di una rete, un ospedale anche dei farmaci di un laboratorio, un negozio del credito e delle forniture. Ognuna si rifornisce dalle più vicine del tipo che le serve.",
+      "Se sabotate un fornitore, i suoi clienti restano in disservizio per sei ore: perdono soldi e morale, e i loro sistemi guardano meno, quindi il trace è più lento. A volte il guasto si propaga di un altro anello. Anche un virus su una rete o una compagnia telefonica può bastare.",
+      "Ogni effetto domino finisce in Cronaca e porta due contratti: per i rossi, approfittare del disservizio di un cliente; per i blu, presidiare e rinforzare il fornitore.",
+      "Sulla mappa, selezionando un nodo vedi i suoi fornitori (linee azzurre) e i suoi clienti (linee ambra); i nodi in disservizio hanno un anello ambra. Nella scheda dell'organizzazione, in Cronaca, ci sono fornitori e clienti.",
+      "Il mondo misurato da solo: gli abitanti ora finiscono in custodia (prima il loro calore scendeva troppo in fretta), ogni tanto sabotano anche loro, e le retate scattano solo per arresti di giocatori o abitanti in custodia, con almeno due giorni fra una e l'altra.",
+      "1 serie di traguardi nuova: 732 traguardi in tutto.",
+    ],
+  },
+  {
     v: "0.22.0",
     date: "2026-11-26",
     title: "Imprevisti",
