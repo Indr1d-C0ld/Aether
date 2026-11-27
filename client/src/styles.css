@@ -559,9 +559,40 @@ select:focus {
   background: #03040a;
   overflow: hidden;
 }
+.map-wrap {
+  touch-action: pan-y; /* due dita sulla mappa: lo zoom è del gioco, non della pagina */
+}
 .map-wrap.pan {
   cursor: grab;
   touch-action: none;
+}
+.map-zoom {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.map-zoom button {
+  width: 30px;
+  height: 30px;
+  background: rgb(5 6 11 / 0.8);
+  border: 1px solid var(--line-hi);
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.map-zoom button:hover:not(:disabled) {
+  border-color: var(--faction);
+  color: var(--faction);
+}
+.map-zoom button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 .map-wrap.pan.dragging,
 .map-wrap.pan.dragging .map-node {

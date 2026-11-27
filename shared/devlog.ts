@@ -6,6 +6,15 @@ export type DevEntry = { v: string; date: string; title: string; tags: string[];
 
 export const DEVLOG: DevEntry[] = [
   {
+    v: "0.28.1",
+    date: "2026-11-27",
+    title: "Zoom libero sulla mappa",
+    tags: ["mappa"],
+    items: [
+      "Il planisfero ora si ingrandisce e si rimpicciolisce come vuoi: con la rotella del mouse, attorno al punto dove la punti, con due dita sul telefono, o con i pulsanti «+» e «−» in alto a destra sulla mappa, fino a otto volte. «⟲» torna all'inquadratura del continente scelto. Ingrandita, la mappa si trascina sempre.",
+    ],
+  },
+  {
     v: "0.28.0",
     date: "2026-11-26",
     title: "L'app Android",

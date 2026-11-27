@@ -13,7 +13,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.28.0](https://img.shields.io/badge/versione-0.28.0-39ff88)
+![Versione 0.28.1](https://img.shields.io/badge/versione-0.28.1-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -286,7 +286,8 @@ Ogni nodo reagisce secondo quello che è. Un negozio non guarda chi entra finch�
 il login dopo pochi tentativi e ferma i bonifici oltre il tetto dell'antifrode. Di notte la guardia è più lenta, in
 allerta più rapida, e un blackout acceca un'intera regione.
 
-Il planisfero si ingrandisce per continente e si trascina col mouse o col dito; sotto ci sono i filtri per tipo di nodo,
+Il planisfero si ingrandisce per continente, con la rotella del mouse, con due dita o con i pulsanti «+» e «−», e si
+trascina col mouse o col dito; sotto ci sono i filtri per tipo di nodo,
 con nove filtri rapidi sui tasti da 1 a 9 (tutti, solo relay, bersagli, senza o solo PC privati, imprese, istituzioni,
 servizi, ricerca e stampa); Maiusc+clic su un tipo della legenda mostra solo quello. Si può vedere in cinque stili:
 
@@ -347,6 +348,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.28.1 | 27 novembre 2026 | Zoom libero sulla mappa: rotella, due dita, pulsanti |
 | 0.28.0 | 26 novembre 2026 | L'app Android |
 | 0.27.1 | 26 novembre 2026 | Talpe più robuste e meno care, dopo una misura su giorni simulati |
 | 0.27.0 | 26 novembre 2026 | Operazioni lunghe: talpe e infiltrazioni sotto copertura |

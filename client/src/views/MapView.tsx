@@ -46,12 +46,25 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
   };
   const zoomed = view.w < 320;
   const clampView = (r: MapRect): MapRect => ({ ...r, x: Math.max(0, Math.min(320 - r.w, r.x)), y: Math.max(0, Math.min(180 - r.h, r.y)) });
+  /** Zoom attorno a un punto dell'inquadratura (fx, fy da 0 a 1): da tutto il mondo fino a otto volte. */
+  const zoomAt = (factor: number, fx = 0.5, fy = 0.5, from?: MapRect) =>
+    setView((cur) => {
+      const r = from ?? cur;
+      const w = Math.max(MAP_MIN_W, Math.min(320, r.w * factor));
+      const h = (w * 180) / 320;
+      return clampView({ x: r.x + fx * r.w - fx * w, y: r.y + fy * r.h - fy * h, w, h });
+    });
+  // due dita sulla mappa: il pizzico
+  const fingers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ dist: number; rect: MapRect } | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; rect: MapRect; moved: boolean } | null>(null);
   const [dragging, setDragging] = useState(false);
   // dopo un trascinamento il clic che segue non seleziona niente
   const justDragged = useRef(false);
-  const endDrag = () => {
+  const endDrag = (e?: { pointerId: number }) => {
+    if (e) fingers.current.delete(e.pointerId);
+    if (fingers.current.size < 2) pinch.current = null;
     if (drag.current?.moved) {
       justDragged.current = true;
       window.setTimeout(() => (justDragged.current = false), 0);
@@ -63,6 +76,18 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
     if (!zoomed || (n.x >= view.x && n.x <= view.x + view.w && n.y >= view.y && n.y <= view.y + view.h)) return;
     setView(clampView({ ...view, x: n.x - view.w / 2, y: n.y - view.h / 2 }));
   };
+  // la rotella: zoom attorno al puntatore (il listener non è passivo, così la pagina non scorre)
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const box = el.getBoundingClientRect();
+      zoomAt(e.deltaY > 0 ? 1.2 : 1 / 1.2, (e.clientX - box.left) / box.width, (e.clientY - box.top) / box.height);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
   const [find, setFind] = useState("");
   const missionNodes = useMemo(() => new Set(state.missions.filter((m) => m.mine).flatMap((m) => [m.nodeId, ...m.clientNodes])), [state.missions]);
   const activeRoute = op ? op.chain : route;
@@ -156,10 +181,28 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
             ref={wrap}
             className={`map-wrap ${zoomed ? "pan" : ""} ${dragging ? "dragging" : ""}`}
             onPointerDown={(e) => {
+              fingers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+              if (fingers.current.size === 2) {
+                // secondo dito: niente trascinamento, comincia il pizzico
+                const [a, b] = [...fingers.current.values()];
+                pinch.current = { dist: Math.hypot(a!.x - b!.x, a!.y - b!.y) || 1, rect: view };
+                drag.current = null;
+                return;
+              }
               if (!zoomed || e.button !== 0) return;
               drag.current = { x: e.clientX, y: e.clientY, rect: view, moved: false };
             }}
             onPointerMove={(e) => {
+              if (fingers.current.has(e.pointerId)) fingers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+              if (pinch.current && fingers.current.size === 2 && wrap.current) {
+                const [a, b] = [...fingers.current.values()];
+                const box = wrap.current.getBoundingClientRect();
+                const mx = ((a!.x + b!.x) / 2 - box.left) / box.width;
+                const my = ((a!.y + b!.y) / 2 - box.top) / box.height;
+                justDragged.current = true;
+                zoomAt(pinch.current.dist / (Math.hypot(a!.x - b!.x, a!.y - b!.y) || 1), mx, my, pinch.current.rect);
+                return;
+              }
               const d = drag.current;
               if (!d || !wrap.current) return;
               const dx = e.clientX - d.x;
@@ -182,6 +225,17 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
             onPointerCancel={endDrag}
           >
           <canvas ref={canvas} width={MAP_W} height={MAP_H} />
+          <div className="map-zoom" onPointerDown={(e) => e.stopPropagation()}>
+            <button onClick={() => zoomAt(1 / 1.5)} disabled={view.w <= MAP_MIN_W} title="Ingrandisci (anche con la rotella)" aria-label="Ingrandisci">
+              +
+            </button>
+            <button onClick={() => zoomAt(1.5)} disabled={!zoomed} title="Rimpicciolisci" aria-label="Rimpicciolisci">
+              −
+            </button>
+            <button onClick={() => pickView(viewId)} title="Torna all'inquadratura di partenza" aria-label="Torna all'inquadratura di partenza">
+              ⟲
+            </button>
+          </div>
           {visible.map((n) => {
             // fuori dall'inquadratura non c'è niente da cliccare
             if (n.x < view.x || n.x > view.x + view.w || n.y < view.y || n.y > view.y + view.h) return null;
@@ -190,7 +244,7 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
             const isTarget = activeRoute.at(-1) === n.id && (op || n.kind !== "relay");
             const pos = { left: `${((n.x - view.x) / view.w) * 100}%`, top: `${((n.y - view.y) / view.h) * 100}%` };
             // i nodi sono centinaia: il nome compare per quelli che contano adesso, per gli altri al passaggio
-            const loud = selected === n.id || inChain || missionNodes.has(n.id) || (n.landmark && n.kind !== "relay" && viewId !== "world");
+            const loud = selected === n.id || inChain || missionNodes.has(n.id) || (n.landmark && n.kind !== "relay" && view.w < 200);
             return (
               <div key={n.id}>
                 <button
@@ -227,7 +281,7 @@ export function MapView({ ctx, trace }: { ctx: DeckCtx; trace: number | null }) 
               ))}
             </div>
             <span className="faint" style={{ fontSize: 12 }}>
-              {zoomed ? "trascina la mappa per spostarti · " : ""}Conosci {me.knownNodes} nodi su {me.worldNodes}
+              {zoomed ? "trascina per spostarti, rotella o due dita per lo zoom · " : "rotella o due dita per lo zoom · "}Conosci {me.knownNodes} nodi su {me.worldNodes}
             </span>
           </div>
           <div className="row" style={{ marginTop: 6 }}>
@@ -735,3 +789,6 @@ const MAP_PRESETS: { key: string; label: string; hint: string; hide: string[] }[
   { key: "9", label: "Ricerca e stampa", hint: "università, laboratori, testate", hide: ONLY("edu", "lab", "news") },
 ];
 const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x));
+
+/** Il massimo ingrandimento: un'inquadratura larga 40 unità del mondo, otto volte il planisfero intero. */
+const MAP_MIN_W = 40;
