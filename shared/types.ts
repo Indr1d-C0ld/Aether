@@ -387,8 +387,8 @@ export type IrcEvent =
 // ---- Protocollo WebSocket ----
 
 export type ClientMsg =
-  | { t: "hello"; token: string }
-  | { t: "auth"; mode: "login" | "register"; handle: string; pass: string; faction?: Faction }
+  | { t: "hello"; token: string; lang?: "it" | "en" }
+  | { t: "auth"; mode: "login" | "register"; handle: string; pass: string; faction?: Faction; lang?: "it" | "en" }
   | { t: "do"; id: number; a: string; p?: Record<string, unknown> };
 
 export type ServerMsg =

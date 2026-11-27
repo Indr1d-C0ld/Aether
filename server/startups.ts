@@ -83,7 +83,10 @@ export function installStartups(game: Game, orgs: Orgs, citizens: Citizens) {
     state.born.push({ id, at: now(), founder: founder.id });
     state.lastAt = now();
     dirty = true;
-    orgs.news("economia", `Apre ${org} a ${near.city}: ${n.sub}. La fonda ${founder.name}${jobless.some((p) => p.id === founder.id) ? `, rimast${founder.sex === "f" ? "a" : "o"} senza lavoro` : ""}${crew.length ? `, con ${crew.map((p) => p.name).join(" e ")}` : ""}. ${n.blurb}`, n);
+    // a frasi separate e senza desinenze attaccate: così il client di chi gioca in inglese le traduce una per una
+    const lost = jobless.some((p) => p.id === founder.id) ? " Aveva perso il lavoro." : "";
+    const team = crew.length ? ` Nella squadra: ${crew.map((p) => p.name).join(", ")}.` : "";
+    orgs.news("economia", `Apre ${org} a ${near.city}: ${n.sub}. La fonda ${founder.name}.${lost}${team} ${n.blurb}`, n);
     return n;
   }
 

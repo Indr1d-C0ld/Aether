@@ -6,6 +6,7 @@ import { useFrame } from "../hooks.ts";
 import { sfx } from "../audio.ts";
 import { music } from "../music.ts";
 import { AudioToggles } from "./AudioToggles.tsx";
+import { LangToggle } from "./LangToggle.tsx";
 import { CinemaLayer, Rolling } from "../cinema.tsx";
 import { JailScreen } from "./Dossier.tsx";
 import { MapView } from "./MapView.tsx";
@@ -162,6 +163,7 @@ export function Deck({ snap }: { snap: Snapshot }) {
           <span>{snap.status === "online" ? "carrier ok" : "carrier perso"}</span>
           <b className="dim">{latticeClock(serverNow)}</b>
         </div>
+        <LangToggle />
         <AudioToggles />
         <button className="btn small" onClick={() => net.logout()}>
           Esci

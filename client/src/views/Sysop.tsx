@@ -5,6 +5,7 @@ import { AREA_TEMPLATES, OWN_BANNER_COLS, OWN_BANNER_LINES, OWN_COST, OWN_MAX_AR
 import { fmtCr } from "../../../shared/rules.ts";
 import { net } from "../net.ts";
 import type { DeckCtx } from "./Deck.tsx";
+import { t } from "../i18n.ts";
 
 export function SysopPanel({ ctx, onCall }: { ctx: DeckCtx; onCall: (id: string) => void }) {
   const [o, setO] = useState<OwnedView | null | undefined>(undefined);
@@ -166,7 +167,7 @@ export function SysopPanel({ ctx, onCall }: { ctx: DeckCtx; onCall: (id: string)
               type="button"
               className="btn small danger"
               onClick={() => {
-                if (confirm(`Chiudere «${o.name}»? Bacheche, utenti e area file spariscono.`)) void run("close");
+                if (confirm(t(`Chiudere «${o.name}»? Bacheche, utenti e area file spariscono.`))) void run("close");
               }}
             >
               Chiudi il BBS

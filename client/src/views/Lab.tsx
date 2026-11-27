@@ -55,7 +55,7 @@ export function LabPanel({ ctx }: { ctx: DeckCtx }) {
         <div className="panel">
           <div className="panel-head">
             <span className="label">Salute del deck</span>
-            <span className={`chip ${lab.bugs.length ? "red" : "green"}`}>{lab.bugs.length ? `${lab.bugs.length} infezion${lab.bugs.length === 1 ? "e" : "i"}` : "nessun sintomo"}</span>
+            <span className={`chip ${lab.bugs.length ? "red" : "green"}`}>{lab.bugs.length === 1 ? "1 infezione" : lab.bugs.length ? `${lab.bugs.length} infezioni` : "nessun sintomo"}</span>
           </div>
           <div className="panel-body list">
             <div className="spread">
@@ -222,7 +222,7 @@ export function LabPanel({ ctx }: { ctx: DeckCtx }) {
                       {SLOTS.map((s) => modDef(b.mods[s])?.name).join(" · ")}
                     </div>
                     <div className="faint" style={{ fontSize: 12 }}>
-                      furtività {b.stats.stealth} · resa {b.stats.power} · vita {b.stats.lifeH} h · replica {b.stats.spread}% — in {b.planted} sistem{b.planted === 1 ? "a" : "i"}, {b.victims} vittim{b.victims === 1 ? "a" : "e"}, {fmtCr(b.earned)} incassati
+                      furtività {b.stats.stealth} · resa {b.stats.power} · vita {b.stats.lifeH} h · replica {b.stats.spread}% — in {b.planted === 1 ? "1 sistema" : `${b.planted} sistemi`}, {b.victims === 1 ? "1 vittima" : `${b.victims} vittime`}, {fmtCr(b.earned)} incassati
                     </div>
                   </div>
                   <div className="row">
@@ -271,7 +271,7 @@ export function LabPanel({ ctx }: { ctx: DeckCtx }) {
                 <div key={i}>
                   <div className="spread">
                     <span className={e.name === "ceppo sconosciuto" ? "t-amber" : ""}>{e.name}</span>
-                    <span className="faint">{e.nodes} sistem{e.nodes === 1 ? "a" : "i"}</span>
+                    <span className="faint">{e.nodes === 1 ? "1 sistema" : `${e.nodes} sistemi`}</span>
                   </div>
                   <div className="faint" style={{ fontSize: 12 }}>{e.where.length ? `segnalato da: ${e.where.join(", ")}` : "nessuno se n'è accorto: troppo silenzioso"}</div>
                 </div>
@@ -316,7 +316,7 @@ export function NodeMalware({ op, faction, inside }: { op: import("../../../shar
     <div className="panel">
       <div className="panel-head">
         <span className="label">{faction === "red" ? "Malware" : "Antivirus"}</span>
-        {found.length ? <span className="chip red">{found.length} infezion{found.length === 1 ? "e" : "i"}</span> : null}
+        {found.length ? <span className="chip red">{found.length === 1 ? "1 infezione" : `${found.length} infezioni`}</span> : null}
       </div>
       <div className="panel-body list">
         {mine.map((i) => (

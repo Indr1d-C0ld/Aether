@@ -166,7 +166,7 @@ export function StocksPanel({ ctx }: { ctx: DeckCtx }) {
               <Spark ys={r.history} />
               <span className="px" style={{ fontSize: 20 }}>{r.price.toFixed(2)}</span>
               <span className={r.change >= 0 ? "t-green" : "t-red"}>{r.change >= 0 ? "+" : ""}{r.change}%</span>
-              <span className={r.have < 0 ? "t-amber" : "faint"}>{r.have ? `${r.have > 0 ? "hai" : "scoperto"} ${Math.abs(r.have)} a ${r.avg.toFixed(2)}` : ""}</span>
+              <span className={r.have < 0 ? "t-amber" : "faint"}>{r.have ? r.have > 0 ? `hai ${r.have} a ${r.avg.toFixed(2)}` : `scoperto ${-r.have} a ${r.avg.toFixed(2)}` : ""}</span>
               <span className="row" style={{ gap: 4 }}>
                 {r.open ? (
                   <>

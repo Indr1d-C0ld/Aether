@@ -1,14 +1,14 @@
 // Carriera: le statistiche personali e i traguardi, serie per serie, con l'avanzamento verso il prossimo grado.
 import { useMemo, useState } from "react";
 import { ACH_CAT, ACH_TOTAL, STAT_LABEL, TIER_COLOR, TIER_FAME, TIER_NAME, TRACKS, achId, fmtGoal, trackValue, type AchCat, type Track } from "../../../shared/achievements.ts";
-import { MISSION_LABEL, REGION_NAME, KIND_LABEL, fmtCr } from "../../../shared/rules.ts";
+import { MISSION_LABEL, REGION_NAME, KIND_LABEL, fmtCr, NUM_LOCALE } from "../../../shared/rules.ts";
 import type { MissionType, NodeKind } from "../../../shared/types.ts";
 import type { Region } from "../../../shared/rules.ts";
 import type { DeckCtx } from "./Deck.tsx";
 import { SPEC_DEFS, SPEC_TITLES, specLevel, specNeed, specPoints } from "../../../shared/progress.ts";
 import { levelOf, levelXp } from "../../../shared/rules.ts";
 
-const fmt = (n: number) => Math.round(n).toLocaleString("it-IT");
+const fmt = (n: number) => Math.round(n).toLocaleString(NUM_LOCALE);
 
 export function Career({ ctx }: { ctx: DeckCtx }) {
   const me = ctx.state.me;
@@ -84,8 +84,8 @@ function Progress({ ctx }: { ctx: DeckCtx }) {
           <i style={{ width: `${lv >= 99 ? 100 : ((me.xp - a) / (b - a)) * 100}%` }} />
         </div>
         <span className="faint" style={{ fontSize: 12 }}>
-          {lv >= 99 ? "Livello massimo." : `${me.xp.toLocaleString("it-IT")} XP · al livello ${lv + 1} ne mancano ${(b - me.xp).toLocaleString("it-IT")}`}
-          {me.nextXp ? ` · prossimo rango a ${me.nextXp.toLocaleString("it-IT")} XP` : " · hai il rango più alto"}
+          {lv >= 99 ? "Livello massimo." : `${me.xp.toLocaleString(NUM_LOCALE)} XP · al livello ${lv + 1} ne mancano ${(b - me.xp).toLocaleString(NUM_LOCALE)}`}
+          {me.nextXp ? ` · prossimo rango a ${me.nextXp.toLocaleString(NUM_LOCALE)} XP` : " · hai il rango più alto"}
         </span>
         <div className="spec-grid">
           {SPEC_DEFS.map((d) => {
@@ -193,7 +193,7 @@ function AchCard({ t, v, tiers, next }: { t: Track; v: number; tiers: boolean[];
           ))}
         </div>
       </div>
-      <div style={{ fontSize: 13 }}>{t.desc.replace("{n}", fmtGoal(t, goal))}</div>
+      <div style={{ fontSize: 13 }}>{t.desc.replace("{n}", goal.toLocaleString(NUM_LOCALE))}</div>
       <div className="meter" style={{ height: 6 }}>
         <i style={{ width: `${frac * 100}%`, background: done ? TIER_COLOR[3] : TIER_COLOR[tier] }} />
       </div>

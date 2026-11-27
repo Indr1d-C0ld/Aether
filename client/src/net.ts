@@ -1,6 +1,7 @@
 // Collegamento WebSocket al server autoritativo, con riconnessione e azioni a promessa.
 import type { ClientMsg, Faction, GameState, ServerMsg } from "../../shared/types.ts";
 import { ircStore } from "./irc.ts";
+import { lang } from "./i18n.ts";
 
 export type Toast = { id: number; text: string; tone: "ok" | "warn" | "bad" | "info" };
 export type NetStatus = "connecting" | "online" | "offline";
@@ -66,7 +67,7 @@ class Net {
       this.retry = 0;
       this.set({ status: "online" });
       const token = readToken();
-      if (token) this.send({ t: "hello", token });
+      if (token) this.send({ t: "hello", token, lang });
     };
     ws.onmessage = (ev) => {
       const msg = JSON.parse(String(ev.data)) as ServerMsg;
@@ -119,7 +120,7 @@ class Net {
 
   auth(mode: "login" | "register", handle: string, pass: string, faction?: Faction) {
     this.set({ authError: null });
-    this.send({ t: "auth", mode, handle, pass, faction });
+    this.send({ t: "auth", mode, handle, pass, faction, lang });
   }
 
   logout() {

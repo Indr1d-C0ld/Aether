@@ -182,7 +182,7 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
                     </div>
                     <div className="dim" style={{ fontSize: 13 }}>{b.tagline}</div>
                     <div className="faint" style={{ fontSize: 12 }}>
-                      {b.owner ? <span className="chip fac">{b.mine ? "il tuo" : `di ${b.owner}`} · fama {b.fame ?? 0}</span> : null} sysop {b.sysop} · {b.days ? `ci hai chiamato in ${b.days} giorn${b.days === 1 ? "o" : "i"} · sei «${BBS_LEVEL[b.level]}»` : "mai chiamato"}
+                      {b.owner ? <span className="chip fac">{b.mine ? "il tuo" : `di ${b.owner}`} · fama {b.fame ?? 0}</span> : null} sysop {b.sysop} · {b.days ? `${b.days === 1 ? "ci hai chiamato in un giorno" : `ci hai chiamato in ${b.days} giorni`} · sei «${BBS_LEVEL[b.level]}»` : "mai chiamato"}
                     </div>
                   </div>
                   <button className="btn" disabled={Boolean(b.locked) || Boolean(ctx.state.op)} onClick={() => void call(b)} title={b.locked ?? undefined}>
@@ -263,7 +263,7 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
               <div className="bbs-h">Il muro</div>
               {home.oneliners.slice(0, 6).map((o) => (
                 <div key={o.handle} className="bbs-line">
-                  <i>«{o.text}»</i> <span>{o.handle}</span>
+                  <i data-i18n-skip>«{o.text}»</i> <span>{o.handle}</span>
                 </div>
               ))}
               <form
@@ -345,15 +345,15 @@ export function BbsView({ ctx }: { ctx: DeckCtx }) {
 
       {screen.k === "thread" ? (
         <>
-          <div className="bbs-h">{screen.t.title}</div>
+          <div className="bbs-h" data-i18n-skip>{screen.t.title}</div>
           {screen.t.posts.map((p) => (
             <div key={p.n} className="bbs-post">
               <div className="bbs-post-head">
                 <b>#{p.n} {p.by}</b>
                 <span>{p.level} · {when(p.at)}</span>
               </div>
-              <pre className="bbs-pre">{p.body}</pre>
-              <div className="bbs-sig">-- {p.sig}</div>
+              <pre className="bbs-pre" data-i18n-skip>{p.body}</pre>
+              <div className="bbs-sig" data-i18n-skip>-- {p.sig}</div>
               {screen.t.canDelete ? (
                 <button className="bbs-key" onClick={() => void cmd("delete", { thread: screen.t.id, n: p.n }).then((d) => d && void openArea(screen.back))}>
                   rimuovi

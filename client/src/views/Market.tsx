@@ -44,7 +44,7 @@ export function BlackMarket({ ctx }: { ctx: DeckCtx }) {
                 <div>
                   <div>
                     {l.name} <span className="faint">{l.size} GQ · da {l.origin}</span>{" "}
-                    {l.wanted ? <span className="chip amber">richiesto da {l.wanted} contratt{l.wanted > 1 ? "i" : "o"}</span> : null}
+                    {l.wanted ? <span className="chip amber">{l.wanted > 1 ? `richiesto da ${l.wanted} contratti` : "richiesto da un contratto"}</span> : null}
                   </div>
                   <div className="faint" style={{ fontSize: 12 }}>
                     venduto da <span className="t-fac">{l.seller}</span> · scade alle {clockShort(l.expiresAt)}

@@ -506,8 +506,14 @@ export function gatewayPos(ip: string) {
   return { ...project(lon, lat), city };
 }
 
+/** Il formato di numeri e orari: italiano sul server; il client lo cambia secondo la lingua scelta (client/src/i18n.ts). */
+export let NUM_LOCALE = "it-IT";
+export function setNumLocale(l: string) {
+  NUM_LOCALE = l;
+}
+
 export function fmtCr(n: number) {
-  return `${Math.round(n).toLocaleString("it-IT")} CR`;
+  return `${Math.round(n).toLocaleString(NUM_LOCALE)} CR`;
 }
 
 export function latticeClock(ms: number) {

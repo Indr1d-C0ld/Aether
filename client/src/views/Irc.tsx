@@ -5,10 +5,11 @@ import type { IrcLine, IrcUser } from "../../../shared/types.ts";
 import { ircStore, type Win } from "../irc.ts";
 import { net } from "../net.ts";
 import { sfx } from "../audio.ts";
+import { NUM_LOCALE } from "../../../shared/rules.ts";
 
 const NICK_COLORS = ["#ff5c7a", "#ffb000", "#f6e05e", "#39ff88", "#2ef2ff", "#6ea8ff", "#c18cff", "#ff2bd6", "#7ee8c7", "#ffa36c", "#9be564", "#8fd3ff"];
 const colorOf = (nick: string) => NICK_COLORS[[...nick].reduce((q, c) => (q * 31 + c.charCodeAt(0)) >>> 0, 7) % NICK_COLORS.length]!;
-const hhmm = (t: number) => new Date(t).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+const hhmm = (t: number) => new Date(t).toLocaleTimeString(NUM_LOCALE, { hour: "2-digit", minute: "2-digit" });
 
 export function useIrc() {
   return useSyncExternalStore(ircStore.subscribe, ircStore.getSnapshot);
@@ -86,6 +87,7 @@ export function IrcView() {
         <WinList wins={s.wins} active={s.active} />
         <div className="irc-main">
           <div
+            data-i18n-skip
             className="irc-log"
             ref={scroller}
             onScroll={(e) => {

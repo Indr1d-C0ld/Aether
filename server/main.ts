@@ -306,9 +306,16 @@ wss.on("connection", (ws, req) => {
   let burst = 0;
   let burstAt = Date.now();
 
-  const bind = (id: string) => {
+  const bind = (id: string, lang?: unknown) => {
     agentId = id;
     conn.agentId = id;
+    // la lingua del giocatore: la sceglie nel client, il server la ricorda per i suoi messaggi
+    const a = game.agents.get(id)!;
+    const l = lang === "en" ? "en" : lang === "it" ? "it" : undefined;
+    if (l && a.lang !== l) {
+      a.lang = l;
+      game.touch("agent", id);
+    }
     onLogin(game.agents.get(id)!, ip);
     // la rete IRC parte quando il client la chiede (ircSync), per non mandare arretrati a chi non la apre
     if (!sockets.has(id)) sockets.set(id, new Set());
@@ -336,7 +343,7 @@ wss.on("connection", (ws, req) => {
       if (!id || !game.agents.has(id)) return send(ws, { t: "auth_err", error: "sessione scaduta" });
       const why = gate(game.agents.get(id)!);
       if (why) return send(ws, { t: "auth_err", error: why });
-      bind(id);
+      bind(id, msg.lang);
       send(ws, { t: "auth_ok", token: msg.token });
       return pushState(id, true);
     }
@@ -370,7 +377,7 @@ wss.on("connection", (ws, req) => {
         }
         game.flush();
         const token = store.issueToken(agent.id);
-        bind(agent.id);
+        bind(agent.id, msg.lang);
         send(ws, { t: "auth_ok", token });
         return pushState(agent.id, true);
       }
@@ -390,7 +397,7 @@ wss.on("connection", (ws, req) => {
       const why = gate(game.agents.get(id)!);
       if (why) return send(ws, { t: "auth_err", error: why });
       const token = store.issueToken(id);
-      bind(id);
+      bind(id, msg.lang);
       send(ws, { t: "auth_ok", token });
       return pushState(id, true);
     }

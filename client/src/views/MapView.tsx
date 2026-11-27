@@ -749,7 +749,7 @@ function NodePanel({ ctx, node }: { ctx: DeckCtx; node: NodeView }) {
                 {node.mySensor ? "Sensore attivo" : `Installa un sensore · ${fmtCr(SENSOR_COST)} (${me.sensors.length}/${socSensors(me.hw.soc)})`}
               </button>
             ) : null}
-            {node.sensors ? <span className="t-red" style={{ fontSize: 13 }}>Il tuo Monitor Bypass rileva {node.sensors} sensor{node.sensors === 1 ? "e" : "i"} su questo nodo.</span> : null}
+            {node.sensors ? <span className="t-red" style={{ fontSize: 13 }}>{node.sensors === 1 ? "Il tuo Monitor Bypass rileva un sensore su questo nodo." : `Il tuo Monitor Bypass rileva ${node.sensors} sensori su questo nodo.`}</span> : null}
           </div>
         )}
 

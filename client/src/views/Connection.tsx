@@ -173,7 +173,7 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
                 <ul style={{ margin: "4px 0 0", paddingLeft: 18, lineHeight: 1.6 }}>
                   {me.samples.map((x) => (
                     <li key={`${x.who}:${x.kind}`}>
-                      {x.kind} di {x.who} · buono ancora {Math.max(1, Math.ceil((x.expiresAt - ctx.serverNow) / 86400_000))} g
+                      {`${x.kind} di ${x.who} · buono ancora ${Math.max(1, Math.ceil((x.expiresAt - ctx.serverNow) / 86400_000))} g`}
                     </li>
                   ))}
                 </ul>
@@ -255,7 +255,7 @@ function Live({ ctx, op, elapsed }: { ctx: DeckCtx; op: OpView; elapsed: number 
             <div className="spread">
               <span>
                 <span className="t-red px" style={{ fontSize: 22 }}>
-                  {op.sensors} SENSOR{op.sensors === 1 ? "E" : "I"}
+                  {op.sensors === 1 ? "1 SENSORE" : `${op.sensors} SENSORI`}
                 </span>{" "}
                 su questo nodo: copiano ogni tua riga di log. Staccali prima di uscire e la copia di questa sessione va persa.
               </span>

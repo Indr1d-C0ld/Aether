@@ -2,9 +2,33 @@
 // REGOLA DI CASA: ogni modifica che un giocatore può notare aggiunge una voce in cima, con la data
 // e una riga per cosa. Scrivere per chi gioca, non per chi programma.
 
-export type DevEntry = { v: string; date: string; title: string; tags: string[]; items: string[] };
+/** `en`: la versione inglese, per chi gioca in inglese (dalla 0.29.0; le voci più vecchie restano in italiano). */
+export type DevEntry = { v: string; date: string; title: string; tags: string[]; items: string[]; en?: { title: string; items: string[] } };
 
 export const DEVLOG: DevEntry[] = [
+  {
+    v: "0.29.0",
+    date: "2026-11-27",
+    title: "AETHER anche in inglese",
+    tags: ["lingua"],
+    items: [
+      "Il gioco ora parla anche inglese: «IT» e «EN», in alto sulla pagina d'ingresso e nel deck, scelgono la lingua. La scelta resta in questo browser; l'handle e la partita sono gli stessi.",
+      "Chi gioca in italiano e chi gioca in inglese stanno nello stesso mondo, insieme: ognuno vede l'interfaccia nella sua lingua.",
+      "In inglese c'è quasi tutto: interfaccia, regole, oggetti, i 768 traguardi, e anche quello che scrive il mondo: posta, notifiche, contratti, Cronaca, abitanti, BBS, schede dei nodi. Resta in italiano l'IRC, che è una chat: lì ognuno scrive nella sua lingua.",
+      "Se una frase non è ancora tradotta resta in italiano: segnalala pure.",
+      "Corretti due difetti: un contratto di bonifico poteva indicare come titolare del conto «undefined», e i traguardi in crediti scrivevano «CR» due volte.",
+    ],
+    en: {
+      title: "AETHER in English",
+      items: [
+        "The game now speaks English too: «IT» and «EN», at the top of the access page and of the deck, pick the language. The choice stays in this browser; your handle and your game are the same.",
+        "Italian and English players share the same world, together: everyone sees the interface in their own language.",
+        "Almost everything is in English: interface, rules, items, all 768 achievements, and what the world writes too: mail, notifications, contracts, the Chronicle, residents, BBSes, node cards. IRC stays in Italian: it's a chat, and everyone writes in their own language there.",
+        "If a sentence isn't translated yet it stays in Italian: feel free to report it.",
+        "Two fixes: a wire-transfer contract could name the account holder as «undefined», and money achievements wrote «CR» twice.",
+      ],
+    },
+  },
   {
     v: "0.28.1",
     date: "2026-11-27",

@@ -204,6 +204,7 @@ type Agent = {
   staff?: boolean; // l'account dell'amministratore: fuori dalle classifiche
   ban?: { until: number; reason: string; by: string; at: number } | null; // until 0 = per sempre
   awaiting?: boolean; // iscrizione in attesa di approvazione
+  lang?: "it" | "en"; // la lingua scelta dal giocatore (per i messaggi del server)
   lastSeen?: number;
   lastIp?: string;
   ips?: string[];
@@ -1633,7 +1634,7 @@ export class Game {
     m.toAcct = b.number;
     m.amount = amount;
     m.title = `Bonifico fantasma: ${fmtCr(amount)}`;
-    m.brief = `${cap(pick(CLIENTS_RED))} vuole che ${fmtCr(amount)} passino dal conto di ${personById.get(a.personId)?.name} (presso ${bank.org}) al conto ${b.number}. Il numero del conto di partenza cercalo negli archivi della banca. Paga se alla consegna il movimento non è stato stornato: le banche indagano in fretta.`;
+    m.brief = `${cap(pick(CLIENTS_RED))} vuole che ${fmtCr(amount)} passino dal conto di ${personById.get(a.personId)?.name ?? a.holder ?? "un correntista"} (presso ${bank.org}) al conto ${b.number}. Il numero del conto di partenza cercalo negli archivi della banca. Paga se alla consegna il movimento non è stato stornato: le banche indagano in fretta.`;
     m.reward += 400 + Math.round(amount * 0.15);
     m.requires = this.secRequires(bank);
     this.addMods(m);

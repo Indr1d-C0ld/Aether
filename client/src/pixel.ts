@@ -1,6 +1,7 @@
 // Pixel art procedurale a bassa risoluzione (stile VGA 320×180), poi scalata senza filtri.
 import { darkness } from "../../shared/clock.ts";
 import type { NodeKind, NodeView } from "../../shared/types.ts";
+import { t as tr } from "./i18n.ts";
 export { gatewayPos } from "../../shared/rules.ts";
 
 export const MAP_W = 320;
@@ -272,7 +273,7 @@ export function drawMap(g: CanvasRenderingContext2D, base: HTMLCanvasElement, s:
     if (mx > 14 && mx < MAP_W - 14) {
       g.fillStyle = "rgba(255, 176, 0, 0.8)";
       g.font = "7px monospace";
-      g.fillText("☾ notte", mx - 12, 9);
+      g.fillText(tr("☾ notte"), mx - 12, 9);
     }
   }
   // dalle coordinate del mondo a quelle dell'inquadratura
@@ -314,7 +315,7 @@ export function drawMap(g: CanvasRenderingContext2D, base: HTMLCanvasElement, s:
       }
     g.fillStyle = "rgba(255, 176, 0, 0.9)";
     g.font = "7px monospace";
-    g.fillText("al buio", c.x - 12, c.y - r - 2);
+    g.fillText(tr("al buio"), c.x - 12, c.y - r - 2);
   }
   // traslochi: dalla vecchia sede alla nuova, una traccia tratteggiata e una croce dove non c'è più niente
   for (const n of s.nodes) {

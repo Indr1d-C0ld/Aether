@@ -340,6 +340,54 @@ Regola di casa: un minigioco **affianca** la barra, non la sostituisce. Chi non 
 
 Taratura (20.000 partite simulate di un giocatore che sonda solo caselle compatibili con gli indizi): vince nel 99,6% dei casi con lo strumento giusto e nel 97% a mano; breccia pulita 82-88% e 45-66%. Chi clicca a caso vince fra l'1% e il 12%. Un umano sta in mezzo: i numeri vanno riguardati con le partite vere (contatori `mg:grid`, `mg:gridclean`, `mg:gridmanual`, `mg:gridlost` nella panoramica dell'admin).
 
+## Due lingue nello stesso mondo (0.29.0)
+
+**Requisito.** Chi gioca in italiano e chi gioca in inglese stanno nello stesso mondo, nello stesso momento. Quindi
+la lingua è una proprietà di chi guarda, non del mondo: lo stato resta uno, e ogni testo si rende nella lingua del
+giocatore che lo legge.
+
+**Fase 1 (0.29.0): il client.** Il codice resta scritto in italiano. Il catalogo `client/src/i18n/en.json` va dalla frase
+italiana a quella inglese: circa 4.500 frasi esatte e 1.400 modelli con parti variabili (`{0}`, `{1}`…, riordinabili), compresi i testi del server.
+Il traduttore (`client/src/i18n.ts`) osserva il DOM con un `MutationObserver` e riscrive testi e attributi (`title`,
+`placeholder`, `aria-label`, `alt`) quando React li scrive o li aggiorna. Regole:
+- React scrive una frase con parti variabili in più nodi di testo vicini («ancora » + «3 h»). Per un elemento che
+  contiene solo testo si cerca prima la frase intera (il modello «ancora {0}» → «{0} left»), poi i pezzi uno per uno.
+  Di ogni nodo si ricorda l'originale scritto da React, perché a ogni aggiornamento la frase si ricompone.
+- Un modello con la parte variabile in fondo che traduce già il primo pezzo da solo non si usa sulla frase intera:
+  inghiottirebbe i pezzi seguenti.
+- Le parti variabili si traducono a loro volta (una parola del gioco dentro una frase: «in allerta», «Banca»).
+- Le desinenze attaccate a parte («contratt{i|o}») non si possono tradurre: nel codice le frasi si scrivono intere in
+  ogni ramo (`n === 1 ? "1 sistema" : \`${n} sistemi\``).
+- `data-i18n-skip` esclude ciò che scrivono i giocatori (IRC, messaggi e titoli dei BBS); i campi di testo non si
+  toccano, i loro placeholder sì. Le finestre di conferma e il canvas della mappa passano da `t()`.
+- Numeri, date e orari seguono la lingua (`NUM_LOCALE` in `shared/rules.ts`: `it-IT` sul server, `en-GB` nel client in
+  inglese).
+- Il catalogo si carica solo in inglese, in un file a parte (circa 165 kB compressi), prima del primo disegno.
+
+La lingua sta in `localStorage` (`aether.lang`, in mancanza quella del browser) e arriva al server con `hello` e
+`auth`: il server la ricorda sull'agente (`Agent.lang`) per la fase 2. Il dev-log ha una versione inglese facoltativa per
+voce (`en`), dalla 0.29.0.
+
+Strumenti: `scripts/i18n-extract.ts` raccoglie dal sorgente (parser di Rolldown) testi JSX, attributi leggibili,
+stringhe, modelli dalle template string e dagli elementi di solo testo; `scripts/i18n-merge.ts` unisce traduzioni nuove
+controllando i segnaposto; `scripts/i18n-crawl.ts` gira il gioco in inglese con Chromium (un rosso e un blu, ogni scheda
+e sottoscheda, una connessione) e raccoglie ciò che a schermo resta in italiano.
+
+**Fase 2 e 3 (0.29.0): i testi del server.** All'inizio il piano era far comporre al server ogni messaggio nella lingua
+del destinatario (fase 2) e generare in due lingue i testi del mondo (fase 3). Serviva toccare duemila punti del server,
+e i testi che leggono tutti (Cronaca, abitanti, contratti in bacheca) avrebbero avuto bisogno di due versioni. Si è
+scelta la stessa strada della fase 1: il server continua a scrivere in italiano, e lo stesso catalogo contiene anche i
+modelli ricavati dalle template string di `server/` (posta, notifiche, errori, contratti, Cronaca, abitanti, BBS, nodi).
+Il mondo resta uno solo, e la lingua resta di chi guarda. In più, per questi testi il traduttore:
+- divide un testo che non trova intero prima a righe, poi a periodi (la posta e le notizie sono pezzi messi insieme);
+- non lascia che una parte variabile scavalchi un a capo o la fine di un periodo;
+- traduce una frase presa da un elenco anche quando il server la mette in maiuscolo («Un ex dipendente»);
+- riscrive all'inglese i numeri dentro le parti variabili (1.500 CR → 1,500 CR), ma non gli indirizzi IP;
+- ricorda le traduzioni già fatte (fino a ventimila), perché i modelli sono qualche migliaio.
+
+Restano fuori l'IRC (una chat: ognuno scrive nella sua lingua, e i bot parlano italiano) e, naturalmente, ciò che
+scrivono i giocatori. `Agent.lang` resta sul server, per quello che un giorno vorrà sapere la lingua di un handle.
+
 ## Operazioni lunghe (0.27.0)
 
 `server/longops.ts`, regole in `shared/longops.ts`. Al più 2 operazioni per giocatore; ogni 6 ore (sul battito del mondo) ciascuna dà un esito e rischia di saltare.
@@ -624,7 +672,7 @@ Scelta di fondo: **niente riga di comando**. La libertà dentro un nodo si dà c
 
 ## Prossimi passi proposti
 
-Aggiornato al 26 novembre 2026 (0.27.0).
+Aggiornato al 27 novembre 2026 (0.29.0).
 
 1. **Grafica PixelLab**: sfondi di città per la schermata d'accesso, ritratti degli handle NPC, icone dei software in 32×32 a palette VGA, splash per le schede dei nodi.
 2. ~~Audio~~ (fatto, sintetizzato nel browser). La musica e gli effetti di PixelLab richiedono un abbonamento Tier 2: con quello si potrebbero aggiungere brani registrati da alternare a quelli generativi.
@@ -635,3 +683,4 @@ Aggiornato al 26 novembre 2026 (0.27.0).
 7. ~~APK Android~~ (fatto, 0.28: Trusted Web Activity con Bubblewrap, `android/`; APK allegato alle release su GitHub, `assetlinks.json` servito da `aether.conf`).
 8. **Sicurezza di rete**: ~~HTTPS/WSS dietro un proxy~~ (Apache su Balthasar), ~~limite di frequenza~~ (30 messaggi al secondo per connessione, tetti su accessi sbagliati e iscrizioni). ~~Scadenza dei token~~ (0.21.1: 30 giorni dall'ultimo uso, rinnovata a ogni accesso, `AETHER_SESSION_DAYS`; le sessioni scadute si cancellano a ogni nuovo accesso e all'avvio).
 9. **Proposta sandbox** del 25 novembre: completa (0.12-0.21). Seconda proposta del 26 novembre (imprevisti, effetto domino, nemesi e favori, territori, bottino con un contenuto, operazioni lunghe): completa (0.22-0.27).
+10. ~~Inglese~~ (fatto, 0.29: interfaccia, regole, traguardi e testi del server, con lo stesso catalogo; resta in italiano l'IRC). Vedi «Due lingue nello stesso mondo».

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { NewsKind, OrgView, WorldView } from "../../../shared/orgs.ts";
 import { EMERGENCY_AT, NEWS_LABEL } from "../../../shared/orgs.ts";
-import { KIND_LABEL, fmtCr } from "../../../shared/rules.ts";
+import { KIND_LABEL, fmtCr, NUM_LOCALE } from "../../../shared/rules.ts";
 import type { LawView } from "../../../shared/law.ts";
 import { MOOD_LABEL, RALLY_RATIO, SCANDAL_AT, TRUST_HIGH, TRUST_LOW } from "../../../shared/law.ts";
 import { net } from "../net.ts";
@@ -13,7 +13,7 @@ const day = (at: number, now: number) => {
   const d = Math.floor((new Date(now).setHours(0, 0, 0, 0) - new Date(at).setHours(0, 0, 0, 0)) / 86400_000);
   return d <= 0 ? "Oggi" : d === 1 ? "Ieri" : `${d} giorni fa`;
 };
-const hhmm = (at: number) => new Date(at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+const hhmm = (at: number) => new Date(at).toLocaleTimeString(NUM_LOCALE, { hour: "2-digit", minute: "2-digit" });
 const Bar = ({ v, tone }: { v: number; tone: string }) => (
   <span className="org-bar">
     <i style={{ width: `${Math.max(0, Math.min(100, v))}%`, background: `var(--${tone})` }} />

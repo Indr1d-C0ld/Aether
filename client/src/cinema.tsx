@@ -6,6 +6,7 @@ import type { GameState, OpView, TaskView } from "../../shared/types.ts";
 import { blip, sfx } from "./audio.ts";
 import { useFrame } from "./hooks.ts";
 import { art } from "./art.tsx";
+import { NUM_LOCALE } from "../../shared/rules.ts";
 
 // ------------------------------------------------------------ interruttore
 
@@ -178,7 +179,7 @@ export function CrackDisplay({ cracked, running, blocked }: { cracked: string | 
           <span>
             BRUTE FORCE · {cracked ? cells.filter((c) => !hid(c)).length : 0}/{cells.length}
           </span>
-          <span>{tries.toLocaleString("it-IT")} tentativi</span>
+          <span>{tries.toLocaleString(NUM_LOCALE)} tentativi</span>
         </div>
       ) : null}
     </div>
@@ -529,7 +530,7 @@ function ShotView({ s }: { s: Shot }) {
         <div className="cine-big px">
           <Decode text={s.title} ms={s.kind === "denied" || s.kind === "nocarrier" ? 150 : 450} />
         </div>
-        {s.kind === "money" && s.amount ? <div className="cine-amount px">{Math.round(s.amount * Math.min(1, k * 1.8)).toLocaleString("it-IT")} CR</div> : null}
+        {s.kind === "money" && s.amount ? <div className="cine-amount px">{Math.round(s.amount * Math.min(1, k * 1.8)).toLocaleString(NUM_LOCALE)} CR</div> : null}
         {s.sub ? <div className="cine-sub">{s.sub}</div> : null}
       </div>
     </div>

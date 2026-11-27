@@ -6,6 +6,8 @@
 
 **Deck d'intrusione multiplayer e persistente, rosso contro blu, sul Reticolo del 2039.**
 
+**Italiano** · [English](README.en.md)
+
 AETHER è una reinterpretazione moderna di *Uplink*, il simulatore di hacking del 2001, e un tributo al cinema hacker
 degli anni '80 e '90: *WarGames*, *Hackers*, *Johnny Mnemonic*, *Il tagliaerbe*. Non guidi un avatar: sei un handle
 in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordano tutto quello che non cancelli.
@@ -13,7 +15,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 ![Licenza GPL 3](https://img.shields.io/badge/licenza-GPL--3.0-blue)
 ![Node 26](https://img.shields.io/badge/node-26-brightgreen)
 ![PWA](https://img.shields.io/badge/client-PWA-ff2bd6)
-![Versione 0.28.1](https://img.shields.io/badge/versione-0.28.1-39ff88)
+![Versione 0.29.0](https://img.shields.io/badge/versione-0.29.0-39ff88)
 
 **Si gioca dal browser:** [timrouter.dns.army/aether](https://timrouter.dns.army/aether/) · novità nel [dev-log](#dev-log)
 
@@ -34,7 +36,7 @@ in una rete condivisa, dove i contratti pagano, il trace brucia e i log ricordan
 - [Dev-log](#dev-log)
 - [Avvio rapido](#avvio-rapido)
 - [Struttura](#struttura)
-- [Grafica](#grafica) · [Audio](#audio) · [PWA e Android](#pwa-e-android)
+- [Grafica](#grafica) · [Audio](#audio) · [PWA e Android](#pwa-e-android) · [Lingue](#lingue)
 - [Licenza](#licenza)
 
 ## Come si gioca
@@ -348,6 +350,7 @@ e si aggiorna a ogni modifica.
 
 | Versione | Data | Novità |
 |---|---|---|
+| 0.29.0 | 27 novembre 2026 | AETHER anche in inglese: interfaccia, traguardi e testi del mondo, per chi lo sceglie |
 | 0.28.1 | 27 novembre 2026 | Zoom libero sulla mappa: rotella, due dita, pulsanti |
 | 0.28.0 | 26 novembre 2026 | L'app Android |
 | 0.27.1 | 26 novembre 2026 | Talpe più robuste e meno care, dopo una misura su giorni simulati |
@@ -389,7 +392,7 @@ Serve Node 26 o successivo.
 
 ```bash
 git clone https://github.com/Indr1d-C0ld/Aether.git
-cd aether
+cd Aether
 npm install
 npm run dev        # server di gioco (porta 7077, con --watch) + Vite (porta 5173, o PORT)
 ```
@@ -496,6 +499,7 @@ Le regole e le scelte di progetto, sistema per sistema, sono in [DESIGN.md](DESI
 | `server/admin.ts` | Il pannello dell'amministratore |
 | `shared/achievements.ts`, `shared/progress.ts` | Traguardi; specializzazioni |
 | `shared/devlog.ts` | Le novità mostrate ai giocatori |
+| `client/src/i18n.ts`, `client/src/i18n/en.json` | La lingua: scelta, catalogo inglese, traduttore dei testi a schermo |
 | `server/worldgen.ts` | Generatore del mondo: circa 550 nodi di 14 tipi su 73 città, datori di lavoro e PC di casa dei cittadini |
 | `server/people.ts` | I 100 cittadini (generati da un seme fisso) che popolano anagrafe, casellario, atenei e banche |
 | `shared/depth.ts` | Rarità, exploit e chip, fama, etica, capi d'accusa e mandati, imprese |
@@ -535,6 +539,31 @@ L'app è una Trusted Web Activity generata con Bubblewrap: un guscio di pochi MB
 schermo, quindi è sempre aggiornata senza ripubblicarla. Il dominio la riconosce con
 `https://timrouter.dns.army/.well-known/assetlinks.json`, servito dalla configurazione Apache di AETHER.
 Come rigenerarla, compilarla e firmarla: [android/README.md](android/README.md).
+
+## Lingue
+
+Il gioco si gioca in **italiano** o in **inglese**: «IT» ed «EN», in alto sulla pagina d'ingresso e nel deck. Chi sceglie
+una lingua e chi sceglie l'altra giocano nello stesso mondo, insieme. La scelta resta nel browser (`aether.lang`) e
+arriva al server con l'accesso, che la ricorda per ogni handle.
+
+Il codice è scritto in italiano. Per l'inglese c'è un catalogo, [`client/src/i18n/en.json`](client/src/i18n/en.json), che va
+dalla frase italiana a quella inglese: frasi esatte e modelli con parti variabili (`"Calore {0}"` → `"Heat {0}"`). Il
+traduttore in [`client/src/i18n.ts`](client/src/i18n.ts) guarda la pagina e sostituisce i testi man mano che compaiono,
+attributi compresi (`title`, `placeholder`, `aria-label`); per un elemento fatto di solo testo cerca prima la frase intera,
+poi i pezzi. Quello che non è nel catalogo resta in italiano; i testi scritti dai giocatori (IRC, messaggi dei BBS) non si
+toccano. Il catalogo si carica solo in inglese.
+
+Il server scrive sempre in italiano: il catalogo contiene anche i modelli ricavati dai suoi testi (posta, notifiche,
+contratti, Cronaca, abitanti, BBS, schede dei nodi), e il client di chi gioca in inglese li traduce come il resto. Un testo
+che non si trova intero si traduce a righe e poi a periodi. Resta in italiano l'IRC, che è una chat.
+
+Per tenere il catalogo al passo:
+
+```bash
+node scripts/i18n-extract.ts mancanti.json     # le frasi di client, shared/ e server/ ancora senza traduzione
+node scripts/i18n-merge.ts tradotte.json       # unisce { exact, patterns } al catalogo
+node scripts/i18n-crawl.ts 7490 visti.json     # giro in inglese con Chromium: quello che resta in italiano a schermo
+```
 
 ## Licenza
 

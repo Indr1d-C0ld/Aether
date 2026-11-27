@@ -2,10 +2,11 @@
 // gli scambi di oggetti e i crediti mandati ad altri handle. Gli stessi gesti si fanno da IRC.
 import { useState } from "react";
 import type { CrewView } from "../../../shared/types.ts";
-import { fmtCr } from "../../../shared/rules.ts";
+import { fmtCr, NUM_LOCALE } from "../../../shared/rules.ts";
 import { rarityColor } from "../../../shared/depth.ts";
 import { net } from "../net.ts";
 import type { DeckCtx } from "./Deck.tsx";
+import { t } from "../i18n.ts";
 
 const left = (t: number, now: number) => {
   const s = Math.max(0, Math.round((t - now) / 1000));
@@ -66,7 +67,7 @@ export function SocialView({ ctx }: { ctx: DeckCtx }) {
                         <span className="t-green" style={{ fontSize: 11 }}> · {c.members.filter((m) => m.online).length} online</span>
                       </td>
                       <td className="px" style={{ fontSize: 20 }}>
-                        {c.score.toLocaleString("it-IT")}
+                        {c.score.toLocaleString(NUM_LOCALE)}
                       </td>
                     </tr>
                   ))}
@@ -152,7 +153,7 @@ function MyCrew({ c }: { c: CrewView }) {
                 {m.rank} · liv. {m.level}
               </span>
               {c.lead && m.handle !== c.leader ? (
-                <button className="btn small danger" onClick={() => confirm(`Espellere ${m.handle}?`) && void net.do("crewKick", { handle: m.handle })}>
+                <button className="btn small danger" onClick={() => confirm(t(`Espellere ${m.handle}?`)) && void net.do("crewKick", { handle: m.handle })}>
                   espelli
                 </button>
               ) : null}
@@ -186,9 +187,9 @@ function MyCrew({ c }: { c: CrewView }) {
         ) : null}
         <div className="spread">
           <span className="faint" style={{ fontSize: 12 }}>
-            Canale della crew: #{c.tag.toLowerCase()} · punteggio {c.score.toLocaleString("it-IT")}
+            Canale della crew: #{c.tag.toLowerCase()} · punteggio {c.score.toLocaleString(NUM_LOCALE)}
           </span>
-          <button className="btn small danger" onClick={() => confirm("Lasciare la crew?") && void net.do("crewLeave")}>
+          <button className="btn small danger" onClick={() => confirm(t("Lasciare la crew?")) && void net.do("crewLeave")}>
             Lascia
           </button>
         </div>

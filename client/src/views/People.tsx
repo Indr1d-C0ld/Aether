@@ -4,7 +4,7 @@ import type { NemesisView } from "../../../shared/nemesis.ts";
 import type { LongOpsView } from "../../../shared/longops.ts";
 import { COVER_COST, COVER_DAYS, MOLE_COST, MOLE_DAYS } from "../../../shared/longops.ts";
 import type { CitizenRow } from "../../../shared/citizens.ts";
-import { fmtCr } from "../../../shared/rules.ts";
+import { fmtCr, NUM_LOCALE } from "../../../shared/rules.ts";
 import { net } from "../net.ts";
 import type { DeckCtx } from "./Deck.tsx";
 
@@ -194,15 +194,15 @@ function NemesisPanel({ ctx }: { ctx: DeckCtx }) {
             </p>
             {n.moves.map((m, i) => (
               <div key={i} className="dim" style={{ fontSize: 13 }}>
-                <span className="faint">{new Date(m.at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}</span> · {m.text}
+                <span className="faint">{new Date(m.at).toLocaleTimeString(NUM_LOCALE, { hour: "2-digit", minute: "2-digit" })}</span> · {m.text}
               </div>
             ))}
             <div className="row" style={{ gap: 8 }}>
               <button className="btn small" disabled={credits < v.decoyCost} onClick={() => void run("decoy")} title="Più di metà delle volte ci casca: per dodici ore cerca altrove">
-                Depistalo · {v.decoyCost.toLocaleString("it-IT")} CR
+                Depistalo · {v.decoyCost.toLocaleString(NUM_LOCALE)} CR
               </button>
               <button className="btn small danger" disabled={credits < v.bribeCost} onClick={() => void run("bribe")} title="Accetta meno di metà delle volte: se rifiuta, lo mette a verbale">
-                Compralo · {v.bribeCost.toLocaleString("it-IT")} CR
+                Compralo · {v.bribeCost.toLocaleString(NUM_LOCALE)} CR
               </button>
             </div>
           </>
@@ -275,7 +275,7 @@ function LongOpsPanel({ ctx }: { ctx: DeckCtx }) {
             </div>
             {o.log.map((l, i) => (
               <div key={i} className="dim" style={{ fontSize: 12 }}>
-                <span className="faint">{new Date(l.at).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}</span> · {l.text}
+                <span className="faint">{new Date(l.at).toLocaleTimeString(NUM_LOCALE, { hour: "2-digit", minute: "2-digit" })}</span> · {l.text}
               </div>
             ))}
           </div>
@@ -283,8 +283,8 @@ function LongOpsPanel({ ctx }: { ctx: DeckCtx }) {
         {red && v.moles.length ? (
           <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
             {v.moles.map((m) => (
-              <button key={m.pid} className="btn small" disabled={full || credits < MOLE_COST} onClick={() => void run("mole", { pid: m.pid })} title={`Debiti per ${m.debt.toLocaleString("it-IT")} CR`}>
-                Talpa: {m.name} ({m.employer}) · {MOLE_COST.toLocaleString("it-IT")} CR
+              <button key={m.pid} className="btn small" disabled={full || credits < MOLE_COST} onClick={() => void run("mole", { pid: m.pid })} title={`Debiti per ${m.debt.toLocaleString(NUM_LOCALE)} CR`}>
+                Talpa: {m.name} ({m.employer}) · {MOLE_COST.toLocaleString(NUM_LOCALE)} CR
               </button>
             ))}
           </div>
@@ -294,7 +294,7 @@ function LongOpsPanel({ ctx }: { ctx: DeckCtx }) {
           <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
             {v.gangs.map((g) => (
               <button key={g.id} className="btn small" disabled={full || credits < COVER_COST} onClick={() => void run("cover", { gang: g.id })}>
-                Infiltrati: {g.name} · {COVER_COST.toLocaleString("it-IT")} CR
+                Infiltrati: {g.name} · {COVER_COST.toLocaleString(NUM_LOCALE)} CR
               </button>
             ))}
           </div>

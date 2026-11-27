@@ -5,6 +5,7 @@ import { BROKER_DAILY, INTEL_DESC, INTEL_FEE, INTEL_LISTING_H, INTEL_MAX_PRICE, 
 import { clockShort, fmtCr } from "../../../shared/rules.ts";
 import { net } from "../net.ts";
 import type { DeckCtx } from "./Deck.tsx";
+import { t } from "../i18n.ts";
 
 const KIND_CHIP: Record<IntelKind, string> = { cred: "red", addr: "amber", dial: "green", inner: "cyan", dossier: "violet" };
 
@@ -68,7 +69,7 @@ export function IntelMarket({ ctx }: { ctx: DeckCtx }) {
           ) : null}
           {hidden.map((h) => (
             <button key={h.k} className="btn small" style={{ justifySelf: "start" }} onClick={() => setFilter(h.k)}>
-              {INTEL_NAME[h.k]}: altr{h.n === 1 ? "a" : "e"} {h.n}
+              {INTEL_NAME[h.k]}: {h.n === 1 ? "un'altra" : `altre ${h.n}`}
             </button>
           ))}
           {pieces.length ? null : (
@@ -97,7 +98,7 @@ export function IntelMarket({ ctx }: { ctx: DeckCtx }) {
                   </div>
                   <div className="faint" style={{ fontSize: 12 }}>
                     da <span className={l.npc ? "" : "t-fac"}>{l.seller}</span>
-                    {l.npc ? " (abitante)" : ""} · {l.sold ? `${l.sold} copi${l.sold === 1 ? "a venduta" : "e vendute"} · ` : ""}ancora {Math.max(1, Math.ceil((l.until - ctx.serverNow) / 3600_000))} h
+                    {l.npc ? " (abitante)" : ""} · <span>{`${l.sold === 1 ? "una copia venduta · " : l.sold ? `${l.sold} copie vendute · ` : ""}ancora ${Math.max(1, Math.ceil((l.until - ctx.serverNow) / 3600_000))} h`}</span>
                   </div>
                 </div>
                 <div className="list" style={{ gap: 4, alignContent: "start", justifyItems: "end" }}>
@@ -191,7 +192,7 @@ function PieceRow({ p, price, setPrice, run }: { p: IntelPiece; price: string; s
               disabled={!p.snitch}
               title={p.snitchWhy ?? "tutti i blu sapranno dove trovarlo"}
               onClick={() => {
-                if (confirm(`Vendere alla Guardia l'indirizzo di ${p.title}? Tutti i blu sapranno dove trovarlo.`)) void run("snitch", { key: p.key });
+                if (confirm(t(`Vendere alla Guardia l'indirizzo di ${p.title}? Tutti i blu sapranno dove trovarlo.`))) void run("snitch", { key: p.key });
               }}
             >
               Alla Guardia{p.snitch ? ` · ${fmtCr(p.snitch)}` : ""}

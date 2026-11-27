@@ -5,6 +5,7 @@ import { drawRain, drawSkyline } from "../pixel.ts";
 import { sfx } from "../audio.ts";
 import { music } from "../music.ts";
 import { AudioToggles } from "./AudioToggles.tsx";
+import { LangToggle } from "./LangToggle.tsx";
 import { art } from "../art.tsx";
 
 /** L'APK dell'app Android, allegato all'ultima release su GitHub (android/README.md). */
@@ -54,7 +55,10 @@ export function Access({ snap }: { snap: Snapshot }) {
             <p className="label t-fac" style={{ margin: 0 }}>
               Reticolo · 2039
             </p>
-            <AudioToggles />
+            <div className="row" style={{ gap: 6, flexWrap: "nowrap" }}>
+              <LangToggle />
+              <AudioToggles />
+            </div>
           </div>
           <h1 className="logo glitch" data-text="AETHER">
             AETHER

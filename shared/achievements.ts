@@ -5,6 +5,8 @@
 // Le chiavi «$…» vengono dall'agente stesso (fama, XP, crediti), quelle che finiscono con «*» contano
 // i contatori con quel prefisso (es. «k:*» = tipi di nodo diversi violati).
 
+import { NUM_LOCALE } from "./rules.ts";
+
 export type AchCat = "intrusione" | "dati" | "denaro" | "contratti" | "esplorazione" | "sistemi" | "giustizia" | "difesa" | "mercato" | "sociale" | "carriera";
 
 export const ACH_CAT: Record<AchCat, string> = {
@@ -285,7 +287,7 @@ export function tracksFor(key: string) {
 export const ACH_TOTAL = TRACKS.length * 4;
 
 export function fmtGoal(t: Track, n: number) {
-  return n.toLocaleString("it-IT") + (t.money ? " CR" : "");
+  return n.toLocaleString(NUM_LOCALE) + (t.money ? " CR" : "");
 }
 
 /** Come si chiama ogni contatore nelle statistiche personali e globali. */
